@@ -8,5 +8,4 @@ class Foo {
     console.log(this.foo);
   }
     
-  
 }
