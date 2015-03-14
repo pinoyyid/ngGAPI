@@ -1,0 +1,174 @@
+{
+    "console": {
+        "@expanded": true,
+        "@height": "153",
+        "@maximized": "false",
+        "json()": {
+            "meta": {
+                "accessList": [
+                    "tab1",
+                    "tab2"
+                ]
+            },
+            "name": "pane1",
+            "nodes": [
+                {
+                    "type": "tab",
+                    "name": "tab1",
+                    "path": null,
+                    "className": [
+                        "tab1",
+                        "focus"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {},
+                        "filter": true,
+                        "title": "bash - \"discovery\"",
+                        "tooltip": "bash - \"discovery\"",
+                        "terminal": {
+                            "id": "devel_269",
+                            "cwd": "",
+                            "width": 1281,
+                            "height": 127
+                        }
+                    },
+                    "editorType": "terminal",
+                    "active": true
+                },
+                {
+                    "type": "tab",
+                    "name": "tab2",
+                    "path": null,
+                    "className": [
+                        "tab2"
+                    ],
+                    "document": {
+                        "meta": {},
+                        "filter": true,
+                        "title": "Immediate (Javascript (browser))",
+                        "tooltip": "Immediate (Javascript (browser))",
+                        "immediate": {
+                            "type": "jsbrowser",
+                            "history": [],
+                            "pos": 0
+                        },
+                        "changed": false
+                    },
+                    "editorType": "immediate",
+                    "active": false
+                }
+            ],
+            "skin": "editor_tab",
+            "skinset": "default",
+            "type": "pane"
+        }
+    },
+    "ext": {
+        "counters": {
+            "@ace": 1,
+            "@divider": 1,
+            "@document": 3,
+            "@form": 5,
+            "@immediate": 1,
+            "@menu": 3,
+            "@menuitem": 6,
+            "@pane": 2,
+            "@session": 2,
+            "@tab": 3,
+            "@undoManager": 3,
+            "@welcome": 1
+        }
+    },
+    "findinfiles": {
+        "@console": "true",
+        "@matchcase": "false",
+        "@regex": "false",
+        "@wholeword": "false"
+    },
+    "menus": {
+        "@minimized": "false"
+    },
+    "nak": {
+        "@installed": true
+    },
+    "panecycle": {
+        "json()": [
+            "tab1",
+            "tab0"
+        ]
+    },
+    "panels": {
+        "@active-left": "tree",
+        "commands.panel": {
+            "@enabled": "true",
+            "@name": "commands.panel"
+        },
+        "debugger": {
+            "@enabled": "true",
+            "@name": "debugger"
+        },
+        "navigate": {
+            "@enabled": "true",
+            "@name": "navigate"
+        },
+        "outline": {
+            "@enabled": "true",
+            "@name": "outline"
+        },
+        "tree": {
+            "@enabled": "true",
+            "@name": "tree"
+        }
+    },
+    "projecttree": {
+        "@showfs": true,
+        "expanded": {
+            "json()": [
+                "/"
+            ]
+        }
+    },
+    "tabs": {
+        "json()": {
+            "focus": "tab1",
+            "meta": {
+                "accessList": [
+                    "tab0"
+                ]
+            },
+            "name": "pane0",
+            "nodes": [
+                {
+                    "type": "tab",
+                    "name": "tab0",
+                    "path": null,
+                    "className": [
+                        "tab0"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "welcome": true,
+                            "timestamp": 1425957947395
+                        },
+                        "filter": true,
+                        "title": "Welcome",
+                        "tooltip": "bash - \"pinoyyid-delme-gh-1342534\"",
+                        "welcome": {}
+                    },
+                    "editorType": "welcome",
+                    "active": true
+                }
+            ],
+            "skin": "editor_tab",
+            "skinset": "default",
+            "type": "pane"
+        }
+    },
+    "tree_selection": {
+        "json()": [
+            "/"
+        ]
+    }
+}
