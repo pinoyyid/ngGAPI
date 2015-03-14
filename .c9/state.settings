@@ -1,7 +1,7 @@
 {
     "console": {
         "@expanded": true,
-        "@height": "153",
+        "@height": 308,
         "@maximized": "false",
         "json()": {
             "meta": {
@@ -17,20 +17,19 @@
                     "name": "tab1",
                     "path": null,
                     "className": [
-                        "tab1",
-                        "focus"
+                        "tab1"
                     ],
                     "document": {
                         "changed": false,
                         "meta": {},
                         "filter": true,
-                        "title": "bash - \"discovery\"",
-                        "tooltip": "bash - \"discovery\"",
+                        "title": "..ITREPOS/delme - \"discovery\"",
+                        "tooltip": "..ITREPOS/delme - \"discovery\"",
                         "terminal": {
                             "id": "devel_269",
                             "cwd": "",
                             "width": 1281,
-                            "height": 127
+                            "height": 282
                         }
                     },
                     "editorType": "terminal",
@@ -67,16 +66,17 @@
     "ext": {
         "counters": {
             "@ace": 1,
-            "@divider": 1,
-            "@document": 3,
+            "@acestatus": 1,
+            "@divider": 4,
+            "@document": 11,
             "@form": 5,
             "@immediate": 1,
-            "@menu": 3,
-            "@menuitem": 6,
+            "@menu": 5,
+            "@menuitem": 13,
             "@pane": 2,
-            "@session": 2,
-            "@tab": 3,
-            "@undoManager": 3,
+            "@session": 10,
+            "@tab": 11,
+            "@undoManager": 11,
             "@welcome": 1
         }
     },
@@ -94,8 +94,8 @@
     },
     "panecycle": {
         "json()": [
-            "tab1",
-            "tab0"
+            "tab5",
+            "tab1"
         ]
     },
     "panels": {
@@ -125,16 +125,27 @@
         "@showfs": true,
         "expanded": {
             "json()": [
-                "/"
+                "/",
+                "/test",
+                "/test/spec",
+                "/test/spec/controllers"
             ]
         }
     },
     "tabs": {
         "json()": {
-            "focus": "tab1",
+            "focus": "/Gruntfile.js",
             "meta": {
                 "accessList": [
-                    "tab0"
+                    "tab9",
+                    "tab8",
+                    "tab7",
+                    "tab6",
+                    "tab5",
+                    "tab4",
+                    "tab3",
+                    "tab0",
+                    "tab10"
                 ]
             },
             "name": "pane0",
@@ -158,7 +169,169 @@
                         "welcome": {}
                     },
                     "editorType": "welcome",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab3",
+                    "path": "/d",
+                    "className": [
+                        "tab3"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1426361850000
+                        },
+                        "filter": true,
+                        "title": "d",
+                        "tooltip": "/d",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab4",
+                    "path": "/f",
+                    "className": [
+                        "tab4"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1426362833000
+                        },
+                        "filter": true,
+                        "title": "f",
+                        "tooltip": "/f",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab5",
+                    "path": "/Gruntfile.js",
+                    "className": [
+                        "tab5",
+                        "focus"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1426362928605
+                        },
+                        "filter": true,
+                        "title": "Gruntfile.js",
+                        "tooltip": "/Gruntfile.js",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
                     "active": true
+                },
+                {
+                    "type": "tab",
+                    "name": "tab6",
+                    "path": "/bower.json",
+                    "className": [
+                        "tab6"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1426362997413
+                        },
+                        "filter": true,
+                        "title": "bower.json",
+                        "tooltip": "/bower.json",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab7",
+                    "path": "/test/karma.conf.js",
+                    "className": [
+                        "tab7",
+                        "changed"
+                    ],
+                    "document": {
+                        "changed": true,
+                        "meta": {
+                            "timestamp": 1425971707000
+                        },
+                        "filter": true,
+                        "title": "karma.conf.js",
+                        "tooltip": "/test/karma.conf.js",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab8",
+                    "path": "/test/spec/controllers/about.js",
+                    "className": [
+                        "tab8"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1425971707000
+                        },
+                        "filter": true,
+                        "title": "about.js",
+                        "tooltip": "/test/spec/controllers/about.js",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab9",
+                    "path": "/test/spec/controllers/main.js",
+                    "className": [
+                        "tab9"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1425971706000
+                        },
+                        "filter": true,
+                        "title": "main.js",
+                        "tooltip": "/test/spec/controllers/main.js",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab10",
+                    "path": "/package.json",
+                    "className": [
+                        "tab10"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1425971817000
+                        },
+                        "filter": true,
+                        "title": "package.json",
+                        "tooltip": "/package.json",
+                        "ace": {}
+                    },
+                    "editorType": "ace",
+                    "active": false
                 }
             ],
             "skin": "editor_tab",
@@ -168,7 +341,7 @@
     },
     "tree_selection": {
         "json()": [
-            "/"
+            "/Gruntfile.js"
         ]
     }
 }
