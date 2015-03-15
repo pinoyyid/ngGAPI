@@ -2,4 +2,6 @@
 dist
 .tmp
 .sass-cache
+.idea
+.c9
 #bower_components

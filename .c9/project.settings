@@ -6,7 +6,7 @@
         "@useSoftTabs": "true"
     },
     "build": {
-        "@builder": "ts3",
+        "@builder": "typescript",
         "@path": "/.c9/builders",
         "@saveall": true
     },

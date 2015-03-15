@@ -6,6 +6,7 @@
         "json()": {
             "meta": {
                 "accessList": [
+                    "tab6",
                     "tab1",
                     "tab2"
                 ]
@@ -28,12 +29,12 @@
                         "terminal": {
                             "id": "devel_269",
                             "cwd": "",
-                            "width": 1281,
-                            "height": 282
+                            "width": 0,
+                            "height": 0
                         }
                     },
                     "editorType": "terminal",
-                    "active": true
+                    "active": false
                 },
                 {
                     "type": "tab",
@@ -56,6 +57,33 @@
                     },
                     "editorType": "immediate",
                     "active": false
+                },
+                {
+                    "type": "tab",
+                    "name": "tab6",
+                    "path": null,
+                    "className": [
+                        "tab6"
+                    ],
+                    "document": {
+                        "changed": false,
+                        "meta": {
+                            "timestamp": 1426366184036
+                        },
+                        "filter": true,
+                        "title": "[New] - Idle",
+                        "tooltip": "[New] - Idle",
+                        "output": {
+                            "id": "build",
+                            "width": 1281,
+                            "height": 282,
+                            "config": {
+                                "debug": true
+                            }
+                        }
+                    },
+                    "editorType": "output",
+                    "active": true
                 }
             ],
             "skin": "editor_tab",
@@ -68,15 +96,16 @@
             "@ace": 1,
             "@acestatus": 1,
             "@divider": 4,
-            "@document": 11,
-            "@form": 5,
+            "@document": 19,
+            "@form": 4,
             "@immediate": 1,
             "@menu": 5,
             "@menuitem": 13,
             "@pane": 2,
-            "@session": 10,
-            "@tab": 11,
-            "@undoManager": 11,
+            "@preferences": 1,
+            "@session": 17,
+            "@tab": 10,
+            "@undoManager": 19,
             "@welcome": 1
         }
     },
@@ -94,8 +123,8 @@
     },
     "panecycle": {
         "json()": [
-            "tab5",
-            "tab1"
+            "tab6",
+            "tab8"
         ]
     },
     "panels": {
@@ -128,125 +157,46 @@
                 "/",
                 "/test",
                 "/test/spec",
-                "/test/spec/controllers"
+                "/test/spec/controllers",
+                "/nggapi-lib",
+                "/nggapi-lib/objects",
+                "/ts",
+                "/nggapi-lib/services"
             ]
         }
     },
+    "recentfiles": {
+        "json()": []
+    },
     "tabs": {
         "json()": {
-            "focus": "/Gruntfile.js",
+            "focus": "/nggapi-lib/objects/test.ts",
             "meta": {
                 "accessList": [
                     "tab9",
-                    "tab8",
                     "tab7",
-                    "tab6",
                     "tab5",
-                    "tab4",
-                    "tab3",
-                    "tab0",
-                    "tab10"
+                    "tab7",
+                    "tab8"
                 ]
             },
             "name": "pane0",
             "nodes": [
                 {
                     "type": "tab",
-                    "name": "tab0",
-                    "path": null,
-                    "className": [
-                        "tab0"
-                    ],
-                    "document": {
-                        "changed": false,
-                        "meta": {
-                            "welcome": true,
-                            "timestamp": 1425957947395
-                        },
-                        "filter": true,
-                        "title": "Welcome",
-                        "tooltip": "bash - \"pinoyyid-delme-gh-1342534\"",
-                        "welcome": {}
-                    },
-                    "editorType": "welcome",
-                    "active": false
-                },
-                {
-                    "type": "tab",
-                    "name": "tab3",
-                    "path": "/d",
-                    "className": [
-                        "tab3"
-                    ],
-                    "document": {
-                        "changed": false,
-                        "meta": {
-                            "timestamp": 1426361850000
-                        },
-                        "filter": true,
-                        "title": "d",
-                        "tooltip": "/d",
-                        "ace": {}
-                    },
-                    "editorType": "ace",
-                    "active": false
-                },
-                {
-                    "type": "tab",
-                    "name": "tab4",
-                    "path": "/f",
-                    "className": [
-                        "tab4"
-                    ],
-                    "document": {
-                        "changed": false,
-                        "meta": {
-                            "timestamp": 1426362833000
-                        },
-                        "filter": true,
-                        "title": "f",
-                        "tooltip": "/f",
-                        "ace": {}
-                    },
-                    "editorType": "ace",
-                    "active": false
-                },
-                {
-                    "type": "tab",
                     "name": "tab5",
-                    "path": "/Gruntfile.js",
+                    "path": "/nggapi-lib/objects/DriveFileInterfaces.ts",
                     "className": [
-                        "tab5",
-                        "focus"
+                        "tab5"
                     ],
                     "document": {
                         "changed": false,
                         "meta": {
-                            "timestamp": 1426362928605
+                            "timestamp": 1426368223803
                         },
                         "filter": true,
-                        "title": "Gruntfile.js",
-                        "tooltip": "/Gruntfile.js",
-                        "ace": {}
-                    },
-                    "editorType": "ace",
-                    "active": true
-                },
-                {
-                    "type": "tab",
-                    "name": "tab6",
-                    "path": "/bower.json",
-                    "className": [
-                        "tab6"
-                    ],
-                    "document": {
-                        "changed": false,
-                        "meta": {
-                            "timestamp": 1426362997413
-                        },
-                        "filter": true,
-                        "title": "bower.json",
-                        "tooltip": "/bower.json",
+                        "title": "DriveFileInterfaces.ts",
+                        "tooltip": "/nggapi-lib/objects/DriveFileInterfaces.ts",
                         "ace": {}
                     },
                     "editorType": "ace",
@@ -255,7 +205,7 @@
                 {
                     "type": "tab",
                     "name": "tab7",
-                    "path": "/test/karma.conf.js",
+                    "path": "/nggapi-lib/objects/DriveFileInterfaces.js",
                     "className": [
                         "tab7",
                         "changed"
@@ -263,11 +213,11 @@
                     "document": {
                         "changed": true,
                         "meta": {
-                            "timestamp": 1425971707000
+                            "timestamp": 1426367141000
                         },
                         "filter": true,
-                        "title": "karma.conf.js",
-                        "tooltip": "/test/karma.conf.js",
+                        "title": "DriveFileInterfaces.js",
+                        "tooltip": "/nggapi-lib/objects/DriveFileInterfaces.js",
                         "ace": {}
                     },
                     "editorType": "ace",
@@ -276,62 +226,44 @@
                 {
                     "type": "tab",
                     "name": "tab8",
-                    "path": "/test/spec/controllers/about.js",
+                    "path": null,
                     "className": [
                         "tab8"
                     ],
                     "document": {
                         "changed": false,
                         "meta": {
-                            "timestamp": 1425971707000
+                            "timestamp": 1426366702904
                         },
                         "filter": true,
-                        "title": "about.js",
-                        "tooltip": "/test/spec/controllers/about.js",
-                        "ace": {}
+                        "title": "Preferences",
+                        "preferences": {
+                            "activePanel": "preferences.general"
+                        }
                     },
-                    "editorType": "ace",
+                    "editorType": "preferences",
                     "active": false
                 },
                 {
                     "type": "tab",
                     "name": "tab9",
-                    "path": "/test/spec/controllers/main.js",
+                    "path": "/nggapi-lib/objects/test.ts",
                     "className": [
-                        "tab9"
+                        "tab9",
+                        "focus"
                     ],
                     "document": {
                         "changed": false,
                         "meta": {
-                            "timestamp": 1425971706000
+                            "timestamp": 1426368210000
                         },
                         "filter": true,
-                        "title": "main.js",
-                        "tooltip": "/test/spec/controllers/main.js",
+                        "title": "test.ts",
+                        "tooltip": "/nggapi-lib/objects/test.ts",
                         "ace": {}
                     },
                     "editorType": "ace",
-                    "active": false
-                },
-                {
-                    "type": "tab",
-                    "name": "tab10",
-                    "path": "/package.json",
-                    "className": [
-                        "tab10"
-                    ],
-                    "document": {
-                        "changed": false,
-                        "meta": {
-                            "timestamp": 1425971817000
-                        },
-                        "filter": true,
-                        "title": "package.json",
-                        "tooltip": "/package.json",
-                        "ace": {}
-                    },
-                    "editorType": "ace",
-                    "active": false
+                    "active": true
                 }
             ],
             "skin": "editor_tab",
@@ -341,7 +273,7 @@
     },
     "tree_selection": {
         "json()": [
-            "/Gruntfile.js"
+            "/nggapi-lib/objects/test.ts"
         ]
     }
 }
