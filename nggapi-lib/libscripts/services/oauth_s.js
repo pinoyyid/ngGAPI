@@ -1,4 +1,5 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
+/// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../objects/DriveFileInterfaces.ts"/>
 var NgGapi;
 (function (NgGapi) {
@@ -45,6 +46,7 @@ var NgGapi;
         OauthService.prototype.getAccessToken = function () {
             if (!this.isGapiLoaded()) {
                 this.$log.warn('[O55] waiting for the gapi script to download');
+                this.testStatus = 'O55';
                 return undefined;
             }
             if (!!this.$window['gapi'].auth.getToken()) {
@@ -62,28 +64,41 @@ var NgGapi;
          *  If isAuthInprogress, does nothing, but emits a console warning to help debug any issues where the callback wasn't invoked.
          */
         OauthService.prototype.refreshAccessToken = function () {
-            var _this = this;
             if (this.isAuthInProgress) {
                 this.$log.warn('[O75] refresh access token suppressed because there is already such a request in progress');
+                this.testStatus = 'O75';
                 return;
             }
             this.isAuthInProgress = true;
             if (!this.isGapiLoaded()) {
                 this.$log.warn('[O81] gapi not yet loaded');
+                this.testStatus = 'O81';
                 return;
             }
-            this.$window['gapi'].auth.authorize({
-                client_id: this.clientId,
-                scope: this.scopes,
-                immediate: this.isAuthedYet
-            }, function () {
-                _this.isAuthInProgress = false;
-                _this.isAuthedYet = true;
-                //console.log('authed');
-                // if app has requested auto-refresh, set up the timeout
-                if (_this.tokenRefreshPolicy == 1 /* PRIOR_TO_EXPIRY */) {
-                }
-            });
+            this.$window['gapi'].auth.authorize({ client_id: this.clientId, scope: this.scopes, immediate: this.isAuthedYet }, this.refreshCallback); // callback invoked when gapi refresh returns with a new token
+        };
+        /**
+         * called when gapi.auth.authorize returns
+         * Reports an error if no token.
+         *
+         * Sets up an auto refresh if required
+         */
+        OauthService.prototype.refreshCallback = function () {
+            this.isAuthInProgress = false;
+            this.isAuthedYet = true;
+            //console.log('authed');
+            var token = this.$window['gapi'].auth.getToken();
+            if (!token) {
+                this.$log.error('[O99] There is a problem that authorize has returned without an access token. Poss. access denied by user? ');
+                return;
+            }
+            // if app has requested auto-refresh, set up the timeout to refresh
+            if (this.tokenRefreshPolicy == 1 /* PRIOR_TO_EXPIRY */) {
+                var expiry = token.expires_in;
+                this.$log.log('[O120] token will refresh after ' + expiry * 950 + 'ms');
+                setTimeout(this.refreshAccessToken, expiry * 950); // refresh after 95% of the validity
+                this.testStatus = 'O120';
+            }
         };
         OauthService.prototype.isGapiLoaded = function () {
             return (this.$window['gapi'] && this.$window['gapi'].auth);

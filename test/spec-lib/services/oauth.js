@@ -1,7 +1,5 @@
 'use strict';
 
-'use strict';
-
 describe('Service: OauthService', function () {
 
   // load the service's module
@@ -68,7 +66,6 @@ describe('Service: OauthService', function () {
     expect(OauthService.isAuthInProgress).toBeTruthy();
   });
 
-
   it('should return undefined and set testStatus to indicate no gapi for getAccessToken', function () {
     $window.gapi.auth = undefined;
     expect(OauthService.getAccessToken()).toBeUndefined();
@@ -84,6 +81,12 @@ describe('Service: OauthService', function () {
     expect(OauthService.testStatus).toEqual('O75');
   });
 
+  it('should set up a timeout to refresh the token', function () {
+    $window.gapi.auth.getToken = function () {return {access_token: "my_at", expires_in: 3600}};
+    OauthService.tokenRefreshPolicy = NgGapi.TokenRefreshPolicy.PRIOR_TO_EXPIRY;
+    OauthService.refreshCallback();
+    expect(OauthService.testStatus).toEqual('O120');
+  });
 
 });
 
