@@ -69,5 +69,21 @@ describe('Service: OauthService', function () {
   });
 
 
+  it('should return undefined and set testStatus to indicate no gapi for getAccessToken', function () {
+    $window.gapi.auth = undefined;
+    expect(OauthService.getAccessToken()).toBeUndefined();
+    expect(OauthService.testStatus).toEqual('O55');
+  });
+
+  it('should return undefined and set testStatus to indicate no gapi for refreshAccessToken', function () {
+    $window.gapi.auth = undefined;
+    OauthService.refreshAccessToken();
+    expect(OauthService.testStatus).toEqual('O81');
+    OauthService.isAuthInProgress = true;
+    OauthService.refreshAccessToken();
+    expect(OauthService.testStatus).toEqual('O75');
+  });
+
+
 });
 
