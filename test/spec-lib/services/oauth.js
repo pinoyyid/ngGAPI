@@ -19,16 +19,15 @@ describe('Service: OauthService', function () {
       OauthServiceProvider.setClientID('1234');
       OauthServiceProvider.setTokenRefreshPolicy(NgGapi.TokenRefreshPolicy.ON_DEMAND);
     });
-  console.log(1,NgGapi);
-  console.log(1,NgGapi.OauthService);
-  console.log(1,NgGapi.OauthService.scopes);
   beforeEach(inject(function (_OauthService_) {
-    console.log(2,NgGapi);
     OauthService= _OauthService_;
   }));
 
   // Set up the mock window service so we can dump a mock gapi onto it
   beforeEach(inject(function($injector) {
+    //var myInjector = angular.injector(["ng"]);
+    //var $log = myInjector.get("$log");
+    //$window = myInjector.get("$window");
     $window = $injector.get('$window');
     $window.gapi = {auth:{}};
     $window.gapi.auth.getToken = function (token2return) {return token2return};
@@ -47,6 +46,26 @@ describe('Service: OauthService', function () {
 
   it('should have the scopes correctly set', function () {
     expect(OauthService.scopes).toBe('drive.file');
+  });
+
+  it('should find gapi loaded', function () {
+    expect(OauthService.isGapiLoaded()).toBeTruthy();
+  });
+
+  it('should find gapi not loaded', function () {
+    $window.gapi = undefined;
+    expect(OauthService.isGapiLoaded()).toBeFalsy();
+  });
+
+  it('should return an access token', function () {
+    $window.gapi.auth.getToken = function () {return {access_token: "my_at"}};
+    expect(OauthService.getAccessToken()).toEqual("my_at");
+  });
+
+  it('should return undefined and refresh the token', function () {
+    $window.gapi.auth.getToken = function () {return undefined};
+    expect(OauthService.getAccessToken()).toBeUndefined();
+    expect(OauthService.isAuthInProgress).toBeTruthy();
   });
 
 

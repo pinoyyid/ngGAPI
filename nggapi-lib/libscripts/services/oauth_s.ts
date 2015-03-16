@@ -37,9 +37,9 @@ module NgGapi {
      * @param $window
      */
     constructor(private scopes:string, private clientId:string, private tokenRefreshPolicy, private $log:ng.ILogService, private $window:ng.IWindowService) {
-      console.log("OAuth instantiated with " + scopes);
-      $log.log("scopes", this.scopes);
-      $log.log("trp", this.tokenRefreshPolicy);
+      //console.log("OAuth instantiated with " + scopes);
+      //$log.log("scopes", this.scopes);
+      //$log.log("trp", this.tokenRefreshPolicy);
     }
 
 
@@ -53,7 +53,7 @@ module NgGapi {
     getAccessToken():string {
       if (!this.isGapiLoaded()) {
         this.$log.warn('[O55] waiting for the gapi script to download');
-        return;
+        return undefined;
       }
       if (!!this.$window['gapi'].auth.getToken()) {
         return this.$window['gapi'].auth.getToken()['access_token'];
@@ -88,7 +88,7 @@ module NgGapi {
       }, () => {                    // callback invoked when gapi refresh returns with a new token
         this.isAuthInProgress = false;
         this.isAuthedYet = true;
-        console.log('authed');
+        //console.log('authed');
 
         // if app has requested auto-refresh, set up the timeout
         if (this.tokenRefreshPolicy == TokenRefreshPolicy.PRIOR_TO_EXPIRY) {
@@ -100,7 +100,7 @@ module NgGapi {
 
 
     isGapiLoaded():boolean {
-      return !this.$window['gapi'] || !this.$window['gapi'].auth;
+      return (this.$window['gapi'] && this.$window['gapi'].auth);
     }
   }
 }
