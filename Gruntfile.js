@@ -347,11 +347,18 @@ module.exports = function (grunt) {
 
     // Test settings
     karma: {
+      // test the demo app
       unit: {
         configFile: 'test/karma.conf.js',
         singleRun: true
+      },
+      // test the ngGAPI library
+      unitlib: {
+        configFile: 'test/karma-lib.conf.js',
+        singleRun: true
       }
     }
+
   });
 
 
@@ -381,6 +388,15 @@ module.exports = function (grunt) {
     'autoprefixer',
     'connect:test',
     'karma'
+  ]);
+  grunt.registerTask('ikarmalib', [
+    ]);
+
+  grunt.registerTask('testlib', [
+    'clean:server',
+    'concurrent:test',
+    'connect:test',
+    'karma:unitlib'
   ]);
 
   grunt.registerTask('build', [

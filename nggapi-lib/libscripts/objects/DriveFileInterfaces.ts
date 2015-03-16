@@ -1,17 +1,17 @@
 /*
-* Interface definition for the Drive.File resource.
-* See https://developers.google.com/drive/v2/reference/files
-*
-* NB this is the manually coded version. This should be replaced by 
-* an auto-generated version once the generator is written.
-*/
+ * Interface definition for the Drive.File resource.
+ * See https://developers.google.com/drive/v2/reference/files
+ *
+ * NB this is the manually coded version. This should be replaced by
+ * an auto-generated version once the generator is written.
+ */
 
 
 module NgGapiDrive {
 
   /**
-  * Definition of the list object returned by a Files.List method
-  */
+   * Definition of the list object returned by a Files.List method
+   */
   export interface IDriveList {
     kind: string;
     etag: string;
@@ -22,8 +22,8 @@ module NgGapiDrive {
   }
 
   /**
-  * Definition of the Drive.File resource
-  */
+   * Definition of the Drive.File resource
+   */
   export interface IDriveFile {
     kind?: string;
     id?: string;

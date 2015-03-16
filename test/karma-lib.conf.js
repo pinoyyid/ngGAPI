@@ -5,7 +5,10 @@
 
 
 
-// THIS IS THE KARMA.CONF FOR THE DEMO APP
+
+
+
+/// THIS IS THE KARMA.CONF FOR THE LIBRARY PROPER
 
 module.exports = function(config) {
   'use strict';
@@ -22,13 +25,13 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'bower_components/angular/angular.js',
+      'bower_components/angular-1.4.0-beta.5/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
-      'bower_components/angular-route/angular-route.js',
       'bower_components/angular-sanitize/angular-sanitize.js',
-      'demo-app/scripts/**/*.js',
+      'nggapi-lib/libscripts/**/*.js',
+      'nggapi-lib/appscripts/**/*.js',
       'test/mock/**/*.js',
-      'test/spec/**/*.js'
+      'test/spec-lib/**/*.js'
     ],
 
     // list of files / patterns to exclude
