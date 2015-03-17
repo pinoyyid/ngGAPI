@@ -44,7 +44,8 @@ module NgGapi {
     constructor(private scopes:string, private clientId:string, private tokenRefreshPolicy, private $log:ng.ILogService, private $window:ng.IWindowService) {
       //console.log("OAuth instantiated with " + scopes);
       //$log.log("scopes", this.scopes);
-      //$log.log("trp", this.tokenRefreshPolicy);
+      //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
+      console.log('oauth cons');
     }
 
 
@@ -82,13 +83,15 @@ module NgGapi {
         this.testStatus = 'O75';
         return;
       }
-      this.isAuthInProgress = true;
 
       if (!this.isGapiLoaded()) {
         this.$log.warn('[O81] gapi not yet loaded');
         this.testStatus = 'O81';
         return;
       }
+
+      this.isAuthInProgress = true;
+
       this.$window['gapi'].auth.authorize(
         {client_id:  this.clientId,
         scope:      this.scopes,

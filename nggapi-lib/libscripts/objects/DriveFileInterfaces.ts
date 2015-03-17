@@ -7,7 +7,7 @@
  */
 
 
-module NgGapiDrive {
+module NgGapi{
 
   /**
    * Definition of the list object returned by a Files.List method

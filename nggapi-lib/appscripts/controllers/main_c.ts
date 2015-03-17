@@ -2,10 +2,16 @@
 
 class MainCtrl {
 	sig = 'MainCtrl';
-	static $inject = ['$scope', '$log', 'OauthService'];
+  filetitle:string = 'foo';
+	static $inject = ['$scope', '$log', 'OauthService', 'DriveService'];
 	//constructor(local $scope, local $log) {
-	constructor(private $scope, private $log, private OauthService) {
+	constructor(private $scope, private $log, private OauthService, private DriveService) {
 		$scope.vm = this;
+    DriveService.doGet().then((data)=>{
+      console.log("controller then");
+      this.filetitle = data.title;
+    });
+
 	}
 }
 

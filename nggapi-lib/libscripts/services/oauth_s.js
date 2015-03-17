@@ -34,7 +34,8 @@ var NgGapi;
             this.isAuthedYet = false; // first time flag, used to set immediate mode
             //console.log("OAuth instantiated with " + scopes);
             //$log.log("scopes", this.scopes);
-            //$log.log("trp", this.tokenRefreshPolicy);
+            //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
+            console.log('oauth cons');
         }
         /**
          * return an access token. Normally simply calls gapi.auth.getToken(). If that returns undefined, then
@@ -69,12 +70,12 @@ var NgGapi;
                 this.testStatus = 'O75';
                 return;
             }
-            this.isAuthInProgress = true;
             if (!this.isGapiLoaded()) {
                 this.$log.warn('[O81] gapi not yet loaded');
                 this.testStatus = 'O81';
                 return;
             }
+            this.isAuthInProgress = true;
             this.$window['gapi'].auth.authorize({ client_id: this.clientId, scope: this.scopes, immediate: this.isAuthedYet }, this.refreshCallback); // callback invoked when gapi refresh returns with a new token
         };
         /**

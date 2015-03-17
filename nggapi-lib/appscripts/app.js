@@ -6,8 +6,8 @@ var myApp = angular
 
 myApp.provider('OauthService', NgGapi.Config)
   .config(function (OauthServiceProvider) {
-    OauthServiceProvider.setScopes('drive.file');
-    OauthServiceProvider.setClientID('1234');
+    OauthServiceProvider.setScopes('https://www.googleapis.com/auth/drive.file');
+    OauthServiceProvider.setClientID('700995682262-2kk81vdcu8j83j0ahjmk84u1drcbg5di.apps.googleusercontent.com');
     OauthServiceProvider.setTokenRefreshPolicy(NgGapi.TokenRefreshPolicy.ON_DEMAND);
 });
 

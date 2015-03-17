@@ -5,14 +5,26 @@
   <title>minimal html and app used to instantiate the ngGAPI scripts during development</title>
 </head>
 <body ng-app="MyApp">
-<div ng-controller="MainCtrl">
-  Sig {{vm.sig}}
-  Oauth Sig {{vm.OauthService.sig}}
-</div>
+  <div ng-controller="MainCtrl">
+    Sig {{vm.sig}}<br>
+    Oauth Sig {{vm.OauthService.sig}}<br>
+    Drive Sig {{vm.DriveService.sig}}<br>
+    title {{vm.filetitle}}<br>
+  </div>
+
+  <script>
+    function init () {
+      console.log('...LOADED')
+    }
+
+  </script>
+<script src="https://apis.google.com/js/auth.js" type="text/javascript"></script>
 <script src="../bower_components/angular-1.4.0-beta.5/angular.js"></script>
 <script src="../bower_components/angular-1.4.0-beta.5/angular-sanitize.js"></script>
 <script src="libscripts/services/oauth_s.js"></script>
 <script src="appscripts/app.js"></script>
+<script src="libscripts/services/http_s.js"></script>
+<script src="libscripts/services/drive_s.js"></script>
 <script src="appscripts/controllers/main_c.js"></script>
 </body>
 </html>

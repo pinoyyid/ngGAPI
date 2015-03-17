@@ -8,12 +8,13 @@
 
 module NgGapi {
 	/**
-	 * Interface definition for the OauthService. Mostly useful for a mock service
+	 * Interface definition for the HttpService. Mostly useful for a mock service
 	 */
 	export interface IHttpService {
+    doHttp(configObject: IHttpConfigObject):ng.IPromise<any>;
 	}
 
-	interface IHttpConfigObject {
+	export interface IHttpConfigObject {
 		method: string;
 		url: string;
 		params ? : any;
@@ -36,6 +37,7 @@ module NgGapi {
 
 		static $inject = ['$log', '$http', '$timeout', '$q', 'OauthService'];
 		constructor(private $log:ng.ILogService, private $http:ng.IHttpService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private OauthService:IOauthService) {
+      console.log('http cvons');
 		}
 
 		/**
@@ -48,7 +50,7 @@ module NgGapi {
 		 */
 		doHttp(configObject:IHttpConfigObject): ng.IPromise < any > {
 			var def = this.$q.defer();
-			this._doHttp(configObject, def, 5);
+			this._doHttp(configObject, def, 10);
 			return def.promise;
 		}
 
@@ -94,13 +96,16 @@ module NgGapi {
 				return;
 			}
 
+
+      // TODO THERE IS A LOGIC BUG THAT IS CAUSING THE $HTTP TO SUCCEED TWICE
+
 			// 401 - get new access token
 			// retry after 0.5s
 			if (status == 401) { // 401 need to refresh the token and then retry
 				console.warn("Need to acquire a new Access Token and resubmit");
 				this.OauthService.refreshAccessToken();
 				if (--retryCounter > 0) { // number of retries set by caller
-					this.sleep(500).then(() => {
+					this.sleep(2000).then(() => {
 						this._doHttp(configObject, def, retryCounter);
 					})
 				} else {
@@ -155,3 +160,6 @@ module NgGapi {
 		}
 	}
 }
+
+angular.module('MyApp')
+  .service('HttpService',NgGapi.HttpService );
