@@ -28,8 +28,9 @@ module.exports = function(config) {
       'bower_components/angular-1.4.0-beta.5/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
       'bower_components/angular-sanitize/angular-sanitize.js',
-      'nggapi-lib/libscripts/**/*.js',
+      'nggapi-lib/libscripts/services/oauth_s.js',
       'nggapi-lib/appscripts/**/*.js',
+      'nggapi-lib/libscripts/**/*.js',
       'test/mock/**/*.js',
       'test/spec-lib/**/*.js'
     ],
