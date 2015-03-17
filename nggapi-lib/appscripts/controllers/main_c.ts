@@ -2,9 +2,9 @@
 
 class MainCtrl {
 	sig = 'MainCtrl';
-	static $inject = ['$scope', '$log', 'oauthService'];
+	static $inject = ['$scope', '$log', 'OauthService'];
 	//constructor(local $scope, local $log) {
-	constructor(private $scope, private $log, private oauthService) {
+	constructor(private $scope, private $log, private OauthService) {
 		$scope.vm = this;
 	}
 }

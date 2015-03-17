@@ -1,31 +1,17 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../objects/DriveFileInterfaces.ts"/>
+/// <reference path="oauth_s.ts"/>
 
 
 
 
 module NgGapi {
-  /**
-   * Interface definition for the OauthService. Mostly useful for a mock service
-   */
-  export interface IOauthService {
-    getAccessToken(): string;
-    refreshAccessToken(): void;
-  }
-
-  /**
-   * an Enum to define the different refresh token behaviours
-   */
-  export enum TokenRefreshPolicy {
-    ON_DEMAND,            // token will be refreshed after a 401
-    PRIOR_TO_EXPIRY       // token will be refreshed shortly prior to expiration using a setTimeout
-  }
 
   /**
    * The OAuth service
    */
-  export class OauthService implements IOauthService {
+  export class MockOauthService implements IOauthService {
     sig = 'OauthService';               // used in unit testing to confirm DI
     isAuthInProgress = false;           // true if there is an outstanding auth (ie. refresh token) in progress to prevent multiples
     isAuthedYet = false;                // first time flag, used to set immediate mode
@@ -56,17 +42,7 @@ module NgGapi {
      * @return the access token string
      */
     getAccessToken():string {
-      if (!this.isGapiLoaded()) {
-        this.$log.warn('[O55] waiting for the gapi script to download');
-        this.testStatus = 'O55';
-        return undefined;
-      }
-      if (!!this.$window['gapi'].auth.getToken()) {
-        return this.$window['gapi'].auth.getToken()['access_token'];
-      } else {
-        this.refreshAccessToken();
-        return undefined;
-      }
+      return 'mock_at';
     }
 
 
@@ -77,55 +53,7 @@ module NgGapi {
      *  If isAuthInprogress, does nothing, but emits a console warning to help debug any issues where the callback wasn't invoked.
      */
     refreshAccessToken() {
-      if (this.isAuthInProgress) {
-        this.$log.warn('[O75] refresh access token suppressed because there is already such a request in progress');
-        this.testStatus = 'O75';
-        return;
-      }
-      this.isAuthInProgress = true;
-
-      if (!this.isGapiLoaded()) {
-        this.$log.warn('[O81] gapi not yet loaded');
-        this.testStatus = 'O81';
-        return;
-      }
-      this.$window['gapi'].auth.authorize(
-        {client_id:  this.clientId,
-        scope:      this.scopes,
-        immediate:  this.isAuthedYet},
-        this.refreshCallback);                    // callback invoked when gapi refresh returns with a new token
-    }
-
-
-    /**
-     * called when gapi.auth.authorize returns
-     * Reports an error if no token.
-     *
-     * Sets up an auto refresh if required
-     */
-    refreshCallback() {
-      this.isAuthInProgress = false;
-      this.isAuthedYet = true;
-      //console.log('authed');
-
-      var token:GoogleApiOAuth2TokenObject = this.$window['gapi'].auth.getToken();
-      if (!token) {
-        this.$log.error('[O99] There is a problem that authorize has returned without an access token. Poss. access denied by user? ');
-        return;
-      }
-
-      // if app has requested auto-refresh, set up the timeout to refresh
-      if (this.tokenRefreshPolicy == TokenRefreshPolicy.PRIOR_TO_EXPIRY) {
-        var expiry:number = token.expires_in;
-        this.$log.log('[O120] token will refresh after '+expiry*950+'ms');
-        setTimeout(this.refreshAccessToken, expiry*950);              // refresh after 95% of the validity
-        this.testStatus = 'O120';
-      }
-    }
-
-
-    isGapiLoaded():boolean {
-      return (this.$window['gapi'] && this.$window['gapi'].auth);
+      this.$log.warn('[MO56] refreshing');
     }
   }
 }

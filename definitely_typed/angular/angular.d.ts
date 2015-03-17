@@ -550,7 +550,7 @@ declare module ng {
 
         aHrefSanitizationWhitelist(): RegExp;
         aHrefSanitizationWhitelist(regexp: RegExp): ICompileProvider;
-        
+
         imgSrcSanitizationWhitelist(): RegExp;
         imgSrcSanitizationWhitelist(regexp: RegExp): ICompileProvider;
     }
@@ -630,7 +630,7 @@ declare module ng {
     }
 
     interface IHttpPromiseCallback<T> {
-        (data: T, status: number, headers: (headerName: string) => string, config: IRequestConfig): void;
+        (data: T, status: number, headers: (headerName: string) => string, config: IRequestConfig, statusText: string): void;
     }
 
     interface IHttpPromiseCallbackArg<T> {
@@ -846,7 +846,7 @@ declare module ng {
             annotate(fn: Function): string[];
             annotate(inlineAnnotatedFunction: any[]): string[];
             get(name: string): any;
-            has(name: string): boolean; 
+            has(name: string): boolean;
             instantiate(typeConstructor: Function, locals?: any): any;
             invoke(inlineAnnotatedFunction: any[]): any;
             invoke(func: Function, context?: any, locals?: any): any;
