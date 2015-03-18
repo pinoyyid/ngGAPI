@@ -14,17 +14,27 @@ var NgGapi;
             this.$q = $q;
             this.HttpService = HttpService;
             this.sig = 'DriveService'; // used in unit testing to confirm DI
+            this.files = { self: this, filesGet: this.filesGet };
             console.log('drive cvons');
         }
-        DriveService.prototype.doGet = function () {
+        DriveService.prototype.filesGet = function () {
             var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
             var co = { method: 'GET', url: 'https://www.googleapis.com/drive/v2/files/' + id };
-            var promise = this.HttpService.doHttp(co);
+            console.log(this);
+            //debugger;
+            var promise = this.self.HttpService.doHttp(co);
+            //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
+            var responseObject = { promise: promise, data: { title: "not yet", foo: "bar" }, headers: {} };
             promise.then(function (data) {
-                console.log('service then ' + data.title);
+                responseObject.data.title = data.title;
+                console.log('service then ' + responseObject.data.title);
             });
-            return promise;
+            return responseObject;
         };
+        //}
+        //export module DriveService{
+        //  var foo = 123;
+        //  export class files {
         DriveService.$inject = ['$log', '$timeout', '$q', 'HttpService'];
         return DriveService;
     })();

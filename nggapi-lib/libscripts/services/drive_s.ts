@@ -18,24 +18,41 @@ module NgGapi {
 	 * The Drive service.
 	 */
 	export class DriveService implements IDriveService {
-		sig = 'DriveService';                // used in unit testing to confirm DI
+    sig = 'DriveService';                // used in unit testing to confirm DI
 
-		testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
+    testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
-		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
-		constructor(private $log:ng.ILogService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private HttpService:IHttpService) {
-      console.log('drive cvons');
-		}
 
-		doGet():ng.IPromise<{data:IDriveFile}> {
-      var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
-      var co:IHttpConfigObject = {method: 'GET', url: 'https://www.googleapis.com/drive/v2/files/'+id};
-      var promise = this.HttpService.doHttp(co);
-      promise.then((data:IDriveFile)=>{console.log('service then '+data.title)})
-      return promise;
-		}
+  //}
+    //export module DriveService{
+    //  var foo = 123;
+    //  export class files {
 
-	}
+        static $inject = ['$log', '$timeout', '$q', 'HttpService'];
+        files = {self: this, filesGet: this.filesGet};
+        self;
+        constructor(private $log:ng.ILogService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private HttpService:IHttpService) {
+          console.log('drive cvons');
+        }
+
+        filesGet():{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} {
+          var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
+          var co:IHttpConfigObject = {method: 'GET', url: 'https://www.googleapis.com/drive/v2/files/' + id};
+          console.log(this);
+          //debugger;
+          var promise = this.self.HttpService.doHttp(co);
+          //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
+          var responseObject = {promise: promise, data: {title: "not yet", foo: "bar"}, headers: {}};
+          promise.then((data:IDriveFile)=> {
+            responseObject.data.title = data.title;
+            console.log('service then ' + responseObject.data.title);
+          })
+
+          return responseObject;
+        }
+      //}
+  }
+
 }
 
 angular.module('PngGapi')
