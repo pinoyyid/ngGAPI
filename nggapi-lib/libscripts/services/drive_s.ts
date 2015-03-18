@@ -25,7 +25,6 @@ module NgGapi {
 		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
 		constructor(private $log:ng.ILogService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private HttpService:IHttpService) {
       console.log('drive cvons');
-      this.doGet();
 		}
 
 		doGet():ng.IPromise<{data:IDriveFile}> {

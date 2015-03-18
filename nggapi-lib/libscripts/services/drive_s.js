@@ -15,7 +15,6 @@ var NgGapi;
             this.HttpService = HttpService;
             this.sig = 'DriveService'; // used in unit testing to confirm DI
             console.log('drive cvons');
-            this.doGet();
         }
         DriveService.prototype.doGet = function () {
             var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';

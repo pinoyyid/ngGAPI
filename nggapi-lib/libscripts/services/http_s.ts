@@ -96,8 +96,6 @@ module NgGapi {
 				return;
 			}
 
-      // TODO THERE IS A LOGIC BUG THAT IS CAUSING THE $HTTP TO SUCCEED TWICE
-
 			// 401 - get new access token
 			// retry after 0.5s
 			if (status == 401) { // 401 need to refresh the token and then retry

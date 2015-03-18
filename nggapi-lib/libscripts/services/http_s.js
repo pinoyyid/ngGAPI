@@ -71,7 +71,6 @@ var NgGapi;
                 def.reject(status);
                 return;
             }
-            // TODO THERE IS A LOGIC BUG THAT IS CAUSING THE $HTTP TO SUCCEED TWICE
             // 401 - get new access token
             // retry after 0.5s
             if (status == 401) {
