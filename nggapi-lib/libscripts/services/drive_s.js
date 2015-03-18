@@ -31,5 +31,5 @@ var NgGapi;
     })();
     NgGapi.DriveService = DriveService;
 })(NgGapi || (NgGapi = {}));
-angular.module('MyApp').service('DriveService', NgGapi.DriveService);
+angular.module('PngGapi').service('DriveService', NgGapi.DriveService);
 //# sourceMappingURL=drive_s.js.map

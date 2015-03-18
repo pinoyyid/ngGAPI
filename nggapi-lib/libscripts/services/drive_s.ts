@@ -39,6 +39,6 @@ module NgGapi {
 	}
 }
 
-angular.module('MyApp')
+angular.module('PngGapi')
   .service('DriveService',NgGapi.DriveService );
 
