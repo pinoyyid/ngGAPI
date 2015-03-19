@@ -30,15 +30,14 @@ module NgGapi {
 
         static $inject = ['$log', '$timeout', '$q', 'HttpService'];
         files = {self: this, filesGet: this.filesGet};
+        filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
         self;
         constructor(private $log:ng.ILogService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private HttpService:IHttpService) {
           console.log('drive cvons');
         }
 
-        filesGet():{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} {
-          var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
-          var co:IHttpConfigObject = {method: 'GET', url: 'https://www.googleapis.com/drive/v2/files/' + id};
-          console.log(this);
+        filesGet(id:string):{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} {
+          var co:IHttpConfigObject = {method: 'GET', url: this.self.filesUrl.replace(':id', id)};
           //debugger;
           var promise = this.self.HttpService.doHttp(co);
           //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
@@ -50,6 +49,8 @@ module NgGapi {
 
           return responseObject;
         }
+
+        files
       //}
   }
 

@@ -22,7 +22,8 @@ var MainCtrl = (function () {
         //this.ro = DriveService.filesGet();
         //this.d = DriveService.filesGet().data;
         console.log(DriveService);
-        this.d = DriveService.files.filesGet().data;
+        var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
+        this.d = DriveService.files.filesGet(id).data;
     }
     MainCtrl.$inject = ['$scope', '$log', 'OauthService', 'DriveService'];
     return MainCtrl;
