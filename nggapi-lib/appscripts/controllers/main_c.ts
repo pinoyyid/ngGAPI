@@ -1,4 +1,6 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
+// TODO need to extract all interafces to a single definition file
+/// <reference path="../../libscripts/services/drive_s.ts"/>
 
 class MainCtrl {
 	sig = 'MainCtrl';
@@ -8,25 +10,23 @@ class MainCtrl {
   ro;
   d;
   inp = 'inp';
-	static $inject = ['$scope', '$log', 'OauthService', 'DriveService'];
+	static $inject = ['$scope', '$log', 'DriveService'];
 	//constructor(local $scope, local $log) {
-	constructor(private $scope, private $log, private OauthService, private DriveService) {
+	constructor(private $scope, private $log,  private DriveService:NgGapi.DriveService) {
 		$scope.vm = this;
-    //DriveService.filesGet().promise.then((data)=>{
-    //  console.log("controller then");
-    //  this.filetitle = data.title;
-    //});
-    // need a warning in the docs/comments that this doesn't work because in JS a String is a primitive data type, so filetitle2 receives the current value
-    //this.filetitle2 = DriveService.filesGet().data.title;
-
-    // these both work
-    //this.ro = DriveService.filesGet();
-    //this.d = DriveService.filesGet().data;
-    console.log(DriveService);
     var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
-    this.d = DriveService.files.filesGet(id).data;
+    DriveService.filesGet({fileId:id}).promise.then((data:NgGapi.IDriveFile)=>{
+      console.log("controller then");
+      this.filetitle = data.title;
+    });
+    DriveService.files.get({fileId:id}).promise.then((data:NgGapi.IDriveFile)=>{
+      console.log("controller then");
+      this.filetitle = data.title;
+    });
+    // TODO need a warning in the docs/comments that this doesn't work because in JS a String is a primitive data type, so filetitle2 receives the current value
 
-
+    console.log(DriveService);
+    this.d = DriveService.files.get({fileId:id}).data;
 	}
 }
 

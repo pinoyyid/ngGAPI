@@ -14,12 +14,13 @@ var NgGapi;
             this.$q = $q;
             this.HttpService = HttpService;
             this.sig = 'DriveService'; // used in unit testing to confirm DI
-            this.files = { self: this, filesGet: this.filesGet };
+            this.files = { self: this, get: this.filesGet };
             this.filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
-            console.log('drive cvons');
+            this.self = this; // this is recursive and is only required if we expose the filesGet form (as opposed to files.get)
         }
-        DriveService.prototype.filesGet = function (id) {
-            var co = { method: 'GET', url: this.self.filesUrl.replace(':id', id) };
+        DriveService.prototype.filesGet = function (argsObject) {
+            debugger;
+            var co = { method: 'GET', url: this.self.filesUrl.replace(':id', argsObject.fileId) };
             //debugger;
             var promise = this.self.HttpService.doHttp(co);
             //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
@@ -30,10 +31,6 @@ var NgGapi;
             });
             return responseObject;
         };
-        //}
-        //export module DriveService{
-        //  var foo = 123;
-        //  export class files {
         DriveService.$inject = ['$log', '$timeout', '$q', 'HttpService'];
         return DriveService;
     })();
