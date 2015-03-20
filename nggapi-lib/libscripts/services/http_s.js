@@ -19,6 +19,14 @@ var NgGapi;
             console.log('http cvons');
         }
         /**
+         * getter for the underlying $http service just in case the app needs it
+         *
+         * @returns {ng.IHttpService}
+         */
+        HttpService.prototype.get$http = function () {
+            return this.$http;
+        };
+        /**
          * exported method for any $http call.
          * The call is wrapped in an mid-level promise, ie. not the low level $http promise, nor the top level application promise
          *

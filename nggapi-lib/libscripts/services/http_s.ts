@@ -11,6 +11,7 @@ module NgGapi {
 	 * Interface definition for the HttpService. Mostly useful for a mock service
 	 */
 	export interface IHttpService {
+    get$http():ng.IHttpService;
     doHttp(configObject: ng.IRequestConfig):ng.IPromise<any>;
 	}
 
@@ -25,10 +26,20 @@ module NgGapi {
 		testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
 
+
 		static $inject = ['$log', '$http', '$timeout', '$q', 'OauthService'];
 		constructor(private $log:ng.ILogService, private $http:ng.IHttpService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private OauthService:IOauthService) {
       console.log('http cvons');
 		}
+
+    /**
+     * getter for the underlying $http service just in case the app needs it
+     *
+     * @returns {ng.IHttpService}
+     */
+    get$http() {
+      return this.$http;
+    }
 
 		/**
 		 * exported method for any $http call.

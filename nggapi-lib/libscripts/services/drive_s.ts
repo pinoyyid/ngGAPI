@@ -37,7 +37,7 @@ module NgGapi {
         }
 
         filesGet(id:string):{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} {
-          var co:IHttpConfigObject = {method: 'GET', url: this.self.filesUrl.replace(':id', id)};
+          var co:ng.IRequestConfig = {method: 'GET', url: this.self.filesUrl.replace(':id', id)};
           //debugger;
           var promise = this.self.HttpService.doHttp(co);
           //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
@@ -50,7 +50,6 @@ module NgGapi {
           return responseObject;
         }
 
-        files
       //}
   }
 
