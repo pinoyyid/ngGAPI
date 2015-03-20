@@ -2,7 +2,7 @@
 /// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../objects/DriveFileInterfaces.ts"/>
 
-
+'use strict';
 
 
 module NgGapi {
@@ -17,9 +17,19 @@ module NgGapi {
   /**
    * an Enum to define the different refresh token behaviours
    */
+  export enum NoAccessTokenPolicy {
+    RETRY,            // http will sleep for a config number of ms then retry
+    FAIL              // http will fail with a synthetic 401
+    // TODO implement this by having getAccessToken return FAIL or RETRY=nnn instead of undefined
+  }
+
+  /**
+   * an Enum to define the different refresh token behaviours
+   */
   export enum TokenRefreshPolicy {
     ON_DEMAND,            // token will be refreshed after a 401
     PRIOR_TO_EXPIRY       // token will be refreshed shortly prior to expiration using a setTimeout
+    // TODO add some kind of "own" option which overrides calls to gapi.auth
   }
 
   /**

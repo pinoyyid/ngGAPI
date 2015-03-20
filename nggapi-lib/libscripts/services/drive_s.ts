@@ -3,6 +3,7 @@
 /// <reference path="../objects/DriveFileInterfaces.ts"/>
 /// <reference path="http_s.ts"/>
 
+'use strict';
 
 module NgGapi {
   /**

@@ -2,6 +2,7 @@
 /// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../objects/DriveFileInterfaces.ts"/>
 /// <reference path="oauth_s.ts"/>
+'use strict';
 var NgGapi;
 (function (NgGapi) {
     /**

@@ -1,8 +1,17 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../objects/DriveFileInterfaces.ts"/>
+'use strict';
 var NgGapi;
 (function (NgGapi) {
+    /**
+     * an Enum to define the different refresh token behaviours
+     */
+    (function (NoAccessTokenPolicy) {
+        NoAccessTokenPolicy[NoAccessTokenPolicy["RETRY"] = 0] = "RETRY";
+        NoAccessTokenPolicy[NoAccessTokenPolicy["FAIL"] = 1] = "FAIL"; // http will fail with a synthetic 401
+    })(NgGapi.NoAccessTokenPolicy || (NgGapi.NoAccessTokenPolicy = {}));
+    var NoAccessTokenPolicy = NgGapi.NoAccessTokenPolicy;
     /**
      * an Enum to define the different refresh token behaviours
      */

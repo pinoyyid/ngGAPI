@@ -4,6 +4,7 @@
 /// <reference path="oauth_s.ts"/>
 
 
+'use strict';
 
 
 module NgGapi {
