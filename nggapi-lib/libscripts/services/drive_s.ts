@@ -9,6 +9,10 @@ module NgGapi {
    * Interface definition for the DriveService. Mostly useful for a mock service
    */
   export interface IDriveService {
+    files:{
+      get(argsObject:{fileId:string}):IResponseObject;
+      insert(file:IDriveFile):IResponseObject;
+    }
   }
 
   export interface IResponseObject {
@@ -27,7 +31,7 @@ module NgGapi {
     testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
     static $inject = ['$log', '$timeout', '$q', 'HttpService'];
-    files = {self: this, get: this.filesGet};
+    files = {self: this, get: this.filesGet, insert: this.filesInsert};
     filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
     self = this;        // this is recursive and is only required if we expose the filesGet form (as opposed to files.get)
     constructor(private $log:ng.ILogService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private HttpService:IHttpService) {
@@ -35,7 +39,6 @@ module NgGapi {
 
     filesGet(argsObject:{fileId:string}):IResponseObject {
       var co:ng.IRequestConfig = {method: 'GET', url: this.self.filesUrl.replace(':id', argsObject.fileId)};
-      //debugger;
       var promise = this.self.HttpService.doHttp(co);
       //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
       var responseObject:IResponseObject = {promise: promise, data: {}, headers: {}};
@@ -43,7 +46,18 @@ module NgGapi {
         this.self.transcribeProperties(data, responseObject);
         console.log('service then ' + responseObject.data.title);
       });
+      return responseObject;
+    }
 
+
+    filesInsert(file:IDriveFile):IResponseObject {
+      var co:ng.IRequestConfig = {method: 'POST', url: this.self.filesUrl.replace(':id',''), data: file};
+      var promise = this.self.HttpService.doHttp(co);
+      var responseObject:IResponseObject = {promise: promise, data: {}, headers: {}};
+      promise.then((data:IDriveFile)=> {
+        this.self.transcribeProperties(data, responseObject);
+        console.log('service then ' + responseObject.data.title);
+      });
       return responseObject;
     }
 

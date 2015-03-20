@@ -1,5 +1,5 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-// TODO need to extract all interafces to a single definition file
+// TODO need to extract all interfaces to a single definition file
 /// <reference path="../../libscripts/services/drive_s.ts"/>
 var MainCtrl = (function () {
     //constructor(local $scope, local $log) {
@@ -15,18 +15,37 @@ var MainCtrl = (function () {
         this.inp = 'inp';
         $scope.vm = this;
         var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
-        DriveService.filesGet({ fileId: id }).promise.then(function (data) {
-            console.log("controller then");
+        //DriveService.filesGet({fileId:id}).promise.then((data:NgGapi.IDriveFile)=>{
+        //  console.log("controller then");
+        //  this.filetitle = data.title;
+        //});
+        DriveService.files.insert({ title: 'delme' }).promise.then(function (data) {
+            console.log("controller then inserted id = " + data.id);
             _this.filetitle = data.title;
+            return;
         });
         DriveService.files.get({ fileId: id }).promise.then(function (data) {
             console.log("controller then");
             _this.filetitle = data.title;
         });
+        this.insertFile('delme chain file title').then(function (file) {
+            return _this.getFile(file.id);
+        }).then(function (file) {
+            _this.displayTitle(file.title);
+        }); // console log the title
         // TODO need a warning in the docs/comments that this doesn't work because in JS a String is a primitive data type, so filetitle2 receives the current value
         console.log(DriveService);
         this.d = DriveService.files.get({ fileId: id }).data;
     }
+    MainCtrl.prototype.insertFile = function (title) {
+        return this.DriveService.files.insert({ title: title }).promise;
+    };
+    MainCtrl.prototype.getFile = function (id) {
+        return this.DriveService.files.get({ fileId: id }).promise;
+    };
+    MainCtrl.prototype.displayTitle = function (title) {
+        this.$log.info("chained title = " + title);
+    };
     MainCtrl.$inject = ['$scope', '$log', 'DriveService'];
     return MainCtrl;
 })();
