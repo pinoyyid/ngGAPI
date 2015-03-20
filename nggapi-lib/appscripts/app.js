@@ -1,9 +1,9 @@
 'use strict';
 
 var myApp = angular
-  .module('MyApp', ['PngGapi']);
+  .module('MyApp', ['ngm.NgGapi']);
 
-angular.module('PngGapi', [])
+angular.module('ngm.NgGapi')
 .provider('OauthService', NgGapi.Config)
   .config(function (OauthServiceProvider) {
     OauthServiceProvider.setScopes('https://www.googleapis.com/auth/drive.file');

@@ -65,6 +65,7 @@ module NgGapi {
 		 * @param retryCounter used to countdown recursions. set by outer method
 		 */
 		_doHttp(configObject: ng.IRequestConfig, def: ng.IDeferred < any > , retryCounter: number) {
+      // TODO suppress $http with a warning if getAccestoken returns undefined
 			configObject.headers = { // add auth header
 				Authorization: 'Bearer ' + this.OauthService.getAccessToken()
 			};
@@ -159,5 +160,5 @@ module NgGapi {
 	}
 }
 
-angular.module('PngGapi')
+angular.module('ngm.NgGapi')
   .service('HttpService',NgGapi.HttpService );

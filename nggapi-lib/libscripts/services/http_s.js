@@ -48,6 +48,7 @@ var NgGapi;
          */
         HttpService.prototype._doHttp = function (configObject, def, retryCounter) {
             var _this = this;
+            // TODO suppress $http with a warning if getAccestoken returns undefined
             configObject.headers = {
                 Authorization: 'Bearer ' + this.OauthService.getAccessToken()
             };
@@ -140,5 +141,5 @@ var NgGapi;
     })();
     NgGapi.HttpService = HttpService;
 })(NgGapi || (NgGapi = {}));
-angular.module('PngGapi').service('HttpService', NgGapi.HttpService);
+angular.module('ngm.NgGapi').service('HttpService', NgGapi.HttpService);
 //# sourceMappingURL=http_s.js.map

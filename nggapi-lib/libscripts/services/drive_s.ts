@@ -80,6 +80,6 @@ module NgGapi {
 
 }
 
-angular.module('PngGapi')
+angular.module('ngm.NgGapi')
   .service('DriveService', NgGapi.DriveService);
 
