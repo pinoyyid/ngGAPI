@@ -19,17 +19,30 @@ var NgGapi;
             this.self = this; // this is recursive and is only required if we expose the filesGet form (as opposed to files.get)
         }
         DriveService.prototype.filesGet = function (argsObject) {
-            debugger;
+            var _this = this;
             var co = { method: 'GET', url: this.self.filesUrl.replace(':id', argsObject.fileId) };
             //debugger;
             var promise = this.self.HttpService.doHttp(co);
             //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
-            var responseObject = { promise: promise, data: { title: "not yet", foo: "bar" }, headers: {} };
+            var responseObject = { promise: promise, data: {}, headers: {} };
             promise.then(function (data) {
-                responseObject.data.title = data.title;
+                _this.self.transcribeProperties(data, responseObject);
                 console.log('service then ' + responseObject.data.title);
             });
             return responseObject;
+        };
+        /**
+         * instantiate each property of src object into dest object
+         * Used to transcsribe properties from the returned JSON object to the responseObject so as not to break
+         * any object assignments the the view model
+         *
+         * @param src
+         * @param dest
+         */
+        DriveService.prototype.transcribeProperties = function (src, dest) {
+            Object.keys(src).map(function (key) {
+                dest.data[key] = src[key];
+            });
         };
         DriveService.$inject = ['$log', '$timeout', '$q', 'HttpService'];
         return DriveService;
