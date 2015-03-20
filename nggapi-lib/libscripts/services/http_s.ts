@@ -11,18 +11,8 @@ module NgGapi {
 	 * Interface definition for the HttpService. Mostly useful for a mock service
 	 */
 	export interface IHttpService {
-    doHttp(configObject: IHttpConfigObject):ng.IPromise<any>;
+    doHttp(configObject: ng.IRequestConfig):ng.IPromise<any>;
 	}
-
-	export interface IHttpConfigObject {
-		method: string;
-		url: string;
-		params ? : any;
-		data ? : any;
-		headers ? : any;
-	}
-
-
 
 
 	/**
@@ -48,7 +38,7 @@ module NgGapi {
 		 *
 		 * @returns {IPromise<T>}
 		 */
-		doHttp(configObject:IHttpConfigObject): ng.IPromise < any > {
+		doHttp(configObject:ng.IRequestConfig): ng.IPromise < any > {
 			var def = this.$q.defer();
 			this._doHttp(configObject, def, 10);
 			return def.promise;
@@ -63,7 +53,7 @@ module NgGapi {
 		 * @param def  the parent deferred object that we will resolve or reject
 		 * @param retryCounter used to countdown recursions. set by outer method
 		 */
-		_doHttp(configObject: IHttpConfigObject, def: ng.IDeferred < any > , retryCounter: number) {
+		_doHttp(configObject: ng.IRequestConfig, def: ng.IDeferred < any > , retryCounter: number) {
 			configObject.headers = { // add auth header
 				Authorization: 'Bearer ' + this.OauthService.getAccessToken()
 			};
@@ -88,7 +78,7 @@ module NgGapi {
 		 * @param def           The mid-level deferred object
 		 * @param retryCounter  The decrementing retry counter
 		 */
-		errorHandler(data:any, status:number, headers:{}, configObject:IHttpConfigObject, statusText:string,  def:ng.IDeferred<any>, retryCounter:number) {
+		errorHandler(data:any, status:number, headers:{}, configObject:ng.IRequestConfig, statusText:string,  def:ng.IDeferred<any>, retryCounter:number) {
       console.log("statusText = "+statusText);
 			// 404 - hard error
 			if (status == 404) { // 404 is not recoverable, so reject the promise
