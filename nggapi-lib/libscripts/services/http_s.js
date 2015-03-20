@@ -50,9 +50,10 @@ var NgGapi;
         HttpService.prototype._doHttp = function (configObject, def, retryCounter) {
             var _this = this;
             // TODO suppress $http with a warning if getAccestoken returns undefined
-            configObject.headers = {
-                Authorization: 'Bearer ' + this.OauthService.getAccessToken()
-            };
+            if (!configObject.headers) {
+                configObject.headers = {};
+            }
+            configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken(); // add auth header
             var httpPromise = this.$http(configObject); // run the http call and capture the promise
             httpPromise.success(function (data) {
                 def.resolve(data);

@@ -28,6 +28,13 @@ var MainCtrl = (function () {
             console.log("controller then");
             _this.filetitle = data.title;
         });
+        var prom = DriveService.files.insert({ title: 'delme media', mimeType: 'text/plain' }, { uploadType: 'resumable' }, btoa('hello world')).promise;
+        prom.then(function (data) {
+            console.log('inserted with mime ' + data.mimeType);
+        });
+        prom.catch(function () {
+            console.error("OMG it failed");
+        });
         this.insertFile('delme chain file title').then(function (file) {
             return _this.getFile(file.id);
         }).then(function (file) {

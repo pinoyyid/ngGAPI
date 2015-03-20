@@ -29,6 +29,10 @@ class MainCtrl {
       this.filetitle = data.title;
     });
 
+    var prom = DriveService.files.insert({title:'delme media', mimeType:'text/plain'}, {uploadType:'resumable'}, btoa('hello world')).promise;
+    prom.then((data)=>{console.log('inserted with mime '+data.mimeType)});
+    prom.catch(()=>{console.error("OMG it failed")});
+
     this.insertFile('delme chain file title')                   // insert a file
       .then((file)=>{return this.getFile(file.id)})             // retrieve the newly inserted file
       .then((file)=>{this.displayTitle(file.title)});           // console log the title

@@ -15,7 +15,7 @@ module NgGapi {
 	export interface IDriveService {
 		files:{
 			get(argsObject:{fileId:string}):IDriveresponseObject;
-			insert(file:IDriveFile, params:IDriveInsertParameters, mediaContent:string):IDriveresponseObject;
+			insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveresponseObject;
       //list(params:IDriveListParameters):IDriveresponseObject;
 		}
 	}
@@ -36,14 +36,14 @@ module NgGapi {
 
   export interface IDriveInsertParameters {
     uploadType:string;                  // The type of upload request to the /upload URI. Acceptable values are: media - Simple upload. Upload the media only, without any metadata. multipart - Multipart upload. Upload both the media and its metadata, in a single request. resumable - Resumable upload. Upload the file in a resumable fashion, using a series of at least two requests where the first request includes the metadata.
-    convert:boolean;                    // Whether to convert this file to the corresponding Google Docs format. (Default: false)
-    ocr:boolean;                        // Whether to attempt OCR on .jpg, .png, .gif, or .pdf uploads. (Default: false)
-    ocrLanguage:string;                 //  If ocr is true, hints at the language to use. Valid values are ISO 639-1 codes.
-    pinned:boolean;                     // Whether to pin the head revision of the uploaded file. A file can have a maximum of 200 pinned revisions. (Default: false)
-    timedTextLanguage:string;           // The language of the timed text.
-    timedTextTrackName:string;          // The timed text track name.
-    useContentAsIndexableText:boolean;  // Whether to use the content as indexable text. (Default: false)
-    visibility:string;                  // The visibility of the new file. This parameter is only relevant when convert=false.  Acceptable values are: "DEFAULT": The visibility of the new file is determined by the user's default visibility/sharing policies. (default) "PRIVATE": The new file will be visible to only the owner.
+    convert?:boolean;                    // Whether to convert this file to the corresponding Google Docs format. (Default: false)
+    ocr?:boolean;                        // Whether to attempt OCR on .jpg, .png, .gif, or .pdf uploads. (Default: false)
+    ocrLanguage?:string;                 //  If ocr is true, hints at the language to use. Valid values are ISO 639-1 codes.
+    pinned?:boolean;                     // Whether to pin the head revision of the uploaded file. A file can have a maximum of 200 pinned revisions. (Default: false)
+    timedTextLanguage?:string;           // The language of the timed text.
+    timedTextTrackName?:string;          // The timed text track name.
+    useContentAsIndexableText?:boolean;  // Whether to use the content as indexable text. (Default: false)
+    visibility?:string;                  // The visibility of the new file. This parameter is only relevant when convert=false.  Acceptable values are: "DEFAULT": The visibility of the new file is determined by the user's default visibility/sharing policies. (default) "PRIVATE": The new file will be visible to only the owner.
   }
 
 
@@ -58,6 +58,7 @@ module NgGapi {
 		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
 		files = {self: this, get: this.filesGet, insert: this.filesInsert};
 		filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
+    filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
 		self = this;        // this is recursive and is only required if we expose the filesGet form (as opposed to files.get)
 		constructor(private $log:ng.ILogService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private HttpService:IHttpService) {
 		}
@@ -75,19 +76,21 @@ module NgGapi {
 		}
 
 
-		filesInsert(file:IDriveFile, params:IDriveInsertParameters, base64EncodedContent:string):IDriveresponseObject {
+		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveresponseObject {
       var configObject:ng.IRequestConfig;
       if (!params) {
         configObject = {method: 'POST', url: this.self.filesUrl.replace(':id',''), data: file};
       } else {
         try {
-          configObject = this.buildUploadConfigObject(file, params, base64EncodedContent);
+          configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent);
+          configObject.method = 'POST';
+          configObject.url = this.self.filesUploadUrl;
         } catch (ex) {
-          // TODO how to deal with an exception? Make a new def and promise here??
+          var def = this.self.$q.defer();
+          def.reject(ex);
+          return {data:undefined, promise:def.promise, headers:undefined};
         }
       }
-
-
 
 
 			var promise = this.self.HttpService.doHttp(configObject);
@@ -112,35 +115,55 @@ module NgGapi {
      */
     buildUploadConfigObject (file:IDriveFile, params:IDriveInsertParameters, base64EncodedContent:string):ng.IRequestConfig {
       if (params.uploadType == 'resumable') {
-        this.$log.error("NgGapi: [D115] resumable uploads are not currently supported");
+        this.self.$log.error("NgGapi: [D115] resumable uploads are not currently supported");
         throw "[D115] resumable uploads are not currently supported";
       }
 
-
-      var boundary = '-------nggapi3141592ff65358979323846';
-      var delimiter = "\r\n--" + boundary + "\r\n";
-      var close_delim = "\r\n--" + boundary + "--";
-
-      if (!file.mimeType) {
-        console.error("[drs560] file metadata is missing mandatory mime type");
-        return;
+      if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
+        this.self.$log.error("NgGapi: [D119] content does not appear to be base64 encoded.");
+        throw ("[D119] content does not appear to be base64 encoded.");
       }
+
+      if (params.uploadType == 'multipart' && (!file || !file.mimeType)) {
+        this.self.$log.error("NgGapi: [D125] file metadata is missing mandatory mime type");
+        throw ("[D125] file metadata is missing mandatory mime type");
+      }
+
 
       //			var base64Data = window['tools'].base64Encode(fileContent);
       //			console.log("base54Data = " + base64Data);
-      var multipartRequestBody =
-        delimiter +
-        'Content-Type: application/json\r\n\r\n' +
-        JSON.stringify(file) +
-        delimiter +
-        'Content-Type: ' + file.mimeType + '\r\n' +
-        'Content-Transfer-Encoding: base64\r\n' +
-        '\r\n' +
-        base64EncodedContent +
-        close_delim;
+      var body:string;
+      if (params.uploadType == 'multipart') {
+        var boundary = '-------3141592ff65358979323846';
+        var delimiter = "\r\n--" + boundary + "\r\n";
+        var close_delim = "\r\n--" + boundary + "--";
+        body =
+          delimiter +
+          'Content-Type: application/json\r\n\r\n' +
+          JSON.stringify(file) +
+          delimiter +
+          'Content-Type: ' + file.mimeType + '\r\n' +
+          'Content-Transfer-Encoding: base64\r\n' +
+          '\r\n' +
+          base64EncodedContent +
+          close_delim;
+        //params['alt'] = 'json';
+        var headers = {};
+        headers['Content-Type'] = 'multipart/mixed; boundary="-------3141592ff65358979323846"'
+      }
+
+      if (params.uploadType == 'media') {
+        body = base64EncodedContent;
+        var headers = {};
+        headers['Content-Type'] = file.mimeType;
+        headers['Content-Length'] = base64EncodedContent.length;
+        headers['Content-Transfer-Encoding'] = 'base64';
+      }
 
 
-      return undefined;
+
+
+      return {method:undefined, url:undefined, params: params, data:body, headers:headers}
     }
 
 

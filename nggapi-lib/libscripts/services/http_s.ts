@@ -67,9 +67,10 @@ module NgGapi {
 		 */
 		_doHttp(configObject: ng.IRequestConfig, def: ng.IDeferred < any > , retryCounter: number) {
       // TODO suppress $http with a warning if getAccestoken returns undefined
-			configObject.headers = { // add auth header
-				Authorization: 'Bearer ' + this.OauthService.getAccessToken()
-			};
+      if (!configObject.headers) {
+        configObject.headers = {};
+      }
+			configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken() ;                          // add auth header
 			var httpPromise = this.$http(configObject); // run the http call and capture the promise
 			httpPromise.success((data) => { // if http success, resolve the app promise
 				def.resolve(data);
