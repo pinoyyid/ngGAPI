@@ -31,16 +31,53 @@ var NgGapi;
             });
             return responseObject;
         };
-        DriveService.prototype.filesInsert = function (file) {
+        DriveService.prototype.filesInsert = function (file, params, base64EncodedContent) {
             var _this = this;
-            var co = { method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file };
-            var promise = this.self.HttpService.doHttp(co);
+            var configObject;
+            if (!params) {
+                configObject = { method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file };
+            }
+            else {
+                try {
+                    configObject = this.buildUploadConfigObject(file, params, base64EncodedContent);
+                }
+                catch (ex) {
+                }
+            }
+            var promise = this.self.HttpService.doHttp(configObject);
             var responseObject = { promise: promise, data: {}, headers: {} };
             promise.then(function (data) {
                 _this.self.transcribeProperties(data, responseObject);
                 console.log('service then ' + responseObject.data.title);
             });
             return responseObject;
+        };
+        /**
+         * Used to build a $http config object for an upload. This will (normally) be a multipart mime body.
+         *
+         * NB resumable upload is not currently implemented!!!
+         *
+         * @param file
+         * @param params
+         * @param base64EncodedContent
+         * @returns {undefined}
+         */
+        DriveService.prototype.buildUploadConfigObject = function (file, params, base64EncodedContent) {
+            if (params.uploadType == 'resumable') {
+                this.$log.error("NgGapi: [D115] resumable uploads are not currently supported");
+                throw "[D115] resumable uploads are not currently supported";
+            }
+            var boundary = '-------nggapi3141592ff65358979323846';
+            var delimiter = "\r\n--" + boundary + "\r\n";
+            var close_delim = "\r\n--" + boundary + "--";
+            if (!file.mimeType) {
+                console.error("[drs560] file metadata is missing mandatory mime type");
+                return;
+            }
+            //			var base64Data = window['tools'].base64Encode(fileContent);
+            //			console.log("base54Data = " + base64Data);
+            var multipartRequestBody = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(file) + delimiter + 'Content-Type: ' + file.mimeType + '\r\n' + 'Content-Transfer-Encoding: base64\r\n' + '\r\n' + base64EncodedContent + close_delim;
+            return undefined;
         };
         /**
          * instantiate each property of src object into dest object
