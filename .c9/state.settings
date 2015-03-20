@@ -25,13 +25,13 @@
                         "changed": false,
                         "meta": {},
                         "filter": true,
-                        "title": "bash - \"discovery\"",
-                        "tooltip": "bash - \"discovery\"",
+                        "title": "..ITREPOS/delme - \"discovery\"",
+                        "tooltip": "..ITREPOS/delme - \"discovery\"",
                         "terminal": {
                             "id": "devel_269",
                             "cwd": "",
-                            "width": 1408,
-                            "height": 171
+                            "width": 383,
+                            "height": 257
                         }
                     },
                     "editorType": "terminal",
@@ -159,7 +159,9 @@
                 "/test",
                 "/test/spec",
                 "/test/spec/controllers",
-                "/nggapi-lib"
+                "/nggapi-lib",
+                "/nggapi-lib/libscripts",
+                "/nggapi-lib/libscripts/services"
             ]
         }
     },
