@@ -74,6 +74,7 @@ var NgGapi;
          *  If isAuthInprogress, does nothing, but emits a console warning to help debug any issues where the callback wasn't invoked.
          */
         OauthService.prototype.refreshAccessToken = function () {
+            var _this = this;
             if (this.isAuthInProgress) {
                 this.$log.warn('[O75] refresh access token suppressed because there is already such a request in progress');
                 this.testStatus = 'O75';
@@ -85,7 +86,9 @@ var NgGapi;
                 return;
             }
             this.isAuthInProgress = true;
-            this.$window['gapi'].auth.authorize({ client_id: this.clientId, scope: this.scopes, immediate: this.isAuthedYet }, this.refreshCallback); // callback invoked when gapi refresh returns with a new token
+            this.$window['gapi'].auth.authorize({ client_id: this.clientId, scope: this.scopes, immediate: this.isAuthedYet }, function () {
+                _this.refreshCallback();
+            }); // callback invoked when gapi refresh returns with a new token
         };
         /**
          * called when gapi.auth.authorize returns

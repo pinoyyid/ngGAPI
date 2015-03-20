@@ -106,7 +106,7 @@ module NgGapi {
         {client_id:  this.clientId,
         scope:      this.scopes,
         immediate:  this.isAuthedYet},
-        this.refreshCallback);                    // callback invoked when gapi refresh returns with a new token
+        ()=>{this.refreshCallback();});                    // callback invoked when gapi refresh returns with a new token
     }
 
 

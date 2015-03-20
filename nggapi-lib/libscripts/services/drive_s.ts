@@ -14,7 +14,7 @@ module NgGapi {
 	 */
 	export interface IDriveService {
 		files:{
-			get(params:{fileId:string; acknowledgeAbuse?:boolean; alt?:string; projection?:string; revisionId?:string; updateViewDate?:string}):IDriveResponseObject;
+			get(params:IDriveGetParameters):IDriveResponseObject;
 			insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject;
       //list(params:IDriveListParameters):IDriveresponseObject;
 		}
@@ -44,6 +44,15 @@ module NgGapi {
     timedTextTrackName?:string;          // The timed text track name.
     useContentAsIndexableText?:boolean;  // Whether to use the content as indexable text. (Default: false)
     visibility?:string;                  // The visibility of the new file. This parameter is only relevant when convert=false.  Acceptable values are: "DEFAULT": The visibility of the new file is determined by the user's default visibility/sharing policies. (default) "PRIVATE": The new file will be visible to only the owner.
+  }
+
+  export interface IDriveGetParameters {
+    fileId:string;                       //	The ID for the file in question.
+    acknowledgeAbuse?:boolean;           // Whether the user is acknowledging the risk of downloading known malware or other abusive files. Ignored unless alt=media is specified. (Default: false)
+    alt?:string;                         // Specifies the type of resource representation to return. The default is 'json' to return file metadata. Specifying 'media' will cause the file content to be returned.
+    fields?:string;
+    revisionId?:string;                   //	Specifies the Revision ID that should be downloaded. Ignored unless alt=media is specified.
+    updateViewedDate?:boolean;            //	Whether to update the view date after successfully retrieving the file. (Default: false)
   }
 
 
