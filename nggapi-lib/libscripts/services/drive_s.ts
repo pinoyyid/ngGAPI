@@ -14,13 +14,13 @@ module NgGapi {
 	 */
 	export interface IDriveService {
 		files:{
-			get(argsObject:{fileId:string}):IDriveresponseObject;
-			insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveresponseObject;
+			get(params:{fileId:string; acknowledgeAbuse?:boolean; alt?:string; projection?:string; revisionId?:string; updateViewDate?:string}):IDriveResponseObject;
+			insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject;
       //list(params:IDriveListParameters):IDriveresponseObject;
 		}
 	}
 
-	export interface IDriveresponseObject {
+	export interface IDriveResponseObject {
 		promise:ng.IPromise<{data:IDriveFile}>;
 		data:IDriveFile ;
     //data:IDriveFile | Array<IDriveFile>;
@@ -63,11 +63,11 @@ module NgGapi {
 		constructor(private $log:ng.ILogService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private HttpService:IHttpService) {
 		}
 
-		filesGet(argsObject:{fileId:string}):IDriveresponseObject {
-			var co:ng.IRequestConfig = {method: 'GET', url: this.self.filesUrl.replace(':id', argsObject.fileId)};
+		filesGet(params):IDriveResponseObject {
+			var co:ng.IRequestConfig = {method: 'GET', url: this.self.filesUrl.replace(':id', params.fileId), params: params };
 			var promise = this.self.HttpService.doHttp(co);
 			//var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
-			var responseObject:IDriveresponseObject = {promise: promise, data: {}, headers: {}};
+			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: {}};
 			promise.then((data:IDriveFile)=> {
 				this.self.transcribeProperties(data, responseObject);
 				console.log('service then ' + responseObject.data.title);
@@ -76,7 +76,7 @@ module NgGapi {
 		}
 
 
-		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveresponseObject {
+		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject {
       var configObject:ng.IRequestConfig;
       if (!params) {
         configObject = {method: 'POST', url: this.self.filesUrl.replace(':id',''), data: file};
@@ -94,7 +94,7 @@ module NgGapi {
 
 
 			var promise = this.self.HttpService.doHttp(configObject);
-			var responseObject:IDriveresponseObject = {promise: promise, data: {}, headers: {}};
+			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: {}};
 			promise.then((data:IDriveFile)=> {
 				this.self.transcribeProperties(data, responseObject);
 				console.log('service then ' + responseObject.data.title);
@@ -188,4 +188,3 @@ module NgGapi {
 
 angular.module('ngm.NgGapi')
 	.service('DriveService', NgGapi.DriveService);
-

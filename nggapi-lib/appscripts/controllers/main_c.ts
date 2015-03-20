@@ -29,13 +29,17 @@ class MainCtrl {
       this.filetitle = data.title;
     });
 
-    var prom = DriveService.files.insert({title:'delme media', mimeType:'text/plain'}, {uploadType:'resumable'}, btoa('hello world')).promise;
-    prom.then((data)=>{console.log('inserted with mime '+data.mimeType)});
+    var prom = DriveService.files.insert({title:'delme media', mimeType:'text/plain'}, {uploadType:'multipart'}, btoa('hello world')).promise;
+    prom.then((data:NgGapi.IDriveFile )=>{console.log('inserted with mime '+data.mimeType )});
     prom.catch(()=>{console.error("OMG it failed")});
 
     this.insertFile('delme chain file title')                   // insert a file
       .then((file)=>{return this.getFile(file.id)})             // retrieve the newly inserted file
       .then((file)=>{this.displayTitle(file.title)});           // console log the title
+
+    this.insertFile('delme chain file title 2')                 // insert a file
+      .then((file)=>{return this.getFileContents(file.id)})             // retrieve the newly inserted file
+      .then((data)=>{console.log('inserted content, fetched with GET = '+data)});           // console log the title
 
 
     // TODO need a warning in the docs/comments that this doesn't work because in JS a String is a primitive data type, so filetitle2 receives the current value
@@ -46,10 +50,13 @@ class MainCtrl {
 
 
   insertFile(title:string):ng.IPromise<NgGapi.IDriveFile> {
-    return  this.DriveService.files.insert({title: title}).promise;
+    return  this.DriveService.files.insert({title: title, mimeType:'text/plain'}, {uploadType:'multipart'}, btoa('some multipart content')).promise;
   }
   getFile(id:string):ng.IPromise<NgGapi.IDriveFile> {
     return  this.DriveService.files.get({fileId: id}).promise;
+  }
+  getFileContents(id:string):ng.IPromise<NgGapi.IDriveFile> {
+    return  this.DriveService.files.get({fileId: id, alt:'media'}).promise;
   }
   displayTitle(title:string) {
     this.$log.info("chained title = "+title);
@@ -62,4 +69,3 @@ class MainCtrl {
 //  });
 angular.module('MyApp')
 	.controller('MainCtrl', MainCtrl);
-

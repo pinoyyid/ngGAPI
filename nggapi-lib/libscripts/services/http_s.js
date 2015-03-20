@@ -144,4 +144,3 @@ var NgGapi;
     NgGapi.HttpService = HttpService;
 })(NgGapi || (NgGapi = {}));
 angular.module('ngm.NgGapi').service('HttpService', NgGapi.HttpService);
-//# sourceMappingURL=http_s.js.map
