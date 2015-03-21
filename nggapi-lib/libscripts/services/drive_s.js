@@ -4,7 +4,6 @@
 'use strict';
 var NgGapi;
 (function (NgGapi) {
-    // TODO interfaces to own file
     /**
      * The Drive service.
      */

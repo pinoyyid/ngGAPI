@@ -1,5 +1,4 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-/// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 'use strict';
 var NgGapi;
@@ -16,7 +15,7 @@ var NgGapi;
             this.$q = $q;
             this.OauthService = OauthService;
             this.sig = 'HttpService'; // used in unit testing to confirm DI
-            console.log('http cvons');
+            //console.log('http cons');
         }
         /**
          * getter for the underlying $http service just in case the app needs it
@@ -28,7 +27,7 @@ var NgGapi;
         };
         /**
          * exported method for any $http call.
-         * The call is wrapped in an mid-level promise, ie. not the low level $http promise, nor the top level application promise
+         * The call is wrapped in a mid-level promise, ie. not the low level $http promise.
          *
          * @param configObject
          *

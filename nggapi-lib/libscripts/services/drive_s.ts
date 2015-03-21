@@ -6,8 +6,6 @@
 
 module NgGapi {
 
-
-	// TODO interfaces to own file
 	/**
 	 * The Drive service.
 	 */

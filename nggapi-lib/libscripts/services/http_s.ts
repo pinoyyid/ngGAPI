@@ -1,5 +1,4 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-/// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 
 'use strict';
@@ -20,7 +19,7 @@ module NgGapi {
 
 		static $inject = ['$log', '$http', '$timeout', '$q', 'OauthService'];
 		constructor(private $log:ng.ILogService, private $http:ng.IHttpService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private OauthService:IOauthService) {
-      console.log('http cvons');
+      //console.log('http cons');
 		}
 
     /**
@@ -34,7 +33,7 @@ module NgGapi {
 
 		/**
 		 * exported method for any $http call.
-		 * The call is wrapped in an mid-level promise, ie. not the low level $http promise, nor the top level application promise
+		 * The call is wrapped in a mid-level promise, ie. not the low level $http promise.
 		 *
 		 * @param configObject
 		 *
