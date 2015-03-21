@@ -17,17 +17,21 @@ var NgGapi;
             this.files = { self: this, get: this.filesGet, insert: this.filesInsert };
             this.filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
             this.filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
-            this.self = this; // this is recursive and is only required if we expose the filesGet form (as opposed to files.get)
+            this.self = this; // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
         }
         DriveService.prototype.filesGet = function (params) {
             var _this = this;
-            var co = { method: 'GET', url: this.self.filesUrl.replace(':id', params.fileId), params: params };
+            var co = {
+                method: 'GET',
+                url: this.self.filesUrl.replace(':id', params.fileId),
+                params: params
+            };
             var promise = this.self.HttpService.doHttp(co);
             //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
             var responseObject = { promise: promise, data: {}, headers: {} };
-            promise.then(function (data) {
-                _this.self.transcribeProperties(data, responseObject);
-                console.log('service then ' + responseObject.data.title);
+            promise.then(function (file) {
+                _this.self.transcribeProperties(file, responseObject);
+                console.log('service then ' + file.title);
             });
             return responseObject;
         };
@@ -51,9 +55,9 @@ var NgGapi;
             }
             var promise = this.self.HttpService.doHttp(configObject);
             var responseObject = { promise: promise, data: {}, headers: {} };
-            promise.then(function (data) {
-                _this.self.transcribeProperties(data, responseObject);
-                console.log('service then ' + responseObject.data.title);
+            promise.then(function (file) {
+                _this.self.transcribeProperties(file, responseObject);
+                console.log('service then ' + file.title);
             });
             return responseObject;
         };
@@ -66,22 +70,28 @@ var NgGapi;
          * @param params
          * @param base64EncodedContent
          * @returns {undefined}
+         *
+         * @throws D115 resumables not supported
+         * @throws D119 safety check that the media is base64 encoded
+         * @throws D125 safety check there is a mime type
          */
         DriveService.prototype.buildUploadConfigObject = function (file, params, base64EncodedContent) {
+            // check for a resumable upload and reject coz we don't support them yet
             if (params.uploadType == 'resumable') {
                 this.self.$log.error("NgGapi: [D115] resumable uploads are not currently supported");
                 throw "[D115] resumable uploads are not currently supported";
             }
+            // check the media is base64 encoded
             if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
                 this.self.$log.error("NgGapi: [D119] content does not appear to be base64 encoded.");
                 throw ("[D119] content does not appear to be base64 encoded.");
             }
+            // check the dev provided a mime type
             if (params.uploadType == 'multipart' && (!file || !file.mimeType)) {
                 this.self.$log.error("NgGapi: [D125] file metadata is missing mandatory mime type");
                 throw ("[D125] file metadata is missing mandatory mime type");
             }
             //			var base64Data = window['tools'].base64Encode(fileContent);
-            //			console.log("base54Data = " + base64Data);
             var body;
             if (params.uploadType == 'multipart') {
                 var boundary = '-------3141592ff65358979323846';
@@ -99,6 +109,7 @@ var NgGapi;
                 headers['Content-Length'] = base64EncodedContent.length;
                 headers['Content-Transfer-Encoding'] = 'base64';
             }
+            // return the finished config object
             return { method: undefined, url: undefined, params: params, data: body, headers: headers };
         };
         /**
@@ -120,3 +131,4 @@ var NgGapi;
     NgGapi.DriveService = DriveService;
 })(NgGapi || (NgGapi = {}));
 angular.module('ngm.NgGapi').service('DriveService', NgGapi.DriveService);
+//# sourceMappingURL=drive_s.js.map

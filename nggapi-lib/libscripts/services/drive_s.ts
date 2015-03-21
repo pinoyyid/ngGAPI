@@ -12,13 +12,14 @@ module NgGapi {
 	export class DriveService implements IDriveService {
 		sig = 'DriveService';                // used in unit testing to confirm DI
 
-		testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
-
-		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
 		files = {self: this, get: this.filesGet, insert: this.filesInsert};
 		filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
-		self = this;        // this is recursive and is only required if we expose the filesGet form (as opposed to files.get)
+		self = this;                        // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
+
+		testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
+
+		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
 		constructor(private $log:ng.ILogService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private HttpService:IHttpService) {
 		}
 
@@ -75,18 +76,25 @@ module NgGapi {
 		 * @param params
 		 * @param base64EncodedContent
 		 * @returns {undefined}
+		 *
+		 * @throws D115 resumables not supported
+		 * @throws D119 safety check that the media is base64 encoded
+		 * @throws D125 safety check there is a mime type
 		 */
 		buildUploadConfigObject(file:IDriveFile, params:IDriveInsertParameters, base64EncodedContent:string):ng.IRequestConfig {
+			// check for a resumable upload and reject coz we don't support them yet
 			if (params.uploadType == 'resumable') {
 				this.self.$log.error("NgGapi: [D115] resumable uploads are not currently supported");
 				throw "[D115] resumable uploads are not currently supported";
 			}
 
+			// check the media is base64 encoded
 			if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
 				this.self.$log.error("NgGapi: [D119] content does not appear to be base64 encoded.");
 				throw ("[D119] content does not appear to be base64 encoded.");
 			}
 
+			// check the dev provided a mime type
 			if (params.uploadType == 'multipart' && (!file || !file.mimeType)) {
 				this.self.$log.error("NgGapi: [D125] file metadata is missing mandatory mime type");
 				throw ("[D125] file metadata is missing mandatory mime type");
@@ -94,7 +102,6 @@ module NgGapi {
 
 
 			//			var base64Data = window['tools'].base64Encode(fileContent);
-			//			console.log("base54Data = " + base64Data);
 			var body:string;
 			if (params.uploadType == 'multipart') {
 				var boundary = '-------3141592ff65358979323846';
@@ -123,7 +130,7 @@ module NgGapi {
 				headers['Content-Transfer-Encoding'] = 'base64';
 			}
 
-
+			// return the finished config object
 			return {method: undefined, url: undefined, params: params, data: body, headers: headers}
 		}
 
