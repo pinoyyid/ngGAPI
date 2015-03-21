@@ -1,2 +1,2 @@
-# delme
-scraps of code and stuff
+# ngGAPI - Google APIs for AngularJS done the Angular way
+
