@@ -24,6 +24,6 @@ angular.module('ngm.NgGapi')
  |  if validStoredAccessToken, return validStoredAccessToken   // if he has a valid token, return it
  |  // here if no current token
  |  do whatever is required to fetch a token, oncomplete (eg callback or promise) store token
- |  return "!RETRY=1000"                                       // this will cause ngGapi to keep retrying every 1s until there is a valid token
+ |  return "!RETRY=1000"                                       // this will cause ngGapi to retry every 1s until there is a valid token. There are 10 retry attempts before failing
   */
 

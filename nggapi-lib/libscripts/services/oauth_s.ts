@@ -2,6 +2,11 @@
 
 'use strict';
 
+/*
+This defines a provider for the OAuth service, responsible to fetching access tokens.
+
+It's a provider so it can be easily configured at app startup to hold the OAuth id and scopes needed for it to operate.
+ */
 
 module NgGapi {
   /**
@@ -155,7 +160,7 @@ module NgGapi {
 		oauthServiceProvider.setTokenRefreshPolicy(NgGapi.TokenRefreshPolicy.ON_DEMAND);
 });
  *
- * @returns {{setScopes: (function(any): undefined), setClientID: (function(any): undefined), $get: (function(): NgGapi.OAuth)}}
+ * @returns a provider with various setters
  */
 
 NgGapi['Config'] = function () {
@@ -180,7 +185,7 @@ NgGapi['Config'] = function () {
 		setGetAccessTokenFunction: function (_function) {
 			getAccessTokenFunction = _function;
 		},
-
+        // this is the function called by the Angular DI system to return the service
 		$get: function () {
 			var myInjector = angular.injector(["ng"]);
 			var $log = myInjector.get("$log");
@@ -193,9 +198,5 @@ NgGapi['Config'] = function () {
 
 
 // define the ngm.NgGapi module. This will then be included by the host app with "angular .module('MyApp', ['ngm.NgGapi']);"
-
 angular.module('ngm.NgGapi', []);
-
-
-
 
