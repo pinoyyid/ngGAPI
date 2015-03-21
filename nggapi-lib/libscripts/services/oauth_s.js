@@ -1,6 +1,6 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../definitely_typed/gapi.d.ts"/>
-/// <reference path="../objects/DriveFileInterfaces.ts"/>
+/// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 'use strict';
 var NgGapi;
 (function (NgGapi) {
@@ -157,4 +157,3 @@ NgGapi['Config'] = function () {
 };
 // define the PngGapi module. This will then be included by the host app with "angular .module('MyApp', ['PngGapi']);"
 angular.module('ngm.NgGapi', []);
-//# sourceMappingURL=oauth_s.js.map

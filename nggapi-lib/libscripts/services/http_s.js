@@ -1,7 +1,6 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../definitely_typed/gapi.d.ts"/>
-/// <reference path="../objects/DriveFileInterfaces.ts"/>
-/// <reference path="oauth_s.ts"/>
+/// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 'use strict';
 var NgGapi;
 (function (NgGapi) {

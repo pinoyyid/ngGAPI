@@ -1,10 +1,10 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../definitely_typed/gapi.d.ts"/>
-/// <reference path="../objects/DriveFileInterfaces.ts"/>
-/// <reference path="http_s.ts"/>
+/// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 'use strict';
 var NgGapi;
 (function (NgGapi) {
+    // TODO interfaces to own file
     /**
      * The Drive service.
      */
@@ -121,4 +121,3 @@ var NgGapi;
     NgGapi.DriveService = DriveService;
 })(NgGapi || (NgGapi = {}));
 angular.module('ngm.NgGapi').service('DriveService', NgGapi.DriveService);
-//# sourceMappingURL=drive_s.js.map

@@ -1,7 +1,6 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../definitely_typed/gapi.d.ts"/>
-/// <reference path="../objects/DriveFileInterfaces.ts"/>
-/// <reference path="http_s.ts"/>
+/// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 
 'use strict';
 
@@ -9,53 +8,6 @@ module NgGapi {
 
 
 	// TODO interfaces to own file
-	/**
-	 * Interface definition for the DriveService. Mostly useful for a mock service
-	 */
-	export interface IDriveService {
-		files:{
-			get(params:IDriveGetParameters):IDriveResponseObject;
-			insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject;
-      //list(params:IDriveListParameters):IDriveresponseObject;
-		}
-	}
-
-	export interface IDriveResponseObject {
-		promise:ng.IPromise<{data:IDriveFile}>;
-		data:IDriveFile ;
-    //data:IDriveFile | Array<IDriveFile>;
-		headers:{}
-	}
-
-	export interface IDriveListParameters {
-		corpus:string;	    //The body of items (files/documents) to which the query applies.  Acceptable values are: "DEFAULT": The items that the user has accessed. "DOMAIN": Items shared to the user's domain.
-		maxResults:number;  //	Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
-		pageToken:string;	  //Page token for files.
-		q:string;           // Query string for searching files. See https://developers.google.com/drive/search-parameters for more information about supported fields and operations.
-	}
-
-  export interface IDriveInsertParameters {
-    uploadType:string;                  // The type of upload request to the /upload URI. Acceptable values are: media - Simple upload. Upload the media only, without any metadata. multipart - Multipart upload. Upload both the media and its metadata, in a single request. resumable - Resumable upload. Upload the file in a resumable fashion, using a series of at least two requests where the first request includes the metadata.
-    convert?:boolean;                    // Whether to convert this file to the corresponding Google Docs format. (Default: false)
-    ocr?:boolean;                        // Whether to attempt OCR on .jpg, .png, .gif, or .pdf uploads. (Default: false)
-    ocrLanguage?:string;                 //  If ocr is true, hints at the language to use. Valid values are ISO 639-1 codes.
-    pinned?:boolean;                     // Whether to pin the head revision of the uploaded file. A file can have a maximum of 200 pinned revisions. (Default: false)
-    timedTextLanguage?:string;           // The language of the timed text.
-    timedTextTrackName?:string;          // The timed text track name.
-    useContentAsIndexableText?:boolean;  // Whether to use the content as indexable text. (Default: false)
-    visibility?:string;                  // The visibility of the new file. This parameter is only relevant when convert=false.  Acceptable values are: "DEFAULT": The visibility of the new file is determined by the user's default visibility/sharing policies. (default) "PRIVATE": The new file will be visible to only the owner.
-  }
-
-  export interface IDriveGetParameters {
-    fileId:string;                       //	The ID for the file in question.
-    acknowledgeAbuse?:boolean;           // Whether the user is acknowledging the risk of downloading known malware or other abusive files. Ignored unless alt=media is specified. (Default: false)
-    alt?:string;                         // Specifies the type of resource representation to return. The default is 'json' to return file metadata. Specifying 'media' will cause the file content to be returned.
-    fields?:string;
-    revisionId?:string;                   //	Specifies the Revision ID that should be downloaded. Ignored unless alt=media is specified.
-    updateViewedDate?:boolean;            //	Whether to update the view date after successfully retrieving the file. (Default: false)
-  }
-
-
 	/**
 	 * The Drive service.
 	 */
