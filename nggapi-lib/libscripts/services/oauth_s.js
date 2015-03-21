@@ -28,14 +28,16 @@ var NgGapi;
          * @param clientId. The Google client ID
          * @param tokenRefreshPolicy  One of the TokenRefreshPolicy Enum values
          * @param noAccessTokenPolicy (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
+         * @param ownGetAccessTokenFunction (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
          * @param $log
          * @param $window
          */
-        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, $log, $window) {
+        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, ownGetAccessTokenFunction, $log, $window) {
             this.scopes = scopes;
             this.clientId = clientId;
             this.tokenRefreshPolicy = tokenRefreshPolicy;
             this.noAccesTokenPolicy = noAccesTokenPolicy;
+            this.ownGetAccessTokenFunction = ownGetAccessTokenFunction;
             this.$log = $log;
             this.$window = $window;
             this.sig = 'OauthService'; // used in unit testing to confirm DI
@@ -45,6 +47,10 @@ var NgGapi;
             //$log.log("scopes", this.scopes);
             //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
             console.log('oauth cons');
+            // if dev has requested to override the default getAccessToken function
+            if (ownGetAccessTokenFunction) {
+                this.getAccessToken = ownGetAccessTokenFunction;
+            }
         }
         /**
          * return an access token. Normally simply calls gapi.auth.getToken(). If that returns undefined, then
@@ -143,6 +149,7 @@ NgGapi['Config'] = function () {
     var clientID;
     var tokenRefreshPolicy = 0 /* ON_DEMAND */; // default is on demand
     var noAccessTokenPolicy = 500; // default is to retry after 1/2 sec
+    var getAccessTokenFunction = undefined;
     return {
         setScopes: function (_scopes) {
             scopes = _scopes;
@@ -156,11 +163,14 @@ NgGapi['Config'] = function () {
         setNoAccessTokenPolicy: function (_policy) {
             noAccessTokenPolicy = _policy;
         },
+        setGetAccessTokenFunction: function (_function) {
+            getAccessTokenFunction = _function;
+        },
         $get: function () {
             var myInjector = angular.injector(["ng"]);
             var $log = myInjector.get("$log");
             var $window = myInjector.get("$window");
-            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, $log, $window);
+            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, getAccessTokenFunction, $log, $window);
         }
     };
 };
