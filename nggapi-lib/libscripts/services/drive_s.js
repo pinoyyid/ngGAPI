@@ -1,5 +1,3 @@
-/// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-/// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 'use strict';
 var NgGapi;
@@ -27,7 +25,7 @@ var NgGapi;
                 params: params
             };
             var promise = this.self.HttpService.doHttp(co);
-            //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
+            //var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
             var responseObject = { promise: promise, data: {}, headers: {} };
             promise.then(function (file) {
                 _this.self.transcribeProperties(file, responseObject);

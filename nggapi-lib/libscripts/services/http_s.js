@@ -1,4 +1,4 @@
-/// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
+// / <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 'use strict';
 var NgGapi;
@@ -41,7 +41,7 @@ var NgGapi;
         /**
          * internal $http call. This is recursed for errors
          *
-         * @param config  the $http config object {method, url, params, data}
+         * @param configObject  the $http config object {method, url, params, data}
          * @param def  the parent deferred object that we will resolve or reject
          * @param retryCounter used to countdown recursions. set by outer method
          */
@@ -68,13 +68,12 @@ var NgGapi;
          * @param status        The numeric status
          * @param headers       Object map of response Headers
          * @param configObject  The original config object
-     * @param statusText    The textual response
+         * @param statusText    The textual response
          * @param def           The mid-level deferred object
          * @param retryCounter  The decrementing retry counter
          */
         HttpService.prototype.errorHandler = function (data, status, headers, configObject, statusText, def, retryCounter) {
             var _this = this;
-            console.log("statusText = " + statusText);
             // 404 - hard error
             if (status == 404) {
                 def.reject(status);
@@ -124,7 +123,6 @@ var NgGapi;
             }
             // anything else is a hard error
             def.reject(status);
-            return;
         };
         /**
          * simple sleep(ms) returning a promise

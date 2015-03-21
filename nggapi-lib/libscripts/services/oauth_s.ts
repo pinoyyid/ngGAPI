@@ -1,6 +1,5 @@
-/// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-/// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
+/// <reference path="../../../nggapi_interfaces/angular_cropped.d.ts"/>
 
 'use strict';
 
@@ -43,7 +42,7 @@ module NgGapi {
      * @param $log
      * @param $window
      */
-    constructor(private scopes:string, private clientId:string, private tokenRefreshPolicy, private $log:ng.ILogService, private $window:ng.IWindowService) {
+    constructor(private scopes:string, private clientId:string, private tokenRefreshPolicy, private $log:mng.ILogService, private $window:mng.IWindowService) {
       //console.log("OAuth instantiated with " + scopes);
       //$log.log("scopes", this.scopes);
       //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
@@ -173,7 +172,8 @@ NgGapi['Config'] = function () {
 };
 
 
-// define the PngGapi module. This will then be included by the host app with "angular .module('MyApp', ['PngGapi']);"
+
+// define the ngm.NgGapi module. This will then be included by the host app with "angular .module('MyApp', ['ngm.NgGapi']);"
 
 angular.module('ngm.NgGapi', []);
 

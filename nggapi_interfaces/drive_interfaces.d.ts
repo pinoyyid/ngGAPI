@@ -1,4 +1,4 @@
-/// <reference path="../definitely_typed/angular/angular.d.ts"/>
+/// <reference path="angular_cropped.d.ts"/>
 
 /*
  ---------- Interfaces of the Drive Resources as defined within the Google documentation -----------
@@ -163,8 +163,8 @@ declare module NgGapi{
    * Interface definition for the HttpService. Mostly useful for a mock service
    */
   export interface IHttpService {
-    get$http():ng.IHttpService;
-    doHttp(configObject: ng.IRequestConfig):ng.IPromise<any>;
+    get$http():mng.IHttpService;
+    doHttp(configObject: mng.IRequestConfig):mng.IPromise<any>;
   }
 
 
@@ -194,7 +194,7 @@ declare module NgGapi{
    * Failure is total failure, i.e. after any retries
    */
   export interface IDriveResponseObject {
-    promise:ng.IPromise<{data:IDriveFile}>;
+    promise:mng.IPromise<{data:IDriveFile}>;
     data:IDriveFile | Array<IDriveFile> | string;
     headers:{}
   }
@@ -242,3 +242,5 @@ declare module NgGapi{
 
 
 }
+
+

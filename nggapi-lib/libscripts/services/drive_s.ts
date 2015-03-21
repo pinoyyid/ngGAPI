@@ -1,5 +1,3 @@
-/// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-/// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 
 'use strict';
@@ -20,17 +18,17 @@ module NgGapi {
 		testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
 		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
-		constructor(private $log:ng.ILogService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private HttpService:IHttpService) {
+		constructor(private $log:mng.ILogService, private $timeout:mng.ITimeoutService, private $q:mng.IQService, private HttpService:IHttpService) {
 		}
 
 		filesGet(params):IDriveResponseObject {
-			var co:ng.IRequestConfig = {
+			var co:mng.IRequestConfig = {
 				method: 'GET',
 				url: this.self.filesUrl.replace(':id', params.fileId),
 				params: params
 			};
 			var promise = this.self.HttpService.doHttp(co);
-			//var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
+			//var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
 			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: {}};
 			promise.then((file:IDriveFile)=> {
 				this.self.transcribeProperties(file, responseObject);
@@ -41,7 +39,7 @@ module NgGapi {
 
 
 		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject {
-			var configObject:ng.IRequestConfig;
+			var configObject:mng.IRequestConfig;
 			if (!params) {
 				configObject = {method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file};
 			} else {
@@ -81,7 +79,7 @@ module NgGapi {
 		 * @throws D119 safety check that the media is base64 encoded
 		 * @throws D125 safety check there is a mime type
 		 */
-		buildUploadConfigObject(file:IDriveFile, params:IDriveInsertParameters, base64EncodedContent:string):ng.IRequestConfig {
+		buildUploadConfigObject(file:IDriveFile, params:IDriveInsertParameters, base64EncodedContent:string):mng.IRequestConfig {
 			// check for a resumable upload and reject coz we don't support them yet
 			if (params.uploadType == 'resumable') {
 				this.self.$log.error("NgGapi: [D115] resumable uploads are not currently supported");
