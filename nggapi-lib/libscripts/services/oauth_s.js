@@ -1,5 +1,4 @@
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
-/// <reference path="../../../nggapi_interfaces/angular_cropped.d.ts"/>
 'use strict';
 var NgGapi;
 (function (NgGapi) {
@@ -28,13 +27,15 @@ var NgGapi;
          * @param scopes.  a space separated string of scopes
          * @param clientId. The Google client ID
          * @param tokenRefreshPolicy  One of the TokenRefreshPolicy Enum values
+         * @param noAccessTokenPolicy (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
          * @param $log
          * @param $window
          */
-        function OauthService(scopes, clientId, tokenRefreshPolicy, $log, $window) {
+        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, $log, $window) {
             this.scopes = scopes;
             this.clientId = clientId;
             this.tokenRefreshPolicy = tokenRefreshPolicy;
+            this.noAccesTokenPolicy = noAccesTokenPolicy;
             this.$log = $log;
             this.$window = $window;
             this.sig = 'OauthService'; // used in unit testing to confirm DI
@@ -50,7 +51,7 @@ var NgGapi;
          * return undefined, and starts a background refresh. The idea is that retries of the REST call witll repeatedly fail 401 until
          * such time that the refresh completes and gapi.auth.getToken returns a valid access token.
          *
-         * @return the access token string
+         * @return the access token string or "!FAIL" for parent to fail 401, or "!RETRY=xxx" for parent to retry
          */
         OauthService.prototype.getAccessToken = function () {
             if (!this.isGapiLoaded()) {
@@ -63,7 +64,12 @@ var NgGapi;
             }
             else {
                 this.refreshAccessToken();
-                return undefined;
+                if (this.noAccesTokenPolicy == 0) {
+                    return '!FAIL'; // tell the parent
+                }
+                else {
+                    return '!RETRY=' + this.noAccesTokenPolicy; // tell the parent to retry after xxx ms
+                }
             }
         };
         /**
@@ -135,7 +141,8 @@ var NgGapi;
 NgGapi['Config'] = function () {
     var scopes;
     var clientID;
-    var tokenRefreshPolicy;
+    var tokenRefreshPolicy = 0 /* ON_DEMAND */; // default is on demand
+    var noAccessTokenPolicy = 500; // default is to retry after 1/2 sec
     return {
         setScopes: function (_scopes) {
             scopes = _scopes;
@@ -146,11 +153,14 @@ NgGapi['Config'] = function () {
         setTokenRefreshPolicy: function (_policy) {
             tokenRefreshPolicy = _policy;
         },
+        setNoAccessTokenPolicy: function (_policy) {
+            noAccessTokenPolicy = _policy;
+        },
         $get: function () {
             var myInjector = angular.injector(["ng"]);
             var $log = myInjector.get("$log");
             var $window = myInjector.get("$window");
-            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, $log, $window);
+            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, $log, $window);
         }
     };
 };

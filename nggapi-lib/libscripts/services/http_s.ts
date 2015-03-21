@@ -58,14 +58,28 @@ module NgGapi {
 			if (!configObject.headers) {
 				configObject.headers = {};
 			}
-			configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken();                          // add auth header
-			var httpPromise = this.$http(configObject); // run the http call and capture the promise
-			httpPromise.success((data) => { // if http success, resolve the app promise
-				def.resolve(data);
-			});
-			httpPromise.error((data, status, headers, configObject, statusText) => { // for an error
-				this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
-			})
+			var at = this.OauthService.getAccessToken();                                                                // add auth header
+			if (at && (at.indexOf('!FAIL') != 0) && (at.indexOf('!RETRY=') != 0)) {                                     // if there is an access token
+				configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken();                 // add auth header
+				var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
+				httpPromise.success((data) => {                                                                         // if http success, resolve the app promise
+					def.resolve(data);
+				});
+				httpPromise.error((data, status, headers, configObject, statusText) => {                                // for an error
+					this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
+				})
+				return;
+			}
+			// here with no access token
+			if (at && at.indexOf('!FAIL') == 0) {                                                                       // if we are requested to fail
+				def.reject('401 no access token'); // TODO reject
+			} else {
+				var ms = at?at.replace('!RETRY=', ''):500;
+				console.log('sleeping for ms='+ms);
+				this.sleep(+ms).then(() => {
+					this._doHttp(configObject, def, retryCounter);
+				})
+			}
 		}
 
 		/**

@@ -62,7 +62,7 @@ describe('Service: OauthService', function () {
 
   it('should return undefined and refresh the token', function () {
     $window.gapi.auth.getToken = function () {return undefined};
-    expect(OauthService.getAccessToken()).toBeUndefined();
+    expect(OauthService.getAccessToken()).toBe('!RETRY=999');     // the 999 comes from app.js
     expect(OauthService.isAuthInProgress).toBeTruthy();
   });
 

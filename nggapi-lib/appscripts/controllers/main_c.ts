@@ -31,7 +31,7 @@ class MainCtrl {
 
     var prom = DriveService.files.insert({title:'delme media', mimeType:'text/plain'}, {uploadType:'multipart'}, btoa('hello world')).promise;
     prom.then((data:NgGapi.IDriveFile )=>{console.log('inserted with mime '+data.mimeType )});
-    prom.catch(()=>{console.error("OMG it failed")});
+    prom.catch((reason)=>{console.error("OMG it failed",reason)});
 
     this.insertFile('delme chain file title')                   // insert a file
       .then((file)=>{return this.getFile(file.id)})             // retrieve the newly inserted file

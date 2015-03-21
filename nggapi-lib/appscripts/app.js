@@ -9,6 +9,8 @@ angular.module('ngm.NgGapi')
     OauthServiceProvider.setScopes('https://www.googleapis.com/auth/drive.file');
     OauthServiceProvider.setClientID('700995682262-2kk81vdcu8j83j0ahjmk84u1drcbg5di.apps.googleusercontent.com');
     OauthServiceProvider.setTokenRefreshPolicy(NgGapi.TokenRefreshPolicy.ON_DEMAND);
-});
+    OauthServiceProvider.setNoAccessTokenPolicy(999);                 // 0 = fail, > 0 = retry after x
+
+      });
 
 

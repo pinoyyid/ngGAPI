@@ -32,8 +32,8 @@ var MainCtrl = (function () {
         prom.then(function (data) {
             console.log('inserted with mime ' + data.mimeType);
         });
-        prom.catch(function () {
-            console.error("OMG it failed");
+        prom.catch(function (reason) {
+            console.error("OMG it failed", reason);
         });
         this.insertFile('delme chain file title').then(function (file) {
             return _this.getFile(file.id);
