@@ -8,14 +8,14 @@ module NgGapi {
 	 * The Drive service.
 	 */
 	export class DriveService implements IDriveService {
-		sig = 'DriveService';                // used in unit testing to confirm DI
+		sig = 'DriveService';                                                                                           // used in unit testing to confirm DI
 
 		files = {self: this, get: this.filesGet, insert: this.filesInsert};
 		filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
-		self = this;                        // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
+		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
-		testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
+		testStatus:string;                                                                                              // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
 		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
 		constructor(private $log:mng.ILogService, private $timeout:mng.ITimeoutService, private $q:mng.IQService, private HttpService:IHttpService) {
@@ -31,7 +31,12 @@ module NgGapi {
 			//var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
 			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: {}};
 			promise.then((file:IDriveFile)=> {
-				this.self.transcribeProperties(file, responseObject);
+				debugger;
+				if (params.alt == 'media') {
+						responseObject.data.media = file;
+				} else {
+					this.self.transcribeProperties(file, responseObject);
+				}
 				console.log('service then ' + file.title);
 			});
 			return responseObject;
@@ -135,16 +140,23 @@ module NgGapi {
 
 		/**
 		 * instantiate each property of src object into dest object
-		 * Used to transcsribe properties from the returned JSON object to the responseObject so as not to break
+		 * Used to transcribe properties from the returned JSON object to the responseObject so as not to break
 		 * any object assignments the the view model
 		 *
 		 * @param src
 		 * @param dest
 		 */
 		transcribeProperties(src, dest) {
-			Object.keys(src).map(function (key) {
-				dest.data[key] = src[key]
-			});
+			console.log(typeof  src);
+			if (typeof src == "object") {
+				Object.keys(src).map(function (key) {
+					dest.data[key] = src[key]
+				});
+			} else {
+				console.log (src);
+				dest = src;
+				console.log (dest);
+			}
 
 		}
 	}

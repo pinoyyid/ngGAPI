@@ -28,7 +28,13 @@ var NgGapi;
             //var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
             var responseObject = { promise: promise, data: {}, headers: {} };
             promise.then(function (file) {
-                _this.self.transcribeProperties(file, responseObject);
+                debugger;
+                if (params.alt == 'media') {
+                    responseObject.data.media = file;
+                }
+                else {
+                    _this.self.transcribeProperties(file, responseObject);
+                }
                 console.log('service then ' + file.title);
             });
             return responseObject;
@@ -112,16 +118,24 @@ var NgGapi;
         };
         /**
          * instantiate each property of src object into dest object
-         * Used to transcsribe properties from the returned JSON object to the responseObject so as not to break
+         * Used to transcribe properties from the returned JSON object to the responseObject so as not to break
          * any object assignments the the view model
          *
          * @param src
          * @param dest
          */
         DriveService.prototype.transcribeProperties = function (src, dest) {
-            Object.keys(src).map(function (key) {
-                dest.data[key] = src[key];
-            });
+            console.log(typeof src);
+            if (typeof src == "object") {
+                Object.keys(src).map(function (key) {
+                    dest.data[key] = src[key];
+                });
+            }
+            else {
+                console.log(src);
+                dest = src;
+                console.log(dest);
+            }
         };
         DriveService.$inject = ['$log', '$timeout', '$q', 'HttpService'];
         return DriveService;

@@ -185,7 +185,7 @@ declare module NgGapi{
 
   /**
    * all methods will return this object containing a promise and data, where data would be one of
-   * the file content (i.e. from a Get alt=media),
+   * an object with a single property, 'media' which is the file content (i.e. from a Get alt=media),
    * the file meta data (e.g. from an Insert)
    * an array of file meta data (e.g. from a List)
    *
@@ -195,7 +195,7 @@ declare module NgGapi{
    */
   export interface IDriveResponseObject {
     promise:mng.IPromise<{data:IDriveFile}>;
-    data:IDriveFile | Array<IDriveFile> | string;
+    data:IDriveFile | Array<IDriveFile> | {media: string};
     headers:{}
   }
 

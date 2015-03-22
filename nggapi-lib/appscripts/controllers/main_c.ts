@@ -4,63 +4,87 @@
 
 class MainCtrl {
 	sig = 'MainCtrl';
-  filetitle:string = 'foo';
-  filetitle2:string = 'foo';
-  filetitle3:string = 'foo';
-  ro;
-  d;
-  inp = 'inp';
+	filetitle:string = 'foo';
+	filetitle2:string = 'foo';
+	filetitle3:string = 'foo';
+	ro;
+	d;
+	getData;
+	inp = 'inp';
 	static $inject = ['$scope', '$log', 'DriveService'];
 	//constructor(local $scope, local $log) {
-	constructor(private $scope, private $log:ng.ILogService,  private DriveService:NgGapi.IDriveService) {
+	constructor(private $scope, private $log:ng.ILogService, private DriveService:NgGapi.IDriveService) {
 		$scope.vm = this;
-    var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
-    //DriveService.filesGet({fileId:id}).promise.then((data:NgGapi.IDriveFile)=>{
-    //  console.log("controller then");
-    //  this.filetitle = data.title;
-    //});
-    DriveService.files.insert({title: 'delme'}).promise.then((data:NgGapi.IDriveFile)=>{
-      console.log("controller then inserted id = "+data.id);
-      this.filetitle = data.title;
-      return
-    });
-    DriveService.files.get({fileId:id}).promise.then((data:NgGapi.IDriveFile)=>{
-      console.log("controller then");
-      this.filetitle = data.title;
-    });
+		var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
+		//DriveService.filesGet({fileId:id}).promise.then((data:NgGapi.IDriveFile)=>{
+		//  console.log("controller then");
+		//  this.filetitle = data.title;
+		//});
+		DriveService.files.insert({title: 'delme'}).promise.then((data:NgGapi.IDriveFile)=> {
+			console.log("controller then inserted id = " + data.id);
+			this.filetitle = data.title;
+			return
+		});
+		DriveService.files.get({fileId: id}).promise.then((data:NgGapi.IDriveFile)=> {
+			console.log("controller then");
+			this.filetitle = data.title;
+		});
 
-    var prom = DriveService.files.insert({title:'delme media', mimeType:'text/plain'}, {uploadType:'multipart'}, btoa('hello world')).promise;
-    prom.then((data:NgGapi.IDriveFile )=>{console.log('inserted with mime '+data.mimeType )});
-    prom.catch((reason)=>{console.error("OMG it failed",reason)});
+		var prom = DriveService.files.insert({
+			title: 'delme media',
+			mimeType: 'text/plain'
+		}, {uploadType: 'multipart'}, btoa('hello world')).promise;
+		prom.then((data:NgGapi.IDriveFile)=> {
+			console.log('inserted with mime ' + data.mimeType)
+		});
+		prom.catch((reason)=> {
+			console.error("OMG it failed", reason)
+		});
 
-    this.insertFile('delme chain file title')                   // insert a file
-      .then((file)=>{return this.getFile(file.id)})             // retrieve the newly inserted file
-      .then((file)=>{this.displayTitle(file.title)});           // console log the title
+		this.insertFile('delme chain file title')                   // insert a file
+			.then((file)=> {
+				return this.getFile(file.id)
+			})             // retrieve the newly inserted file
+			.then((file)=> {
+				this.displayTitle(file.title)
+			});           // console log the title
 
-    this.insertFile('delme chain file title 2')                 // insert a file
-      .then((file)=>{return this.getFileContents(file.id)})             // retrieve the newly inserted file
-      .then((data)=>{console.log('inserted content, fetched with GET = '+data)});           // console log the title
+		this.insertFile('delme chain file title 2')                 // insert a file
+			.then((file)=> {
+				return this.getFileContents(file.id)
+			})             // retrieve the newly inserted file
+			.then((data)=> {
+				console.log('inserted content, fetched with GET = ' + data)
+			});           // console log the title
 
 
-    // TODO need a warning in the docs/comments that this doesn't work because in JS a String is a primitive data type, so filetitle2 receives the current value
 
-    console.log(DriveService);
-    this.d = DriveService.files.get({fileId:id}).data;
+		console.log(DriveService);
+		this.d = DriveService.files.get({fileId: id}).data;
 	}
 
 
-  insertFile(title:string):ng.IPromise<NgGapi.IDriveFile> {
-    return  this.DriveService.files.insert({title: title, mimeType:'text/plain'}, {uploadType:'multipart'}, btoa('some multipart content')).promise;
-  }
-  getFile(id:string):ng.IPromise<NgGapi.IDriveFile> {
-    return  this.DriveService.files.get({fileId: id}).promise;
-  }
-  getFileContents(id:string):ng.IPromise<NgGapi.IDriveFile> {
-    return  this.DriveService.files.get({fileId: id, alt:'media'}).promise;
-  }
-  displayTitle(title:string) {
-    this.$log.info("chained title = "+title);
-  }
+	insertFile(title:string):ng.IPromise<NgGapi.IDriveFile> {
+		return this.DriveService.files.insert({
+			title: title,
+			mimeType: 'text/plain'
+		}, {uploadType: 'multipart'}, btoa('some multipart content')).promise;
+	}
+
+	getFile(id:string):ng.IPromise<NgGapi.IDriveFile> {
+		return this.DriveService.files.get({fileId: id}).promise;
+	}
+
+	getFileContents(id:string):ng.IPromise<NgGapi.IDriveFile> {
+		var d = this.DriveService.files.get({fileId: id, alt: 'media'});
+		// for a media get, the response object is {media: "file contents"} and must be assigned as shown below. SO important to document that this.media = d.data.media WILL NOT WORK!!!!
+		this.getData = d.data;
+		return d.promise;
+	}
+
+	displayTitle(title:string) {
+		this.$log.info("chained title = " + title);
+	}
 }
 
 //angular.module('MyApp')

@@ -28,7 +28,10 @@ var MainCtrl = (function () {
             console.log("controller then");
             _this.filetitle = data.title;
         });
-        var prom = DriveService.files.insert({ title: 'delme media', mimeType: 'text/plain' }, { uploadType: 'multipart' }, btoa('hello world')).promise;
+        var prom = DriveService.files.insert({
+            title: 'delme media',
+            mimeType: 'text/plain'
+        }, { uploadType: 'multipart' }, btoa('hello world')).promise;
         prom.then(function (data) {
             console.log('inserted with mime ' + data.mimeType);
         });
@@ -45,18 +48,23 @@ var MainCtrl = (function () {
         }).then(function (data) {
             console.log('inserted content, fetched with GET = ' + data);
         }); // console log the title
-        // TODO need a warning in the docs/comments that this doesn't work because in JS a String is a primitive data type, so filetitle2 receives the current value
         console.log(DriveService);
         this.d = DriveService.files.get({ fileId: id }).data;
     }
     MainCtrl.prototype.insertFile = function (title) {
-        return this.DriveService.files.insert({ title: title, mimeType: 'text/plain' }, { uploadType: 'multipart' }, btoa('some multipart content')).promise;
+        return this.DriveService.files.insert({
+            title: title,
+            mimeType: 'text/plain'
+        }, { uploadType: 'multipart' }, btoa('some multipart content')).promise;
     };
     MainCtrl.prototype.getFile = function (id) {
         return this.DriveService.files.get({ fileId: id }).promise;
     };
     MainCtrl.prototype.getFileContents = function (id) {
-        return this.DriveService.files.get({ fileId: id, alt: 'media' }).promise;
+        var d = this.DriveService.files.get({ fileId: id, alt: 'media' });
+        // for a media get, the response object is {media: "file contents"} and must be assigned as shown below. SO important to document that this.media = d.data.media WILL NOT WORK!!!!
+        this.getData = d.data;
+        return d.promise;
     };
     MainCtrl.prototype.displayTitle = function (title) {
         this.$log.info("chained title = " + title);
