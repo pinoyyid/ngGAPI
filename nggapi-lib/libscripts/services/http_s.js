@@ -65,6 +65,11 @@ var NgGapi;
                 configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken(); // add auth header
                 var httpPromise = this.$http(configObject); // run the http call and capture the promise
                 httpPromise.success(function (data, status, headers, configObject, statusText) {
+                    if (data.nextPageToken) {
+                        def.notify(data);
+                        configObject.params.pageToken = data.nextPageToken;
+                        return _this._doHttp(configObject, def, retryCounter);
+                    }
                     def.resolve(data);
                 });
                 httpPromise.error(function (data, status, headers, configObject, statusText) {

@@ -78,6 +78,9 @@ module NgGapi {
 
 
 		filesList(params:NgGapi.IDriveListParameters, excludeTrashed:boolean):IDriveResponseObject<NgGapi.IDriveFile[]> {
+			if (params.fields && params.fields.indexOf('nextPageToken') == -1) {
+				return this.self.reject('[D82] You have tried to list files with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page');
+			}
 			if (excludeTrashed) {                                                                                       // if wants to exclude trashed
 				var trashed = 'trashed = false';
 				params.q = params.q?params.q+' and '+trashed:trashed;                                                   // set or append to q
@@ -89,8 +92,13 @@ module NgGapi {
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile[]> = {promise: promise, data: [], headers: undefined};
-			promise.then((resp:NgGapi.IDriveList)=> {                                    // on complete
-				debugger;
+			promise.then((resp:NgGapi.IDriveList)=> {                                                                   // on complete
+				var l = resp.items.length;
+				for (var i=0; i< l; i++) {
+					responseObject.data.push(resp.items[i]);                                                             // push each new file
+				}   // Nb can't use concat as that creates a new array
+			},undefined,
+				(resp:NgGapi.IDriveList)=> {                                                                            // on notify, ie a single page of results
 				var l = resp.items.length;
 				for (var i=0; i< l; i++) {
 					responseObject.data.push(resp.items[i]);                                                             // push each new file

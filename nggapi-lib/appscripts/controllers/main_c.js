@@ -18,12 +18,17 @@ var MainCtrl = (function () {
         $scope.vm = this;
         var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
         var idmedia = '0Bw3h_yCVtXbbU3huUVpjb0FfZ0U';
-        //DriveService.files.list({}, true).promise.then((data:NgGapi.IDriveFile[]) => {console.info(data.length)});
-        DriveService.files.list({}, true).promise.then(function (data) {
-            debugger;
-            console.error(data.length);
-        });
-        this.arry = DriveService.files.list({}, true).data;
+        DriveService.files.list({ q: 'title contains "delme"', fields: 'nextPageToken,items/title' }, true).promise.then(function (data) {
+            ;
+            console.error(data.items.length);
+        }, undefined, function (data) {
+            ;
+            console.error(data.items.length);
+        } // called after each page (except final page)
+        );
+        // here the output array is bound to the view model and will be appended to by each page of list results
+        // see the ng-repeat in index.html
+        this.arry = DriveService.files.list({ q: 'title contains "delme"', maxResults: 5, fields: 'nextPageToken,items/title' }, true).data;
         return;
         DriveService.files.insert({ title: 'delme insert' }).promise.then(function (data) {
             console.log("controller then inserted id = " + data.id);
