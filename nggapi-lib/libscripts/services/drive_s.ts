@@ -16,13 +16,15 @@ module NgGapi {
 			get: this.filesGet,
 			insert: this.filesInsert,
 			list: this.filesList,
-			trash: this.filesTrash
+			trash: this.filesTrash,
+			untrash: this.filesUntrash
 		};
 		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
 		filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
 		urlTrashSuffix = "/trash";
+		urlUntrashSuffix = "/untrash";
 
 		testStatus:string;                                                                                              // this has no role in the functionality of OauthService. it's a helper property for unit tests
 		lastFile:NgGapi.IDriveFile = {id:'noid'};                                                                                     // for testing, holds the most recent file response
@@ -77,8 +79,21 @@ module NgGapi {
 		}
 
 
+		/**
+		 * Implements files.List
+		 * Validates that dev hasn't inadvertently excluded nextPageToken from response
+		 *
+		 * responseObject.data contains an array of all results across all pages
+		 *
+		 * The promise will fire its notify for each page with data containing the raw http response object
+		 * with an embedded items array. The final page will fire the resolve.
+		 *
+		 * @param params see https://developers.google.com/drive/v2/reference/files/list
+		 * @param excludeTrashed
+		 * @returns IDriveResponseObject
+		 */
 		filesList(params:NgGapi.IDriveListParameters, excludeTrashed:boolean):IDriveResponseObject<NgGapi.IDriveFile[]> {
-			if (params.fields && params.fields.indexOf('nextPageToken') == -1) {
+			if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
 				return this.self.reject('[D82] You have tried to list files with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page');
 			}
 			if (excludeTrashed) {                                                                                       // if wants to exclude trashed
@@ -116,7 +131,7 @@ module NgGapi {
 		 * @param file  Files resource with at least a mime type
 		 * @param params see Google docs
 		 * @param base64EncodedContent
-		 * @returns {any}
+		 * @returns IDriveResponseObject
 		 */
 		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<NgGapi.IDriveFile> {
 			var configObject:mng.IRequestConfig;
@@ -143,9 +158,15 @@ module NgGapi {
 			return responseObject;
 		}
 
+		/**
+		 * Implements drive.trash
+		 *
+		 * @param params
+		 * @returns IDriveResponseObject
+		 */
 		filesTrash (params:{fileId:string}) {
 			if (!params || !params.fileId) {
-				var s = "[D119] Missing fileId";
+				var s = "[D168] Missing fileId";
 				return this.self.reject(s);
 			}
 
@@ -154,16 +175,41 @@ module NgGapi {
 				url: this.self.filesUrl.replace(':id', params.fileId)+this.self.urlTrashSuffix
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
-			//var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-					//responseObject['a']=resp.data;
 				this.self.transcribeProperties(resp, responseObject);                                          // if file, transcribe properties
 				this.self.lastFile = resp;
 			});
 			return responseObject;
 		}
+
+		/**
+		 * Implements drive.Untrash
+		 *
+		 * @param params
+		 * @returns IDriveResponseObject
+		 */
+		filesUntrash (params:{fileId:string}) {
+			if (!params || !params.fileId) {
+				var s = "[D194] Missing fileId";
+				return this.self.reject(s);
+			}
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'POST',
+				url: this.self.filesUrl.replace(':id', params.fileId)+this.self.urlUntrashSuffix
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				this.self.transcribeProperties(resp, responseObject);                                          // if file, transcribe properties
+				this.self.lastFile = resp;
+			});
+			return responseObject;
+		}
+
 
 
 		/**

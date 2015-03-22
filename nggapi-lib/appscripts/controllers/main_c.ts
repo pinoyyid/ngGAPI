@@ -13,7 +13,10 @@ class MainCtrl {
 	getData:any = {media:'mc'};
 	inp = 'inp';
 	static $inject = ['$scope', '$log', 'DriveService'];
-	//constructor(local $scope, local $log) {
+
+	// make some files, the do stuff with the, then trash them, then delete them
+
+
 	constructor(private $scope, private $log:ng.ILogService, private DriveService:NgGapi.IDriveService) {
 		$scope.vm = this;
 		var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';

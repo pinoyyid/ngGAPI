@@ -18,12 +18,14 @@ var NgGapi;
                 get: this.filesGet,
                 insert: this.filesInsert,
                 list: this.filesList,
-                trash: this.filesTrash
+                trash: this.filesTrash,
+                untrash: this.filesUntrash
             };
             this.self = this; // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
             this.filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
             this.filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
             this.urlTrashSuffix = "/trash";
+            this.urlUntrashSuffix = "/untrash";
             this.lastFile = { id: 'noid' }; // for testing, holds the most recent file response
         }
         /**
@@ -69,8 +71,21 @@ var NgGapi;
             });
             return responseObject;
         };
+        /**
+         * Implements files.List
+         * Validates that dev hasn't inadvertently excluded nextPageToken from response
+         *
+         * responseObject.data contains an array of all results across all pages
+         *
+         * The promise will fire its notify for each page with data containing the raw http response object
+         * with an embedded items array. The final page will fire the resolve.
+         *
+         * @param params see https://developers.google.com/drive/v2/reference/files/list
+         * @param excludeTrashed
+         * @returns IDriveResponseObject
+         */
         DriveService.prototype.filesList = function (params, excludeTrashed) {
-            if (params.fields && params.fields.indexOf('nextPageToken') == -1) {
+            if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
                 return this.self.reject('[D82] You have tried to list files with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page');
             }
             if (excludeTrashed) {
@@ -107,7 +122,7 @@ var NgGapi;
          * @param file  Files resource with at least a mime type
          * @param params see Google docs
          * @param base64EncodedContent
-         * @returns {any}
+         * @returns IDriveResponseObject
          */
         DriveService.prototype.filesInsert = function (file, params, base64EncodedContent) {
             var _this = this;
@@ -134,10 +149,16 @@ var NgGapi;
             });
             return responseObject;
         };
+        /**
+         * Implements drive.trash
+         *
+         * @param params
+         * @returns IDriveResponseObject
+         */
         DriveService.prototype.filesTrash = function (params) {
             var _this = this;
             if (!params || !params.fileId) {
-                var s = "[D119] Missing fileId";
+                var s = "[D168] Missing fileId";
                 return this.self.reject(s);
             }
             var co = {
@@ -145,11 +166,34 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlTrashSuffix
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            //var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                //responseObject['a']=resp.data;
+                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements drive.Untrash
+         *
+         * @param params
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.filesUntrash = function (params) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D194] Missing fileId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'POST',
+                url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlUntrashSuffix
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = { promise: promise, data: {}, headers: undefined };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
                 _this.self.lastFile = resp;
             });

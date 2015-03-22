@@ -2,7 +2,7 @@
 // TODO need to extract all interfaces to a single definition file
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 var MainCtrl = (function () {
-    //constructor(local $scope, local $log) {
+    // make some files, the do stuff with the, then trash them, then delete them
     function MainCtrl($scope, $log, DriveService) {
         var _this = this;
         this.$scope = $scope;

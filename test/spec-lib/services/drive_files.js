@@ -135,11 +135,31 @@ describe('Service: DriveService', function () {
 	});
 
 
+	it('list should return a file array', function () {
+		var id = 'fooi';
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
+		$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
+
+		var ro = DriveService.files.list();
+		$httpBackend.flush();
+		expect(ro.data.length).toBe(2);
+	});
+
+
+	it('list should fail for missing nextPageToken', function () {
+		var ro = DriveService.files.list({fields: 'foo'});
+		ro.promise.then(
+			function () {expect('should have failed D82 no resumable yet').toBe('false')},
+			function (reason) {expect(reason).toMatch('D82')}
+		);
+	});
+
+
 	it('trash should fail for missing fileId', function () {
 		var ro = DriveService.files.trash({title: 'title-'});
 		ro.promise.then(
-			function () {expect('should have failed D119 no resumable yet').toBe('false')},
-			function (reason) {expect(reason).toMatch('D119')}
+			function () {expect('should have failed D168 missing fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D168')}
 		);
 	});
 
@@ -155,6 +175,29 @@ describe('Service: DriveService', function () {
 		expect(DriveService.lastFile.id).toBe(id);
 		expect(ro.data.id).toBe(id);
 		expect(ro.data.labels.trashed).toBeTruthy();
+	});
+
+
+	it('untrash should fail for missing fileId', function () {
+		var ro = DriveService.files.untrash({title: 'title-'});
+		ro.promise.then(
+			function () {expect('should have failed D194 no fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D194')}
+		);
+	});
+
+
+	it('untrash should return a file object with labels trashed=false', function () {
+		var id = 'foot';
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/trash';
+		$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: false}} );
+
+		var ro = DriveService.files.untrash({fileId: id});
+		$httpBackend.flush();
+
+		expect(DriveService.lastFile.id).toBe(id);
+		expect(ro.data.id).toBe(id);
+		expect(ro.data.labels.trashed).toBeFalsy();
 	});
 
 
