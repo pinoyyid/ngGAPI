@@ -18,6 +18,8 @@ var NgGapi;
                 get: this.filesGet,
                 insert: this.filesInsert,
                 list: this.filesList,
+                update: this.filesUpdate,
+                patch: this.filesPatch,
                 trash: this.filesTrash,
                 untrash: this.filesUntrash,
                 del: this.filesDelete
@@ -151,6 +153,56 @@ var NgGapi;
             return responseObject;
         };
         /**
+         * Implements drive.update
+         *
+         * @param params
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.filesUpdate = function (params) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D170] Missing fileId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'PUT',
+                url: this.self.filesUrl.replace(':id', params.fileId)
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = { promise: promise, data: {}, headers: undefined };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements drive.patch
+         *
+         * @param params
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.filesPatch = function (params) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D197] Missing fileId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'PATCH',
+                url: this.self.filesUrl.replace(':id', params.fileId)
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = { promise: promise, data: {}, headers: undefined };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp;
+            });
+            return responseObject;
+        };
+        /**
          * Implements drive.trash
          *
          * @param params
@@ -159,7 +211,7 @@ var NgGapi;
         DriveService.prototype.filesTrash = function (params) {
             var _this = this;
             if (!params || !params.fileId) {
-                var s = "[D168] Missing fileId";
+                var s = "[D225] Missing fileId";
                 return this.self.reject(s);
             }
             var co = {
@@ -184,7 +236,7 @@ var NgGapi;
         DriveService.prototype.filesUntrash = function (params) {
             var _this = this;
             if (!params || !params.fileId) {
-                var s = "[D194] Missing fileId";
+                var s = "[D251] Missing fileId";
                 return this.self.reject(s);
             }
             var co = {

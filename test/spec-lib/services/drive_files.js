@@ -155,11 +155,56 @@ describe('Service: DriveService', function () {
 	});
 
 
+	it('update should fail for missing fileId', function () {
+		var ro = DriveService.files.update({title: 'title-'});
+		ro.promise.then(
+			function () {expect('should have failed D170 missing fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D170')}
+		);
+	});
+
+
+	it('update should return a file object ', function () {
+		var id = 'foot';
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
+		$httpBackend .whenPUT("") .respond({id: id } );
+
+		var ro = DriveService.files.update({fileId: id});
+		$httpBackend.flush();
+
+		expect(DriveService.lastFile.id).toBe(id);
+		expect(ro.data.id).toBe(id);
+	});
+
+
+	it('patch should fail for missing fileId', function () {
+		var ro = DriveService.files.patch({title: 'title-'});
+		ro.promise.then(
+			function () {expect('should have failed D197 missing fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D197')}
+		);
+	});
+
+
+	it('patch should return a file object ', function () {
+		var id = 'foot';
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
+		$httpBackend .whenPATCH("") .respond({id: id } );
+
+		var ro = DriveService.files.patch({fileId: id});
+		$httpBackend.flush();
+
+		expect(DriveService.lastFile.id).toBe(id);
+		expect(ro.data.id).toBe(id);
+	});
+
+
+
 	it('trash should fail for missing fileId', function () {
 		var ro = DriveService.files.trash({title: 'title-'});
 		ro.promise.then(
-			function () {expect('should have failed D168 missing fileId').toBe('false')},
-			function (reason) {expect(reason).toMatch('D168')}
+			function () {expect('should have failed D225 missing fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D225')}
 		);
 	});
 
@@ -181,8 +226,8 @@ describe('Service: DriveService', function () {
 	it('untrash should fail for missing fileId', function () {
 		var ro = DriveService.files.untrash({title: 'title-'});
 		ro.promise.then(
-			function () {expect('should have failed D194 no fileId').toBe('false')},
-			function (reason) {expect(reason).toMatch('D194')}
+			function () {expect('should have failed D251 no fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D251')}
 		);
 	});
 

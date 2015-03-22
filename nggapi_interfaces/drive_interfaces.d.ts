@@ -177,6 +177,8 @@ declare module NgGapi{
       get(params:IDriveGetParameters):IDriveResponseObject<NgGapi.IDriveFile>;
       list(params:IDriveListParameters, excludeTrashed):IDriveResponseObject<NgGapi.IDriveFile[]>;
       insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<NgGapi.IDriveFile>;
+      update(params:IDriveUpdateParameters):IDriveResponseObject<NgGapi.IDriveFile>;
+      patch(params:IDriveUpdateParameters):IDriveResponseObject<NgGapi.IDriveFile>;
       trash(params:{fileId:string}):IDriveResponseObject<NgGapi.IDriveFile>;
       untrash(params:{fileId:string}):IDriveResponseObject<NgGapi.IDriveFile>;
       del(params:{fileId:string}):IDriveResponseObject<NgGapi.IDriveFile>;
@@ -226,7 +228,7 @@ declare module NgGapi{
   }
 
   export interface IDriveInsertParameters {
-    uploadType:string;                  // The type of upload request to the /upload URI. Acceptable values are: media - Simple upload. Upload the media only, without any metadata. multipart - Multipart upload. Upload both the media and its metadata, in a single request. resumable - Resumable upload. Upload the file in a resumable fashion, using a series of at least two requests where the first request includes the metadata.
+    uploadType:string;                   // The type of upload request to the /upload URI. Acceptable values are: media - Simple upload. Upload the media only, without any metadata. multipart - Multipart upload. Upload both the media and its metadata, in a single request. resumable - Resumable upload. Upload the file in a resumable fashion, using a series of at least two requests where the first request includes the metadata.
     convert?:boolean;                    // Whether to convert this file to the corresponding Google Docs format. (Default: false)
     ocr?:boolean;                        // Whether to attempt OCR on .jpg, .png, .gif, or .pdf uploads. (Default: false)
     ocrLanguage?:string;                 //  If ocr is true, hints at the language to use. Valid values are ISO 639-1 codes.
@@ -242,10 +244,25 @@ declare module NgGapi{
     acknowledgeAbuse?:boolean;           // Whether the user is acknowledging the risk of downloading known malware or other abusive files. Ignored unless alt=media is specified. (Default: false)
     alt?:string;                         // Specifies the type of resource representation to return. The default is 'json' to return file metadata. Specifying 'media' will cause the file content to be returned.
     fields?:string;
-    revisionId?:string;                   //	Specifies the Revision ID that should be downloaded. Ignored unless alt=media is specified.
-    updateViewedDate?:boolean;            //	Whether to update the view date after successfully retrieving the file. (Default: false)
+    revisionId?:string;                  //	Specifies the Revision ID that should be downloaded. Ignored unless alt=media is specified.
+    updateViewedDate?:boolean;           //	Whether to update the view date after successfully retrieving the file. (Default: false)
   }
 
+  export interface IDriveUpdateParameters {
+    fileId:string;                        // The ID of the file to update.
+    addParents?:string;                   // Comma-separated list of parent IDs to add.
+    convert?:boolean;                     // Whether to convert this file to the corresponding Google Docs format. (Default: false)
+    newRevision?:boolean;                 // Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous revisions are preserved (causing increased use of the user's data storage quota). (Default: true)
+    ocr?:boolean;                         // Whether to attempt OCR on .jpg, .png, .gif, or .pdf uploads. (Default: false)
+    ocrLanguage?:string;                  //  If ocr is true, hints at the language to use. Valid values are ISO 639-1 codes.
+    pinned?:boolean;                      // Whether to pin the head revision of the uploaded file. A file can have a maximum of 200 pinned revisions. (Default: false)
+    timedTextLanguage?:string;            // The language of the timed text.
+    timedTextTrackName?:string;           // The timed text track name.
+    useContentAsIndexableText?:boolean;   // Whether to use the content as indexable text. (Default: false)
+    removeParents?:string;                // Comma-separated list of parent IDs to remove.
+    setModifiedDate?:boolean;             // Whether to set the modified date with the supplied modified date. (Default: false)
+    updateViewedDate?:boolean;            // Whether to update the view date after successfully updating the file. (Default: true)
+  }
 }
 
 
