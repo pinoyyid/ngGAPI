@@ -196,7 +196,7 @@ declare module NgGapi{
   export interface IDriveResponseObject {
     promise:mng.IPromise<{data:IDriveFile}>;
     data:IDriveFile | Array<IDriveFile> | {media: string};
-    headers:{}
+    headers:(name:string)=>string
   }
 
   /**

@@ -10,61 +10,89 @@ module NgGapi {
 	export class DriveService implements IDriveService {
 		sig = 'DriveService';                                                                                           // used in unit testing to confirm DI
 
+		// this files object (and the self assignment) allows calls of the nature DriveService.files.insert for compatibility with gapi structure
 		files = {self: this, get: this.filesGet, insert: this.filesInsert};
+		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
+
 		filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
-		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
 		testStatus:string;                                                                                              // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
 		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
-		constructor(private $log:mng.ILogService, private $timeout:mng.ITimeoutService, private $q:mng.IQService, private HttpService:IHttpService) {
+		constructor(private $log:mng.ILogService, private $timeout:mng.ITimeoutService,
+		            private $q:mng.IQService, private HttpService:IHttpService) {
 		}
 
+		/*
+		Each method implements a method from https://developers.google.com/drive/v2/reference/files .
+		Generally this is done by constructing an appropriate IRequestConfig object and passing it to the HttpService.
+
+		NB. To support the DriveService.files.insert form of calling, references to "this" must always be "this.self"
+
+		 */
+
+		/**
+		 * Implements Get both for getting a file object and the newer alt=media to get a file's media content
+		 * See https://developers.google.com/drive/v2/reference/files/get for semantics including the params object
+		 *
+		 * @param params
+		 * @returns {IDriveResponseObject}
+		 */
 		filesGet(params):IDriveResponseObject {
-			var co:mng.IRequestConfig = {
+			var co:mng.IRequestConfig = {                                                                               // build request config
 				method: 'GET',
 				url: this.self.filesUrl.replace(':id', params.fileId),
 				params: params
 			};
-			var promise = this.self.HttpService.doHttp(co);
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
 			//var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
-			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: {}};
-			promise.then((file:IDriveFile)=> {
-				debugger;
-				if (params.alt == 'media') {
-						responseObject.data.media = file;
+			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: undefined};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				if (params.alt == 'media') {                                                                            // figure out if the response is a file or media
+					responseObject.data['media'] = resp.data;                                                           // if media, assign to media property
 				} else {
-					this.self.transcribeProperties(file, responseObject);
+					this.self.transcribeProperties(resp.data, responseObject);                                          // if file, transcribe properties
 				}
-				console.log('service then ' + file.title);
 			});
 			return responseObject;
 		}
 
 
+		/**
+		 * Implements Insert, both for metadata only and for multipart media content upload
+		 * TODO NB resumable uploads not yet supported
+		 *
+		 * See https://developers.google.com/drive/v2/reference/files/insert for semantics including the params object
+		 *
+		 * @param file  Files resource with at least a mime type
+		 * @param params see Google docs
+		 * @param base64EncodedContent
+		 * @returns {any}
+		 */
 		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject {
 			var configObject:mng.IRequestConfig;
 			if (!params) {
-				configObject = {method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file};
+				configObject = {method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file};                // no params is a simple metadata insert
 			} else {
 				try {
-					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent);
+					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent);               // build a config object from params
 					configObject.method = 'POST';
-					configObject.url = this.self.filesUploadUrl;
-				} catch (ex) {
+					configObject.url = this.self.filesUploadUrl;                                                        // nb non-standard URL
+				} catch (ex) {                                                                                          // any validation errors throw an exception
 					var def = this.self.$q.defer();
-					def.reject(ex);
+					def.reject(ex);                                                                                     // which is used to reject the promise
 					return {data: undefined, promise: def.promise, headers: undefined};
 				}
 			}
 
 
 			var promise = this.self.HttpService.doHttp(configObject);
-			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: {}};
-			promise.then((file:IDriveFile)=> {
-				this.self.transcribeProperties(file, responseObject);
-				console.log('service then ' + file.title);
+			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: undefined};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe heqaders
+				this.self.transcribeProperties(resp.data, responseObject);
 			});
 			return responseObject;
 		}
@@ -153,9 +181,9 @@ module NgGapi {
 					dest.data[key] = src[key]
 				});
 			} else {
-				console.log (src);
+				console.log(src);
 				dest = src;
-				console.log (dest);
+				console.log(dest);
 			}
 
 		}
@@ -164,5 +192,6 @@ module NgGapi {
 
 }
 
+declare var angular: mng.IAngularStatic;
 angular.module('ngm.NgGapi')
 	.service('DriveService', NgGapi.DriveService);

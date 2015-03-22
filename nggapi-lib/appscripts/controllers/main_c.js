@@ -1,6 +1,6 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 // TODO need to extract all interfaces to a single definition file
-/// <reference path="../../libscripts/services/drive_s.ts"/>
+/// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 var MainCtrl = (function () {
     //constructor(local $scope, local $log) {
     function MainCtrl($scope, $log, DriveService) {

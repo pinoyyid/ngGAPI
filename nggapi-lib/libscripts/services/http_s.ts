@@ -62,7 +62,7 @@ module NgGapi {
 			if (at && (at.indexOf('!FAIL') != 0) && (at.indexOf('!RETRY=') != 0)) {                                     // if there is an access token
 				configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken();                 // add auth header
 				var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
-				httpPromise.success((data) => {                                                                         // if http success, resolve the app promise
+				httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
 					def.resolve(data);
 				});
 				httpPromise.error((data, status, headers, configObject, statusText) => {                                // for an error
@@ -161,5 +161,6 @@ module NgGapi {
 	}
 }
 
+declare var angular: mng.IAngularStatic;
 angular.module('ngm.NgGapi')
 	.service('HttpService', NgGapi.HttpService);

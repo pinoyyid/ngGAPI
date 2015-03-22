@@ -6,12 +6,12 @@
 
 // / <reference path="../jquery/jquery.d.ts" />
 
-declare var angular: mng.IAngularStatic;
+//declare var mngangular: mng.IAngularStatic;
 
 // Support for painless dependency injection
-interface Function {
-    $inject?: string[];
-}
+//interface Function {
+//    $inject?: string[];
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 // ng module (angular.js)
