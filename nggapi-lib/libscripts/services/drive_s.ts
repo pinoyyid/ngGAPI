@@ -142,8 +142,9 @@ module NgGapi {
 				throw ("[D142] content does not appear to be base64 encoded.");
 			}
 
-			// check the dev provided a mime type
-			if (params.uploadType == 'multipart' && (!file || !file.mimeType)) {
+			// check the dev provided a mime type for media or multipart
+			if ((params.uploadType == 'multipart' || params.uploadType == 'media')
+				&& (!file || !file.mimeType)) {
 				this.self.$log.error("NgGapi: [D148] file metadata is missing mandatory mime type");
 				throw ("[D148] file metadata is missing mandatory mime type");
 			}

@@ -126,6 +126,12 @@ describe('Service: DriveService', function () {
 			function () {expect('should have failed D148 no mime type').toBe('false')},
 			function (reason) {expect(reason).toMatch('D148')}
 		);
+
+		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'media'}, 'Zm9v');
+		ro.promise.then(
+			function () {expect('should have failed D148 no mime type').toBe('false')},
+			function (reason) {expect(reason).toMatch('D148')}
+		);
 		//$httpBackend.flush();
 
 		//expect(DriveService.lastFile.id).toBe(id);
