@@ -210,7 +210,7 @@ var NgGapi;
         /**
          * Implements drive.trash
          *
-         * @param params
+         * @param params fileId
          * @returns IDriveResponseObject
          */
         DriveService.prototype.filesTrash = function (params) {
@@ -235,7 +235,7 @@ var NgGapi;
         /**
          * Implements drive.Untrash
          *
-         * @param params
+         * @param params fileId
          * @returns IDriveResponseObject
          */
         DriveService.prototype.filesUntrash = function (params) {
@@ -260,7 +260,7 @@ var NgGapi;
         /**
          * Implements drive.delete
          *
-         * @param params
+         * @param params fileID
          * @returns IDriveResponseObject
          */
         DriveService.prototype.filesDelete = function (params) {
@@ -282,7 +282,7 @@ var NgGapi;
         /**
          * Implements drive.Watch
          *
-         * @param params
+         * @param params IWatchParameters
          * @returns IDriveResponseObject
          */
         DriveService.prototype.filesWatch = function (params) {
