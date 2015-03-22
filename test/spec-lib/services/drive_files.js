@@ -256,6 +256,50 @@ describe('Service: DriveService', function () {
 
 
 
+	it('touch should fail for missing fileId', function () {
+		var ro = DriveService.files.touch({title: 'title-'});
+		ro.promise.then(
+			function () {expect('should have failed D329 missing fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D329')}
+		);
+	});
+
+
+	it('touch should return a file object', function () {
+		var id = 'foot';
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/touch';
+		$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
+
+		var ro = DriveService.files.touch({fileId: id});
+		$httpBackend.flush();
+
+		expect(DriveService.lastFile.id).toBe(id);
+		expect(ro.data.id).toBe(id);
+	});
+
+
+
+	it('watch should fail for missing fileId', function () {
+		var ro = DriveService.files.watch({title: 'title-'});
+		ro.promise.then(
+			function () {expect('should have failed D302 missing id').toBe('false')},
+			function (reason) {expect(reason).toMatch('D302')}
+		);
+	});
+
+
+	it('watch should return a file object', function () {
+		var id = 'foot';
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/watch';
+		$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
+
+		var ro = DriveService.files.watch({id: id});
+		$httpBackend.flush();
+
+		expect(DriveService.lastFile.id).toBe(id);
+		expect(ro.data.id).toBe(id);
+	});
+
 	/*
 	 it('insert should call POST on the tasks endpoint', function() {
 	 console.log("test insert");

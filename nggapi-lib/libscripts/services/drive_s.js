@@ -22,13 +22,18 @@ var NgGapi;
                 patch: this.filesPatch,
                 trash: this.filesTrash,
                 untrash: this.filesUntrash,
-                del: this.filesDelete
+                del: this.filesDelete,
+                watch: this.filesWatch,
+                touch: this.filesTouch,
+                emptyTrash: this.filesEmptyTrash
             };
             this.self = this; // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
             this.filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
             this.filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
-            this.urlTrashSuffix = "/trash";
-            this.urlUntrashSuffix = "/untrash";
+            this.urlTrashSuffix = '/trash';
+            this.urlUntrashSuffix = '/untrash';
+            this.urlWatchSuffix = '/watch';
+            this.urlTouchSuffix = '/touch';
             this.lastFile = { id: 'noid' }; // for testing, holds the most recent file response
         }
         /**
@@ -259,7 +264,6 @@ var NgGapi;
          * @returns IDriveResponseObject
          */
         DriveService.prototype.filesDelete = function (params) {
-            var _this = this;
             if (!params || !params.fileId) {
                 var s = "[D222] Missing fileId";
                 return this.self.reject(s);
@@ -272,8 +276,73 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
+            });
+            return responseObject;
+        };
+        /**
+         * Implements drive.Watch
+         *
+         * @param params
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.filesWatch = function (params) {
+            var _this = this;
+            if (!params || !params.id) {
+                var s = "[D302] Missing id";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'POST',
+                url: this.self.filesUrl.replace(':id', params.id) + this.self.urlWatchSuffix
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = { promise: promise, data: undefined, headers: undefined };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
                 _this.self.lastFile = resp;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements drive.Touch
+         *
+         * @param params
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.filesTouch = function (params) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D329] Missing fileId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'POST',
+                url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlTouchSuffix
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = { promise: promise, data: {}, headers: undefined };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements drive.emptyTrash
+         *
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.filesEmptyTrash = function () {
+            var co = {
+                method: 'POST',
+                url: this.self.filesUrl.replace(':id', 'trash')
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = { promise: promise, data: {}, headers: undefined };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
             });
             return responseObject;
         };
@@ -347,6 +416,9 @@ var NgGapi;
          * @param dest
          */
         DriveService.prototype.transcribeProperties = function (src, dest) {
+            if (!dest.data) {
+                dest.data = {};
+            }
             if (typeof src == "object") {
                 Object.keys(src).map(function (key) {
                     dest.data[key] = src[key];

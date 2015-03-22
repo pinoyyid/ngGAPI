@@ -174,14 +174,17 @@ declare module NgGapi{
   export interface IDriveService {
     getHttpService():NgGapi.IHttpService;
     files:{
-      get(params:IDriveGetParameters):IDriveResponseObject<NgGapi.IDriveFile>;
-      list(params:IDriveListParameters, excludeTrashed):IDriveResponseObject<NgGapi.IDriveFile[]>;
-      insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<NgGapi.IDriveFile>;
-      update(params:IDriveUpdateParameters):IDriveResponseObject<NgGapi.IDriveFile>;
-      patch(params:IDriveUpdateParameters):IDriveResponseObject<NgGapi.IDriveFile>;
-      trash(params:{fileId:string}):IDriveResponseObject<NgGapi.IDriveFile>;
-      untrash(params:{fileId:string}):IDriveResponseObject<NgGapi.IDriveFile>;
-      del(params:{fileId:string}):IDriveResponseObject<NgGapi.IDriveFile>;
+      get(params:IDriveGetParameters):IDriveResponseObject<IDriveFile>;
+      list(params:IDriveListParameters, excludeTrashed):IDriveResponseObject<IDriveFile[]>;
+      insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<IDriveFile>;
+      update(params:IDriveUpdateParameters):IDriveResponseObject<IDriveFile>;
+      patch(params:IDriveUpdateParameters):IDriveResponseObject<IDriveFile>;
+      trash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
+      untrash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
+      del(params:{fileId:string}):IDriveResponseObject<any>;
+      touch(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
+      watch(params:IWatchParameters):IDriveResponseObject<IApiChannel>;
+      emptyTrash():IDriveResponseObject<any>;
       //list(params:IDriveListParameters):IDriveresponseObject;
     }
   }
@@ -262,6 +265,23 @@ declare module NgGapi{
     removeParents?:string;                // Comma-separated list of parent IDs to remove.
     setModifiedDate?:boolean;             // Whether to set the modified date with the supplied modified date. (Default: false)
     updateViewedDate?:boolean;            // Whether to update the view date after successfully updating the file. (Default: true)
+  }
+
+  export interface IWatchParameters {
+    id:string;                            // A UUID or similar unique string that identifies this channel.
+    token?:string;                        // An arbitrary string delivered to the target address with each notification delivered over this channel. Optional.
+    expiration?:number;                   // Date and time of notification channel expiration, expressed as a Unix timestamp, in milliseconds. Optional.
+    type?:string;	                      // The type of delivery mechanism used for this channel. The only option is web_hook.
+    address?:string;                      // The address where notifications are delivered for this channel.
+  }
+
+  export interface IApiChannel {
+    kind: string;
+    id: string;
+    resourceId: string;
+    resourceUri: string;
+    token: string;
+    expiration: number;
   }
 }
 
