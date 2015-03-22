@@ -201,6 +201,14 @@ describe('Service: DriveService', function () {
 	});
 
 
+	it('delete should fail for missing fileId', function () {
+		var ro = DriveService.files.del({title: 'title-'});
+		ro.promise.then(
+			function () {expect('should have failed D222 no fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D222')}
+		);
+	});
+
 
 
 	/*

@@ -17,7 +17,8 @@ module NgGapi {
 			insert: this.filesInsert,
 			list: this.filesList,
 			trash: this.filesTrash,
-			untrash: this.filesUntrash
+			untrash: this.filesUntrash,
+			del: this.filesDelete
 		};
 		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
@@ -209,6 +210,33 @@ module NgGapi {
 			});
 			return responseObject;
 		}
+
+		/**
+		 * Implements drive.delete
+		 *
+		 * @param params
+		 * @returns IDriveResponseObject
+		 */
+		filesDelete (params:{fileId:string}) {
+			if (!params || !params.fileId) {
+				var s = "[D222] Missing fileId";
+				return this.self.reject(s);
+			}
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'delete',
+				url: this.self.filesUrl.replace(':id', params.fileId)
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				this.self.transcribeProperties(resp, responseObject);                                          // if file, transcribe properties
+				this.self.lastFile = resp;
+			});
+			return responseObject;
+		}
+
 
 
 
