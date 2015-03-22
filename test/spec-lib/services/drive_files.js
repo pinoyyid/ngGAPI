@@ -132,10 +132,6 @@ describe('Service: DriveService', function () {
 			function () {expect('should have failed D148 no mime type').toBe('false')},
 			function (reason) {expect(reason).toMatch('D148')}
 		);
-		//$httpBackend.flush();
-
-		//expect(DriveService.lastFile.id).toBe(id);
-		//expect(ro.data.id).toBe(id);
 	});
 
 
