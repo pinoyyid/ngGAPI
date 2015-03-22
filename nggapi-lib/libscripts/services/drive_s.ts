@@ -14,12 +14,14 @@ module NgGapi {
 		files = {
 			self: this,
 			get: this.filesGet,
-			insert: this.filesInsert
+			insert: this.filesInsert,
+			trash: this.filesTrash
 		};
 		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
 		filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
+		urlTrashSuffix = "/trash";
 
 		testStatus:string;                                                                                              // this has no role in the functionality of OauthService. it's a helper property for unit tests
 		lastFile:NgGapi.IDriveFile = {id:'noid'};                                                                                     // for testing, holds the most recent file response
@@ -53,7 +55,7 @@ module NgGapi {
 		 * @param params
 		 * @returns {IDriveResponseObject}
 		 */
-		filesGet(params):IDriveResponseObject {
+		filesGet(params:NgGapi.IDriveGetParameters):IDriveResponseObject {
 			var co:mng.IRequestConfig = {                                                                               // build request config
 				method: 'GET',
 				url: this.self.filesUrl.replace(':id', params.fileId),
@@ -97,9 +99,7 @@ module NgGapi {
 					configObject.method = 'POST';
 					configObject.url = this.self.filesUploadUrl;                                                        // nb non-standard URL
 				} catch (ex) {                                                                                          // any validation errors throw an exception
-					var def = this.self.$q.defer();
-					def.reject(ex);                                                                                     // which is used to reject the promise
-					return {data: undefined, promise: def.promise, headers: undefined};
+					return this.self.reject(ex);
 				}
 			}
 
@@ -112,6 +112,43 @@ module NgGapi {
 				this.self.lastFile = resp;
 			});
 			return responseObject;
+		}
+
+		filesTrash (params:{fileId:string}) {
+			if (!params || !params.fileId) {
+				var s = "[D119] Missing fileId";
+				return this.self.reject(s);
+			}
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'POST',
+				url: this.self.filesUrl.replace(':id', params.fileId)+this.self.urlTrashSuffix
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			//var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
+			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: undefined};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+					//responseObject['a']=resp.data;
+				this.self.transcribeProperties(resp, responseObject);                                          // if file, transcribe properties
+				this.self.lastFile = resp;
+			});
+			return responseObject;
+		}
+
+
+		/**
+		 * reject the current request by creating a response object with a promise and rejecting it
+		 * This is used to deal with validation errors prior to http submission
+		 *
+		 * @param reason
+		 * @returns {{data: undefined, promise: IPromise<T>, headers: undefined}}
+		 */
+		reject(reason:any):NgGapi.IDriveResponseObject {
+			this.self.$log.error('NgGapi: '+reason);
+			var def = this.self.$q.defer();
+			def.reject(reason);                                                                                     // which is used to reject the promise
+			return {data: undefined, promise: def.promise, headers: undefined};
 		}
 
 
@@ -132,20 +169,17 @@ module NgGapi {
 		buildUploadConfigObject(file:IDriveFile, params:IDriveInsertParameters, base64EncodedContent:string):mng.IRequestConfig {
 			// check for a resumable upload and reject coz we don't support them yet
 			if (params.uploadType == 'resumable') {
-				this.self.$log.error("NgGapi: [D136] resumable uploads are not currently supported");
 				throw "[D136] resumable uploads are not currently supported";
 			}
 
 			// check the media is base64 encoded
 			if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
-				this.self.$log.error("NgGapi: [D142] content does not appear to be base64 encoded.");
 				throw ("[D142] content does not appear to be base64 encoded.");
 			}
 
 			// check the dev provided a mime type for media or multipart
 			if ((params.uploadType == 'multipart' || params.uploadType == 'media')
 				&& (!file || !file.mimeType)) {
-				this.self.$log.error("NgGapi: [D148] file metadata is missing mandatory mime type");
 				throw ("[D148] file metadata is missing mandatory mime type");
 			}
 

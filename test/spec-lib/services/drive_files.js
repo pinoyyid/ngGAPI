@@ -135,6 +135,28 @@ describe('Service: DriveService', function () {
 	});
 
 
+	it('trash should fail for missing fileId', function () {
+		var ro = DriveService.files.trash({title: 'title-'});
+		ro.promise.then(
+			function () {expect('should have failed D119 no resumable yet').toBe('false')},
+			function (reason) {expect(reason).toMatch('D119')}
+		);
+	});
+
+
+	it('trash should return a file object with labels trashed=true', function () {
+		var id = 'foot';
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/trash';
+		$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
+
+		var ro = DriveService.files.trash({fileId: id});
+		$httpBackend.flush();
+
+		expect(DriveService.lastFile.id).toBe(id);
+		expect(ro.data.id).toBe(id);
+		expect(ro.data.labels.trashed).toBeTruthy();
+	});
+
 
 
 

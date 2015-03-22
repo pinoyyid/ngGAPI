@@ -48,6 +48,11 @@ var MainCtrl = (function () {
         }); // console log the title
         this.d = DriveService.files.get({ fileId: id }).data;
         this.getFileContents(idmedia);
+        this.insertFile("delme trash me").then(function (file) {
+            DriveService.files.trash({ fileId: file.id }).promise.then(function (resp) {
+                console.log('trashed ' + resp['id']);
+            });
+        });
     }
     MainCtrl.prototype.insertFile = function (title) {
         return this.DriveService.files.insert({

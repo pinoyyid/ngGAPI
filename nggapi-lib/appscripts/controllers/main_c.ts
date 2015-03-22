@@ -57,6 +57,11 @@ class MainCtrl {
 			});           // console log the title
 		this.d = DriveService.files.get({fileId: id}).data;
 		this.getFileContents(idmedia);
+
+		this.insertFile("delme trash me")
+			.then((file)=>{
+				DriveService.files.trash({fileId:file.id}).promise.then((resp)=>{console.log('trashed '+resp['id'])})
+			})
 	}
 
 

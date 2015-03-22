@@ -16,11 +16,13 @@ var NgGapi;
             this.files = {
                 self: this,
                 get: this.filesGet,
-                insert: this.filesInsert
+                insert: this.filesInsert,
+                trash: this.filesTrash
             };
             this.self = this; // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
             this.filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
             this.filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
+            this.urlTrashSuffix = "/trash";
             this.lastFile = { id: 'noid' }; // for testing, holds the most recent file response
         }
         /**
@@ -92,9 +94,7 @@ var NgGapi;
                     configObject.url = this.self.filesUploadUrl; // nb non-standard URL
                 }
                 catch (ex) {
-                    var def = this.self.$q.defer();
-                    def.reject(ex); // which is used to reject the promise
-                    return { data: undefined, promise: def.promise, headers: undefined };
+                    return this.self.reject(ex);
                 }
             }
             var promise = this.self.HttpService.doHttp(configObject);
@@ -105,6 +105,40 @@ var NgGapi;
                 _this.self.lastFile = resp;
             });
             return responseObject;
+        };
+        DriveService.prototype.filesTrash = function (params) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D119] Missing fileId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'POST',
+                url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlTrashSuffix
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            //var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
+            var responseObject = { promise: promise, data: {}, headers: undefined };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+                //responseObject['a']=resp.data;
+                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp;
+            });
+            return responseObject;
+        };
+        /**
+         * reject the current request by creating a response object with a promise and rejecting it
+         * This is used to deal with validation errors prior to http submission
+         *
+         * @param reason
+         * @returns {{data: undefined, promise: IPromise<T>, headers: undefined}}
+         */
+        DriveService.prototype.reject = function (reason) {
+            this.self.$log.error('NgGapi: ' + reason);
+            var def = this.self.$q.defer();
+            def.reject(reason); // which is used to reject the promise
+            return { data: undefined, promise: def.promise, headers: undefined };
         };
         /**
          * Used to build a $http config object for an upload. This will (normally) be a multipart mime body.
@@ -123,17 +157,14 @@ var NgGapi;
         DriveService.prototype.buildUploadConfigObject = function (file, params, base64EncodedContent) {
             // check for a resumable upload and reject coz we don't support them yet
             if (params.uploadType == 'resumable') {
-                this.self.$log.error("NgGapi: [D136] resumable uploads are not currently supported");
                 throw "[D136] resumable uploads are not currently supported";
             }
             // check the media is base64 encoded
             if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
-                this.self.$log.error("NgGapi: [D142] content does not appear to be base64 encoded.");
                 throw ("[D142] content does not appear to be base64 encoded.");
             }
             // check the dev provided a mime type for media or multipart
             if ((params.uploadType == 'multipart' || params.uploadType == 'media') && (!file || !file.mimeType)) {
-                this.self.$log.error("NgGapi: [D148] file metadata is missing mandatory mime type");
                 throw ("[D148] file metadata is missing mandatory mime type");
             }
             //			var base64Data = window['tools'].base64Encode(fileContent);

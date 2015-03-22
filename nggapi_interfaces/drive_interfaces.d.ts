@@ -176,6 +176,7 @@ declare module NgGapi{
     files:{
       get(params:IDriveGetParameters):IDriveResponseObject;
       insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject;
+      trash(params:{fileId:string}):IDriveResponseObject;
       //list(params:IDriveListParameters):IDriveresponseObject;
     }
   }
