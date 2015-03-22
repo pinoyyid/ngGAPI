@@ -9,25 +9,23 @@ class MainCtrl {
 	filetitle3:string = 'foo';
 	ro;
 	d;
-	getData;
+	getData = {media:'mc'};
 	inp = 'inp';
 	static $inject = ['$scope', '$log', 'DriveService'];
 	//constructor(local $scope, local $log) {
 	constructor(private $scope, private $log:ng.ILogService, private DriveService:NgGapi.IDriveService) {
 		$scope.vm = this;
 		var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
-		//DriveService.filesGet({fileId:id}).promise.then((data:NgGapi.IDriveFile)=>{
-		//  console.log("controller then");
-		//  this.filetitle = data.title;
-		//});
-		DriveService.files.insert({title: 'delme'}).promise.then((data:NgGapi.IDriveFile)=> {
+		var idmedia = '0Bw3h_yCVtXbbU3huUVpjb0FfZ0U';
+
+
+		DriveService.files.insert({title: 'delme insert'}).promise.then((data:NgGapi.IDriveFile)=> {
 			console.log("controller then inserted id = " + data.id);
 			this.filetitle = data.title;
-			return
 		});
 		DriveService.files.get({fileId: id}).promise.then((data:NgGapi.IDriveFile)=> {
 			console.log("controller then");
-			this.filetitle = data.title;
+			this.filetitle2 = data.title;
 		});
 
 		var prom = DriveService.files.insert({
@@ -41,12 +39,13 @@ class MainCtrl {
 			console.error("OMG it failed", reason)
 		});
 
-		this.insertFile('delme chain file title')                   // insert a file
+		var title = 'delme chain file title';                   // insert a file
+		this.insertFile(title)                   // insert a file
 			.then((file)=> {
 				return this.getFile(file.id)
 			})             // retrieve the newly inserted file
 			.then((file)=> {
-				this.displayTitle(file.title)
+				this.displayTitle(title, file.title)
 			});           // console log the title
 
 		this.insertFile('delme chain file title 2')                 // insert a file
@@ -56,11 +55,8 @@ class MainCtrl {
 			.then((data)=> {
 				console.log('inserted content, fetched with GET = ' + data)
 			});           // console log the title
-
-
-
-		console.log(DriveService);
 		this.d = DriveService.files.get({fileId: id}).data;
+		this.getFileContents(idmedia);
 	}
 
 
@@ -74,7 +70,6 @@ class MainCtrl {
 	getFile(id:string):ng.IPromise<NgGapi.IDriveFile> {
 		return this.DriveService.files.get({fileId: id}).promise;
 	}
-
 	getFileContents(id:string):ng.IPromise<NgGapi.IDriveFile> {
 		var d = this.DriveService.files.get({fileId: id, alt: 'media'});
 		// for a media get, the response object is {media: "file contents"} and must be assigned as shown below. SO important to document that this.media = d.data.media WILL NOT WORK!!!!
@@ -82,8 +77,8 @@ class MainCtrl {
 		return d.promise;
 	}
 
-	displayTitle(title:string) {
-		this.$log.info("chained title = " + title);
+	displayTitle(expect:string, title:string) {
+		this.$log.info("chained title ("+expect+")= " + title);
 	}
 }
 

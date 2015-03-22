@@ -6,15 +6,14 @@
 </head>
 <body ng-app="MyApp">
   <div ng-controller="MainCtrl">
-    Sig {{vm.sig}}<br>
-    Oauth Sig {{vm.OauthService.sig}}<br>
-    Drive Sig {{vm.DriveService.sig}}<br>
-    title {{vm.filetitle}}<br>
-    title2 {{vm.filetitle2}}<br>
-    ro {{vm.ro}}<br>
-    d {{vm.d}}<br>
-    media {{vm.getData.media}}<br>
-    inp <input ng-model="vm.inp"><br>
+    MainCtrl {{vm.sig}}, &nbsp;&nbsp;
+    DriveService {{vm.DriveService.sig}}, &nbsp;&nbsp;
+    filetitle (delme insert) {{vm.filetitle}}, &nbsp;&nbsp;
+    filetitle2 (qz) {{vm.filetitle2}}, &nbsp;&nbsp;
+    media {{vm.getData.media}}, &nbsp;&nbsp;<br>
+    file object qz {{vm.d}}, &nbsp;&nbsp;
+    ro {{vm.ro}}, &nbsp;&nbsp;
+    inp <input ng-model="vm.inp">
   </div>
 
   <script>

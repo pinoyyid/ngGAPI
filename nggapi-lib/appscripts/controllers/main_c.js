@@ -12,21 +12,18 @@ var MainCtrl = (function () {
         this.filetitle = 'foo';
         this.filetitle2 = 'foo';
         this.filetitle3 = 'foo';
+        this.getData = { media: 'mc' };
         this.inp = 'inp';
         $scope.vm = this;
         var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
-        //DriveService.filesGet({fileId:id}).promise.then((data:NgGapi.IDriveFile)=>{
-        //  console.log("controller then");
-        //  this.filetitle = data.title;
-        //});
-        DriveService.files.insert({ title: 'delme' }).promise.then(function (data) {
+        var idmedia = '0Bw3h_yCVtXbbU3huUVpjb0FfZ0U';
+        DriveService.files.insert({ title: 'delme insert' }).promise.then(function (data) {
             console.log("controller then inserted id = " + data.id);
             _this.filetitle = data.title;
-            return;
         });
         DriveService.files.get({ fileId: id }).promise.then(function (data) {
             console.log("controller then");
-            _this.filetitle = data.title;
+            _this.filetitle2 = data.title;
         });
         var prom = DriveService.files.insert({
             title: 'delme media',
@@ -38,18 +35,19 @@ var MainCtrl = (function () {
         prom.catch(function (reason) {
             console.error("OMG it failed", reason);
         });
-        this.insertFile('delme chain file title').then(function (file) {
+        var title = 'delme chain file title'; // insert a file
+        this.insertFile(title).then(function (file) {
             return _this.getFile(file.id);
         }).then(function (file) {
-            _this.displayTitle(file.title);
+            _this.displayTitle(title, file.title);
         }); // console log the title
         this.insertFile('delme chain file title 2').then(function (file) {
             return _this.getFileContents(file.id);
         }).then(function (data) {
             console.log('inserted content, fetched with GET = ' + data);
         }); // console log the title
-        console.log(DriveService);
         this.d = DriveService.files.get({ fileId: id }).data;
+        this.getFileContents(idmedia);
     }
     MainCtrl.prototype.insertFile = function (title) {
         return this.DriveService.files.insert({
@@ -66,8 +64,8 @@ var MainCtrl = (function () {
         this.getData = d.data;
         return d.promise;
     };
-    MainCtrl.prototype.displayTitle = function (title) {
-        this.$log.info("chained title = " + title);
+    MainCtrl.prototype.displayTitle = function (expect, title) {
+        this.$log.info("chained title (" + expect + ")= " + title);
     };
     MainCtrl.$inject = ['$scope', '$log', 'DriveService'];
     return MainCtrl;

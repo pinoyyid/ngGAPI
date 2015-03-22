@@ -21,6 +21,7 @@ var NgGapi;
             this.self = this; // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
             this.filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
             this.filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
+            this.lastFile = { id: 'noid' }; // for testing, holds the most recent file response
         }
         /**
          * getter for underlying HttpService, often used to in turn get OauthService
@@ -57,10 +58,12 @@ var NgGapi;
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 if (params.alt == 'media') {
-                    responseObject.data['media'] = resp.data; // if media, assign to media property
+                    responseObject.data['media'] = resp; // if media, assign to media property
                 }
                 else {
-                    _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                    //responseObject['a']=resp.data;
+                    _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
+                    _this.self.lastFile = resp;
                 }
             });
             return responseObject;
@@ -98,7 +101,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe heqaders
-                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.transcribeProperties(resp, responseObject);
+                _this.self.lastFile = resp;
             });
             return responseObject;
         };

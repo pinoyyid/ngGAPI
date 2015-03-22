@@ -22,6 +22,7 @@ module NgGapi {
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
 
 		testStatus:string;                                                                                              // this has no role in the functionality of OauthService. it's a helper property for unit tests
+		lastFile:NgGapi.IDriveFile = {id:'noid'};                                                                                     // for testing, holds the most recent file response
 
 		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
 		constructor(private $log:mng.ILogService, private $timeout:mng.ITimeoutService,
@@ -64,9 +65,11 @@ module NgGapi {
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
 				if (params.alt == 'media') {                                                                            // figure out if the response is a file or media
-					responseObject.data['media'] = resp.data;                                                           // if media, assign to media property
+					responseObject.data['media'] = resp;                                                           // if media, assign to media property
 				} else {
-					this.self.transcribeProperties(resp.data, responseObject);                                          // if file, transcribe properties
+					//responseObject['a']=resp.data;
+					this.self.transcribeProperties(resp, responseObject);                                          // if file, transcribe properties
+					this.self.lastFile = resp;
 				}
 			});
 			return responseObject;
@@ -105,7 +108,8 @@ module NgGapi {
 			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe heqaders
-				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.transcribeProperties(resp, responseObject);
+				this.self.lastFile = resp;
 			});
 			return responseObject;
 		}

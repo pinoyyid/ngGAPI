@@ -1,6 +1,6 @@
 'use strict';
 //
-// tests for the RestService. Simply test that each method makes the correct
+// tests for the HttpService. Simply test that each method makes the correct
 // call to $http
 //
 // Once this class is certified, it can be replaced by a mock equivalent that either mocks out
@@ -25,23 +25,11 @@ describe('Service: HttpService', function () {
 		$q = $injector.get('$q');
 		$rootScope = $injector.get('$rootScope');
 		$timeout = $injector.get('$timeout');
-		// backend definition common for all tests
-		// this configures the backed to return specified responses in response to specified http calls
-		authRequestHandlerGet = $httpBackend.when('GET', '')
-			.respond({kind: 'tasks#tasks'}, {'A-Token': 'xxx'});
-		authRequestHandlerPost = $httpBackend.when('POST', '')
-			.respond(200,{id:'id_from_mock_httpbackend',title:'title'});
 	}));
 
 	beforeEach(inject(function (_HttpService_) {
 		HttpService= _HttpService_;
 	}));
-
-
-	afterEach(function() {
-		$httpBackend.verifyNoOutstandingExpectation();
-		$httpBackend.verifyNoOutstandingRequest();
-	});
 
 
 	it('should be instantiated', function () {
@@ -102,26 +90,5 @@ describe('Service: HttpService', function () {
 			expect(promiseError).toBe('501-0a');
 		}, 3000);
 	});
-
-
-
-	/*
-	// test each method by first defining what we expect it to send to $http
-	// and then call the method
-	it('list should call GET on the drive endpoint', function() {
-		$httpBackend.expectGET("http://localhost:8080/tasks/v1/lists/MDM4NjIwODI0NzAwNDQwMjQ2MjU6OTEzMzE4NTkxOjA/tasks");
-		HttpService.list();
-		$httpBackend.flush();
-	});
-
-
-
-	it('insert should call POST on the tasks endpoint', function() {
-		console.log("test insert");
-		$httpBackend.expectPOST("http://localhost:8080/tasks/v1/lists/MDM4NjIwODI0NzAwNDQwMjQ2MjU6OTEzMzE4NTkxOjA/tasks");
-		HttpService.insert({title:'foo'});
-		$httpBackend.flush();
-	});
-*/
 
 });
