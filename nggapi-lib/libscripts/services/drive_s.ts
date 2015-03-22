@@ -11,7 +11,11 @@ module NgGapi {
 		sig = 'DriveService';                                                                                           // used in unit testing to confirm DI
 
 		// this files object (and the self assignment) allows calls of the nature DriveService.files.insert for compatibility with gapi structure
-		files = {self: this, get: this.filesGet, insert: this.filesInsert};
+		files = {
+			self: this,
+			get: this.filesGet,
+			insert: this.filesInsert
+		};
 		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
 		filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
@@ -22,6 +26,15 @@ module NgGapi {
 		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
 		constructor(private $log:mng.ILogService, private $timeout:mng.ITimeoutService,
 		            private $q:mng.IQService, private HttpService:IHttpService) {
+		}
+
+		/**
+		 * getter for underlying HttpService, often used to in turn get OauthService
+		 *
+		 * @returns {IHttpService}
+		 */
+		getHttpService():NgGapi.IHttpService {
+			return this.HttpService;
 		}
 
 		/*
@@ -175,15 +188,12 @@ module NgGapi {
 		 * @param dest
 		 */
 		transcribeProperties(src, dest) {
-			console.log(typeof  src);
 			if (typeof src == "object") {
 				Object.keys(src).map(function (key) {
 					dest.data[key] = src[key]
 				});
 			} else {
-				console.log(src);
 				dest = src;
-				console.log(dest);
 			}
 
 		}

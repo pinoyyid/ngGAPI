@@ -15,8 +15,17 @@ var NgGapi;
             this.$q = $q;
             this.OauthService = OauthService;
             this.sig = 'HttpService'; // used in unit testing to confirm DI
+            this.testStatus = 'foo'; // this has no role in the functionality of OauthService. it's a helper property for unit tests
             //console.log('http cons');
         }
+        /**
+         * getter for the underlying Oauth service just in case the app needs it
+         *
+         * @returns {ng.IHttpService}
+         */
+        HttpService.prototype.getOauthService = function () {
+            return this.OauthService;
+        };
         /**
          * getter for the underlying $http service just in case the app needs it
          *
@@ -65,11 +74,11 @@ var NgGapi;
             }
             // here with no access token
             if (at && at.indexOf('!FAIL') == 0) {
-                def.reject('401 no access token'); // TODO reject
+                def.reject('401 no access token');
             }
             else {
                 var ms = at ? at.replace('!RETRY=', '') : 500;
-                console.log('sleeping for ms=' + ms);
+                //console.log('sleeping for ms='+ms);
                 this.sleep(+ms).then(function () {
                     _this._doHttp(configObject, def, retryCounter);
                 });
@@ -97,7 +106,7 @@ var NgGapi;
             // 401 - get new access token
             // retry after 0.5s
             if (status == 401) {
-                console.warn("Need to acquire a new Access Token and resubmit");
+                this.$log.warn("[H116] Need to acquire a new Access Token and resubmit");
                 this.OauthService.refreshAccessToken();
                 if (--retryCounter > 0) {
                     this.sleep(2000).then(function () {

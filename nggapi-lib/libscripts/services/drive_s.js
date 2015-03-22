@@ -13,11 +13,23 @@ var NgGapi;
             this.HttpService = HttpService;
             this.sig = 'DriveService'; // used in unit testing to confirm DI
             // this files object (and the self assignment) allows calls of the nature DriveService.files.insert for compatibility with gapi structure
-            this.files = { self: this, get: this.filesGet, insert: this.filesInsert };
+            this.files = {
+                self: this,
+                get: this.filesGet,
+                insert: this.filesInsert
+            };
             this.self = this; // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
             this.filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
             this.filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
         }
+        /**
+         * getter for underlying HttpService, often used to in turn get OauthService
+         *
+         * @returns {IHttpService}
+         */
+        DriveService.prototype.getHttpService = function () {
+            return this.HttpService;
+        };
         /*
         Each method implements a method from https://developers.google.com/drive/v2/reference/files .
         Generally this is done by constructing an appropriate IRequestConfig object and passing it to the HttpService.
@@ -150,16 +162,13 @@ var NgGapi;
          * @param dest
          */
         DriveService.prototype.transcribeProperties = function (src, dest) {
-            console.log(typeof src);
             if (typeof src == "object") {
                 Object.keys(src).map(function (key) {
                     dest.data[key] = src[key];
                 });
             }
             else {
-                console.log(src);
                 dest = src;
-                console.log(dest);
             }
         };
         DriveService.$inject = ['$log', '$timeout', '$q', 'HttpService'];

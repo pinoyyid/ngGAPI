@@ -38,6 +38,10 @@ var NgGapi;
          * @param $window
          */
         function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, ownGetAccessTokenFunction, $log, $window) {
+            //console.log("OAuth instantiated with " + scopes);
+            //$log.log("scopes", this.scopes);
+            //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
+            //console.log('oauth cons');
             this.scopes = scopes;
             this.clientId = clientId;
             this.tokenRefreshPolicy = tokenRefreshPolicy;
@@ -48,10 +52,6 @@ var NgGapi;
             this.sig = 'OauthService'; // used in unit testing to confirm DI
             this.isAuthInProgress = false; // true if there is an outstanding auth (ie. refresh token) in progress to prevent multiples
             this.isAuthedYet = false; // first time flag, used to set immediate mode
-            //console.log("OAuth instantiated with " + scopes);
-            //$log.log("scopes", this.scopes);
-            //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
-            console.log('oauth cons');
             // if dev has requested to override the default getAccessToken function
             if (ownGetAccessTokenFunction) {
                 this.getAccessToken = ownGetAccessTokenFunction;

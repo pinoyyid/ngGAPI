@@ -172,6 +172,7 @@ declare module NgGapi{
    * Interface definition for the DriveService. Mostly useful for a mock service
    */
   export interface IDriveService {
+    getHttpService():NgGapi.IHttpService;
     files:{
       get(params:IDriveGetParameters):IDriveResponseObject;
       insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject;

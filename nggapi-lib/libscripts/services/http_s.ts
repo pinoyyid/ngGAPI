@@ -13,7 +13,7 @@ module NgGapi {
 	export class HttpService implements IHttpService {
 		sig = 'HttpService';                // used in unit testing to confirm DI
 
-		testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
+		testStatus:string = 'foo';                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
 
 		static $inject = ['$log', '$http', '$timeout', '$q', 'OauthService'];
@@ -23,11 +23,20 @@ module NgGapi {
 		}
 
 		/**
+		 * getter for the underlying Oauth service just in case the app needs it
+		 *
+		 * @returns {ng.IHttpService}
+		 */
+		getOauthService():NgGapi.IOauthService {
+			return this.OauthService;
+		}
+
+		/**
 		 * getter for the underlying $http service just in case the app needs it
 		 *
 		 * @returns {ng.IHttpService}
 		 */
-		get$http() {
+		get$http():mng.IHttpService {
 			return this.$http;
 		}
 
@@ -72,10 +81,10 @@ module NgGapi {
 			}
 			// here with no access token
 			if (at && at.indexOf('!FAIL') == 0) {                                                                       // if we are requested to fail
-				def.reject('401 no access token'); // TODO reject
+				def.reject('401 no access token');
 			} else {
 				var ms = at?at.replace('!RETRY=', ''):500;
-				console.log('sleeping for ms='+ms);
+				//console.log('sleeping for ms='+ms);
 				this.sleep(+ms).then(() => {
 					this._doHttp(configObject, def, retryCounter);
 				})
@@ -104,7 +113,7 @@ module NgGapi {
 			// 401 - get new access token
 			// retry after 0.5s
 			if (status == 401) { // 401 need to refresh the token and then retry
-				console.warn("Need to acquire a new Access Token and resubmit");
+				this.$log.warn("[H116] Need to acquire a new Access Token and resubmit");
 				this.OauthService.refreshAccessToken();
 				if (--retryCounter > 0) { // number of retries set by caller
 					this.sleep(2000).then(() => {

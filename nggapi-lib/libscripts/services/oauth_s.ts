@@ -52,7 +52,7 @@ module NgGapi {
       //console.log("OAuth instantiated with " + scopes);
       //$log.log("scopes", this.scopes);
       //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
-      console.log('oauth cons');
+      //console.log('oauth cons');
 
       // if dev has requested to override the default getAccessToken function
       if (ownGetAccessTokenFunction) {
