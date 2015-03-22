@@ -79,6 +79,22 @@ describe('Service: DriveService', function () {
 	});
 
 
+	it('get media should return some media', function () {
+		var id = 'foom';
+		var media = 'some media'
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files/'+id;
+		$httpBackend
+			.whenGET("")
+			.respond(media);
+
+		var ro = DriveService.files.get({fileId: id, alt:'media'});
+
+		$httpBackend.flush();
+
+		expect(ro.data.media).toBe(media);
+	});
+
+
 
 	it('insert should return a file object', function () {
 		var id = 'fooi';

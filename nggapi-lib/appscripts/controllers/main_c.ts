@@ -9,7 +9,7 @@ class MainCtrl {
 	filetitle3:string = 'foo';
 	ro;
 	d;
-	getData = {media:'mc'};
+	getData:any = {media:'mc'};
 	inp = 'inp';
 	static $inject = ['$scope', '$log', 'DriveService'];
 	//constructor(local $scope, local $log) {
