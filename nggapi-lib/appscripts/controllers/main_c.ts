@@ -9,6 +9,7 @@ class MainCtrl {
 	filetitle3:string = 'foo';
 	ro;
 	d;
+	arry = [];
 	getData:any = {media:'mc'};
 	inp = 'inp';
 	static $inject = ['$scope', '$log', 'DriveService'];
@@ -19,6 +20,11 @@ class MainCtrl {
 		var idmedia = '0Bw3h_yCVtXbbU3huUVpjb0FfZ0U';
 
 
+		//DriveService.files.list({}, true).promise.then((data:NgGapi.IDriveFile[]) => {console.info(data.length)});
+		DriveService.files.list({}, true).promise.then((data:any) => {debugger;console.error(data.length)});
+		this.arry = DriveService.files.list({}, true).data;
+
+return;
 		DriveService.files.insert({title: 'delme insert'}).promise.then((data:NgGapi.IDriveFile)=> {
 			console.log("controller then inserted id = " + data.id);
 			this.filetitle = data.title;

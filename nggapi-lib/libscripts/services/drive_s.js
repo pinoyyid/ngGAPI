@@ -17,6 +17,7 @@ var NgGapi;
                 self: this,
                 get: this.filesGet,
                 insert: this.filesInsert,
+                list: this.filesList,
                 trash: this.filesTrash
             };
             this.self = this; // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
@@ -55,7 +56,6 @@ var NgGapi;
                 params: params
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            //var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
@@ -63,9 +63,30 @@ var NgGapi;
                     responseObject.data['media'] = resp; // if media, assign to media property
                 }
                 else {
-                    //responseObject['a']=resp.data;
                     _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
                     _this.self.lastFile = resp;
+                }
+            });
+            return responseObject;
+        };
+        DriveService.prototype.filesList = function (params, excludeTrashed) {
+            if (excludeTrashed) {
+                var trashed = 'trashed = false';
+                params.q = params.q ? params.q + ' and ' + trashed : trashed; // set or append to q
+                ;
+            }
+            var co = {
+                method: 'GET',
+                url: this.self.filesUrl.replace(':id', ''),
+                params: params
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = { promise: promise, data: [], headers: undefined };
+            promise.then(function (resp) {
+                debugger;
+                var l = resp.items.length;
+                for (var i = 0; i < l; i++) {
+                    responseObject.data.push(resp.items[i]); // push each new file
                 }
             });
             return responseObject;

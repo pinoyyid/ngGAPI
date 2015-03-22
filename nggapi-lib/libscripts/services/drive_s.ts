@@ -15,6 +15,7 @@ module NgGapi {
 			self: this,
 			get: this.filesGet,
 			insert: this.filesInsert,
+			list: this.filesList,
 			trash: this.filesTrash
 		};
 		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
@@ -55,28 +56,48 @@ module NgGapi {
 		 * @param params
 		 * @returns {IDriveResponseObject}
 		 */
-		filesGet(params:NgGapi.IDriveGetParameters):IDriveResponseObject {
+		filesGet(params:NgGapi.IDriveGetParameters):IDriveResponseObject<NgGapi.IDriveFile|string> {
 			var co:mng.IRequestConfig = {                                                                               // build request config
 				method: 'GET',
 				url: this.self.filesUrl.replace(':id', params.fileId),
 				params: params
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
-			//var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
-			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: undefined};
+			var responseObject:IDriveResponseObject<NgGapi.IDriveFile|string> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
 				if (params.alt == 'media') {                                                                            // figure out if the response is a file or media
-					responseObject.data['media'] = resp;                                                           // if media, assign to media property
+					responseObject.data['media'] = resp;                                                                // if media, assign to media property
 				} else {
-					//responseObject['a']=resp.data;
-					this.self.transcribeProperties(resp, responseObject);                                          // if file, transcribe properties
+					this.self.transcribeProperties(resp, responseObject);                                               // if file, transcribe properties
 					this.self.lastFile = resp;
 				}
 			});
 			return responseObject;
 		}
 
+
+		filesList(params:NgGapi.IDriveListParameters, excludeTrashed:boolean):IDriveResponseObject<NgGapi.IDriveFile[]> {
+			if (excludeTrashed) {                                                                                       // if wants to exclude trashed
+				var trashed = 'trashed = false';
+				params.q = params.q?params.q+' and '+trashed:trashed;                                                   // set or append to q
+;			}
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.filesUrl.replace(':id', ''),
+				params: params
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<NgGapi.IDriveFile[]> = {promise: promise, data: [], headers: undefined};
+			promise.then((resp:NgGapi.IDriveList)=> {                                    // on complete
+				debugger;
+				var l = resp.items.length;
+				for (var i=0; i< l; i++) {
+					responseObject.data.push(resp.items[i]);                                                             // push each new file
+				}   // Nb can't use concat as that creates a new array
+			});
+			return responseObject;
+		}
 
 		/**
 		 * Implements Insert, both for metadata only and for multipart media content upload
@@ -89,7 +110,7 @@ module NgGapi {
 		 * @param base64EncodedContent
 		 * @returns {any}
 		 */
-		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject {
+		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<NgGapi.IDriveFile> {
 			var configObject:mng.IRequestConfig;
 			if (!params) {
 				configObject = {method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file};                // no params is a simple metadata insert
@@ -105,7 +126,7 @@ module NgGapi {
 
 
 			var promise = this.self.HttpService.doHttp(configObject);
-			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: undefined};
+			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe heqaders
 				this.self.transcribeProperties(resp, responseObject);
@@ -126,7 +147,7 @@ module NgGapi {
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
 			//var responseObject:{promise:mng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
-			var responseObject:IDriveResponseObject = {promise: promise, data: {}, headers: undefined};
+			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
 					//responseObject['a']=resp.data;
@@ -144,7 +165,7 @@ module NgGapi {
 		 * @param reason
 		 * @returns {{data: undefined, promise: IPromise<T>, headers: undefined}}
 		 */
-		reject(reason:any):NgGapi.IDriveResponseObject {
+		reject(reason:any):NgGapi.IDriveResponseObject<any> {
 			this.self.$log.error('NgGapi: '+reason);
 			var def = this.self.$q.defer();
 			def.reject(reason);                                                                                     // which is used to reject the promise

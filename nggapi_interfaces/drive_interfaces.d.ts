@@ -174,9 +174,10 @@ declare module NgGapi{
   export interface IDriveService {
     getHttpService():NgGapi.IHttpService;
     files:{
-      get(params:IDriveGetParameters):IDriveResponseObject;
-      insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject;
-      trash(params:{fileId:string}):IDriveResponseObject;
+      get(params:IDriveGetParameters):IDriveResponseObject<NgGapi.IDriveFile>;
+      list(params:IDriveListParameters, excludeTrashed):IDriveResponseObject<NgGapi.IDriveFile[]>;
+      insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<NgGapi.IDriveFile>;
+      trash(params:{fileId:string}):IDriveResponseObject<NgGapi.IDriveFile>;
       //list(params:IDriveListParameters):IDriveresponseObject;
     }
   }
@@ -195,9 +196,10 @@ declare module NgGapi{
    * For lists, the promise will notify after each page
    * Failure is total failure, i.e. after any retries
    */
-  export interface IDriveResponseObject {
+  export interface IDriveResponseObject<T> {
     promise:mng.IPromise<{data:IDriveFile}>;
-    data:IDriveFile | Array<IDriveFile> | {media: string};
+    data:T
+    //data:IDriveFile | Array<IDriveFile> | {media: string};
     headers:(name:string)=>string
   }
 
@@ -214,10 +216,11 @@ declare module NgGapi{
   }
 
   export interface IDriveListParameters {
-    corpus:string;	    //The body of items (files/documents) to which the query applies.  Acceptable values are: "DEFAULT": The items that the user has accessed. "DOMAIN": Items shared to the user's domain.
-    maxResults:number;  //	Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
-    pageToken:string;	  //Page token for files.
-    q:string;           // Query string for searching files. See https://developers.google.com/drive/search-parameters for more information about supported fields and operations.
+    corpus?:string;	                    //The body of items (files/documents) to which the query applies.  Acceptable values are: "DEFAULT": The items that the user has accessed. "DOMAIN": Items shared to the user's domain.
+    maxResults?:number;                 // Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
+    pageToken?:string;	                // Page token for files.
+    q?:string;                          // Query string for searching files. See https://developers.google.com/drive/search-parameters for more information about supported fields and operations.
+    fields?:string;                     // urlencoded list of fields to include in response
   }
 
   export interface IDriveInsertParameters {
@@ -240,8 +243,6 @@ declare module NgGapi{
     revisionId?:string;                   //	Specifies the Revision ID that should be downloaded. Ignored unless alt=media is specified.
     updateViewedDate?:boolean;            //	Whether to update the view date after successfully retrieving the file. (Default: false)
   }
-
-
 
 }
 

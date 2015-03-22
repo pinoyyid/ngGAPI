@@ -12,11 +12,19 @@ var MainCtrl = (function () {
         this.filetitle = 'foo';
         this.filetitle2 = 'foo';
         this.filetitle3 = 'foo';
+        this.arry = [];
         this.getData = { media: 'mc' };
         this.inp = 'inp';
         $scope.vm = this;
         var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
         var idmedia = '0Bw3h_yCVtXbbU3huUVpjb0FfZ0U';
+        //DriveService.files.list({}, true).promise.then((data:NgGapi.IDriveFile[]) => {console.info(data.length)});
+        DriveService.files.list({}, true).promise.then(function (data) {
+            debugger;
+            console.error(data.length);
+        });
+        this.arry = DriveService.files.list({}, true).data;
+        return;
         DriveService.files.insert({ title: 'delme insert' }).promise.then(function (data) {
             console.log("controller then inserted id = " + data.id);
             _this.filetitle = data.title;
