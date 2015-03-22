@@ -65,10 +65,7 @@ describe('Service: DriveService', function () {
 	it('get should return a file object', function () {
 		var id = 'foo2';
 		var filesUrl = 'https://www.googleapis.com/drive/v2/files/'+id;
-		$httpBackend
-			.whenGET("")
-			.respond({id: id}
-		);
+		$httpBackend .whenGET("") .respond({id: id} );
 
 		var ro = DriveService.files.get({fileId: id});
 
@@ -83,9 +80,7 @@ describe('Service: DriveService', function () {
 		var id = 'foom';
 		var media = 'some media'
 		var filesUrl = 'https://www.googleapis.com/drive/v2/files/'+id;
-		$httpBackend
-			.whenGET("")
-			.respond(media);
+		$httpBackend .whenGET("") .respond(media);
 
 		var ro = DriveService.files.get({fileId: id, alt:'media'});
 
@@ -99,18 +94,42 @@ describe('Service: DriveService', function () {
 	it('insert should return a file object', function () {
 		var id = 'fooi';
 		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
-		$httpBackend
-			.whenPOST("")
-			.respond({id: id}
-			);
+		$httpBackend .whenPOST("") .respond({id: id} );
 
 		var ro = DriveService.files.insert({title: 'title-'+id});
-
 		$httpBackend.flush();
-		console.log(ro);
 
 		expect(DriveService.lastFile.id).toBe(id);
 		expect(ro.data.id).toBe(id);
+	});
+
+
+	it('insert media should fail for invalid params or data', function () {
+		var id = 'fooi';
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
+		$httpBackend .whenPOST("") .respond({id: id} );
+
+		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'resumable'}, 'notb64');
+		ro.promise.then(
+			function () {expect('should have failed D136 no resumable yet').toBe('false')},
+			function (reason) {expect(reason).toMatch('D136')}
+		);
+
+		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'media'}, 'not b64');
+		ro.promise.then(
+			function () {expect('should have failed D142 base 64').toBe('false')},
+			function (reason) {expect(reason).toMatch('D142')}
+		);
+
+		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'multipart'}, 'Zm9v');
+		ro.promise.then(
+			function () {expect('should have failed D148 no mime type').toBe('false')},
+			function (reason) {expect(reason).toMatch('D148')}
+		);
+		//$httpBackend.flush();
+
+		//expect(DriveService.lastFile.id).toBe(id);
+		//expect(ro.data.id).toBe(id);
 	});
 
 

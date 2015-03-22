@@ -123,18 +123,18 @@ var NgGapi;
         DriveService.prototype.buildUploadConfigObject = function (file, params, base64EncodedContent) {
             // check for a resumable upload and reject coz we don't support them yet
             if (params.uploadType == 'resumable') {
-                this.self.$log.error("NgGapi: [D115] resumable uploads are not currently supported");
-                throw "[D115] resumable uploads are not currently supported";
+                this.self.$log.error("NgGapi: [D136] resumable uploads are not currently supported");
+                throw "[D136] resumable uploads are not currently supported";
             }
             // check the media is base64 encoded
             if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
-                this.self.$log.error("NgGapi: [D119] content does not appear to be base64 encoded.");
-                throw ("[D119] content does not appear to be base64 encoded.");
+                this.self.$log.error("NgGapi: [D142] content does not appear to be base64 encoded.");
+                throw ("[D142] content does not appear to be base64 encoded.");
             }
             // check the dev provided a mime type
             if (params.uploadType == 'multipart' && (!file || !file.mimeType)) {
-                this.self.$log.error("NgGapi: [D125] file metadata is missing mandatory mime type");
-                throw ("[D125] file metadata is missing mandatory mime type");
+                this.self.$log.error("NgGapi: [D148] file metadata is missing mandatory mime type");
+                throw ("[D148] file metadata is missing mandatory mime type");
             }
             //			var base64Data = window['tools'].base64Encode(fileContent);
             var body;

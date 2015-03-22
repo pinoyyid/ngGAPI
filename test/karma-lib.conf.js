@@ -32,8 +32,8 @@ module.exports = function(config) {
       'nggapi-lib/appscripts/**/*.js',
       'nggapi-lib/libscripts/**/*.js',
       'test/mock/**/*.js',
-      'test/spec-lib/**/*.js',
-      //'test/spec-lib/services/drive_files.js'
+      //'test/spec-lib/**/*.js',
+      'test/spec-lib/services/drive_files.js'
     ],
 
     // list of files / patterns to exclude
