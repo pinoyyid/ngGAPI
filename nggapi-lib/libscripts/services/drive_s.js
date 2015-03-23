@@ -81,7 +81,10 @@ var NgGapi;
         };
         /**
          * Implements files.List
-         * Validates that dev hasn't inadvertently excluded nextPageToken from response
+         * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+         * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+         * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+         * and omitting the pageToken.
          *
          * responseObject.data contains an array of all results across all pages
          *
@@ -94,7 +97,7 @@ var NgGapi;
          */
         DriveService.prototype.filesList = function (params, excludeTrashed) {
             if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
-                return this.self.reject('[D82] You have tried to list files with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page');
+                this.self.$log.warn('[D82] You have tried to list files with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
             }
             if (excludeTrashed) {
                 var trashed = 'trashed = false';

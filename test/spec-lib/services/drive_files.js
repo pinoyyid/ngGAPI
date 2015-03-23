@@ -147,11 +147,14 @@ describe('Service: DriveService', function () {
 
 
 	it('list should fail for missing nextPageToken', function () {
+		$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
+
 		var ro = DriveService.files.list({fields: 'foo'});
 		ro.promise.then(
-			function () {expect('should have failed D82 no resumable yet').toBe('false')},
-			function (reason) {expect(reason).toMatch('D82')}
+			function (reason) {},
+			function () {expect('should not have failed D82 no nextpageToken yet').toBe('false')}
 		);
+		$httpBackend.flush();
 	});
 
 
