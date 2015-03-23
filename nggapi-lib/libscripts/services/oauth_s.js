@@ -157,3 +157,4 @@ NgGapi['Config'] = function () {
 };
 // define the PngGapi module. This will then be included by the host app with "angular .module('MyApp', ['PngGapi']);"
 angular.module('ngm.NgGapi', []);
+//# sourceMappingURL=oauth_s.js.map

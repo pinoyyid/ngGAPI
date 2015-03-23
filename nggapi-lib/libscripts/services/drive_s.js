@@ -21,13 +21,17 @@ var NgGapi;
         }
         DriveService.prototype.filesGet = function (params) {
             var _this = this;
-            var co = { method: 'GET', url: this.self.filesUrl.replace(':id', params.fileId), params: params };
+            var co = {
+                method: 'GET',
+                url: this.self.filesUrl.replace(':id', params.fileId),
+                params: params
+            };
             var promise = this.self.HttpService.doHttp(co);
             //var responseObject:{promise:ng.IPromise<{data:IDriveFile}>; data:IDriveFile; headers:{}} = {promise:promise, data:{}, headers:{}};
             var responseObject = { promise: promise, data: {}, headers: {} };
-            promise.then(function (data) {
-                _this.self.transcribeProperties(data, responseObject);
-                console.log('service then ' + responseObject.data.title);
+            promise.then(function (file) {
+                _this.self.transcribeProperties(file, responseObject);
+                console.log('service then ' + file.title);
             });
             return responseObject;
         };
@@ -51,9 +55,9 @@ var NgGapi;
             }
             var promise = this.self.HttpService.doHttp(configObject);
             var responseObject = { promise: promise, data: {}, headers: {} };
-            promise.then(function (data) {
-                _this.self.transcribeProperties(data, responseObject);
-                console.log('service then ' + responseObject.data.title);
+            promise.then(function (file) {
+                _this.self.transcribeProperties(file, responseObject);
+                console.log('service then ' + file.title);
             });
             return responseObject;
         };
@@ -120,3 +124,4 @@ var NgGapi;
     NgGapi.DriveService = DriveService;
 })(NgGapi || (NgGapi = {}));
 angular.module('ngm.NgGapi').service('DriveService', NgGapi.DriveService);
+//# sourceMappingURL=drive_s.js.map
