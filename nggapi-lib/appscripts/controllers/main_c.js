@@ -1,8 +1,8 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 // TODO need to extract all interfaces to a single definition file
-/// <reference path="../../libscripts/services/drive_s.ts"/>
+/// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 var MainCtrl = (function () {
-    //constructor(local $scope, local $log) {
+    // make some files, the do stuff with the, then trash them, then delete them
     function MainCtrl($scope, $log, DriveService) {
         var _this = this;
         this.$scope = $scope;
@@ -12,54 +12,78 @@ var MainCtrl = (function () {
         this.filetitle = 'foo';
         this.filetitle2 = 'foo';
         this.filetitle3 = 'foo';
+        this.arry = [];
+        this.getData = { media: 'mc' };
         this.inp = 'inp';
         $scope.vm = this;
         var id = '0Bw3h_yCVtXbbSXhZR00tUDcyWVE';
-        //DriveService.filesGet({fileId:id}).promise.then((data:NgGapi.IDriveFile)=>{
-        //  console.log("controller then");
-        //  this.filetitle = data.title;
-        //});
-        DriveService.files.insert({ title: 'delme' }).promise.then(function (data) {
+        var idmedia = '0Bw3h_yCVtXbbU3huUVpjb0FfZ0U';
+        DriveService.files.list({ q: 'title contains "delme"', fields: 'nextPageToken,items/title' }, true).promise.then(function (data) {
+            ;
+            console.error(data.items.length);
+        }, undefined, function (data) {
+            ;
+            console.error(data.items.length);
+        } // called after each page (except final page)
+        );
+        // here the output array is bound to the view model and will be appended to by each page of list results
+        // see the ng-repeat in index.html
+        this.arry = DriveService.files.list({ q: 'title contains "delme"', maxResults: 5, fields: 'nextPageToken,items/title' }, true).data;
+        return;
+        DriveService.files.insert({ title: 'delme insert' }).promise.then(function (data) {
             console.log("controller then inserted id = " + data.id);
             _this.filetitle = data.title;
-            return;
         });
         DriveService.files.get({ fileId: id }).promise.then(function (data) {
             console.log("controller then");
-            _this.filetitle = data.title;
+            _this.filetitle2 = data.title;
         });
-        var prom = DriveService.files.insert({ title: 'delme media', mimeType: 'text/plain' }, { uploadType: 'multipart' }, btoa('hello world')).promise;
+        var prom = DriveService.files.insert({
+            title: 'delme media',
+            mimeType: 'text/plain'
+        }, { uploadType: 'multipart' }, btoa('hello world')).promise;
         prom.then(function (data) {
             console.log('inserted with mime ' + data.mimeType);
         });
-        prom.catch(function () {
-            console.error("OMG it failed");
+        prom.catch(function (reason) {
+            console.error("OMG it failed", reason);
         });
-        this.insertFile('delme chain file title').then(function (file) {
+        var title = 'delme chain file title'; // insert a file
+        this.insertFile(title).then(function (file) {
             return _this.getFile(file.id);
         }).then(function (file) {
-            _this.displayTitle(file.title);
+            _this.displayTitle(title, file.title);
         }); // console log the title
         this.insertFile('delme chain file title 2').then(function (file) {
             return _this.getFileContents(file.id);
         }).then(function (data) {
             console.log('inserted content, fetched with GET = ' + data);
         }); // console log the title
-        // TODO need a warning in the docs/comments that this doesn't work because in JS a String is a primitive data type, so filetitle2 receives the current value
-        console.log(DriveService);
         this.d = DriveService.files.get({ fileId: id }).data;
+        this.getFileContents(idmedia);
+        this.insertFile("delme trash me").then(function (file) {
+            DriveService.files.trash({ fileId: file.id }).promise.then(function (resp) {
+                console.log('trashed ' + resp['id']);
+            });
+        });
     }
     MainCtrl.prototype.insertFile = function (title) {
-        return this.DriveService.files.insert({ title: title, mimeType: 'text/plain' }, { uploadType: 'multipart' }, btoa('some multipart content')).promise;
+        return this.DriveService.files.insert({
+            title: title,
+            mimeType: 'text/plain'
+        }, { uploadType: 'multipart' }, btoa('some multipart content')).promise;
     };
     MainCtrl.prototype.getFile = function (id) {
         return this.DriveService.files.get({ fileId: id }).promise;
     };
     MainCtrl.prototype.getFileContents = function (id) {
-        return this.DriveService.files.get({ fileId: id, alt: 'media' }).promise;
+        var d = this.DriveService.files.get({ fileId: id, alt: 'media' });
+        // for a media get, the response object is {media: "file contents"} and must be assigned as shown below. SO important to document that this.media = d.data.media WILL NOT WORK!!!!
+        this.getData = d.data;
+        return d.promise;
     };
-    MainCtrl.prototype.displayTitle = function (title) {
-        this.$log.info("chained title = " + title);
+    MainCtrl.prototype.displayTitle = function (expect, title) {
+        this.$log.info("chained title (" + expect + ")= " + title);
     };
     MainCtrl.$inject = ['$scope', '$log', 'DriveService'];
     return MainCtrl;

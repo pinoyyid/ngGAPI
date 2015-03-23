@@ -1,7 +1,10 @@
-/// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-/// <reference path="../../../definitely_typed/gapi.d.ts"/>
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 'use strict';
+/*
+This defines a provider for the OAuth service, responsible to fetching access tokens.
+
+It's a provider so it can be easily configured at app startup to hold the OAuth id and scopes needed for it to operate.
+ */
 var NgGapi;
 (function (NgGapi) {
     /**
@@ -29,29 +32,37 @@ var NgGapi;
          * @param scopes.  a space separated string of scopes
          * @param clientId. The Google client ID
          * @param tokenRefreshPolicy  One of the TokenRefreshPolicy Enum values
+         * @param noAccessTokenPolicy (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
+         * @param ownGetAccessTokenFunction (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
          * @param $log
          * @param $window
          */
-        function OauthService(scopes, clientId, tokenRefreshPolicy, $log, $window) {
+        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, ownGetAccessTokenFunction, $log, $window) {
+            //console.log("OAuth instantiated with " + scopes);
+            //$log.log("scopes", this.scopes);
+            //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
+            //console.log('oauth cons');
             this.scopes = scopes;
             this.clientId = clientId;
             this.tokenRefreshPolicy = tokenRefreshPolicy;
+            this.noAccesTokenPolicy = noAccesTokenPolicy;
+            this.ownGetAccessTokenFunction = ownGetAccessTokenFunction;
             this.$log = $log;
             this.$window = $window;
             this.sig = 'OauthService'; // used in unit testing to confirm DI
             this.isAuthInProgress = false; // true if there is an outstanding auth (ie. refresh token) in progress to prevent multiples
             this.isAuthedYet = false; // first time flag, used to set immediate mode
-            //console.log("OAuth instantiated with " + scopes);
-            //$log.log("scopes", this.scopes);
-            //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
-            console.log('oauth cons');
+            // if dev has requested to override the default getAccessToken function
+            if (ownGetAccessTokenFunction) {
+                this.getAccessToken = ownGetAccessTokenFunction;
+            }
         }
         /**
          * return an access token. Normally simply calls gapi.auth.getToken(). If that returns undefined, then
          * return undefined, and starts a background refresh. The idea is that retries of the REST call witll repeatedly fail 401 until
          * such time that the refresh completes and gapi.auth.getToken returns a valid access token.
          *
-         * @return the access token string
+         * @return the access token string or "!FAIL" for parent to fail 401, or "!RETRY=xxx" for parent to retry
          */
         OauthService.prototype.getAccessToken = function () {
             if (!this.isGapiLoaded()) {
@@ -64,7 +75,12 @@ var NgGapi;
             }
             else {
                 this.refreshAccessToken();
-                return undefined;
+                if (this.noAccesTokenPolicy == 0) {
+                    return '!FAIL'; // tell the parent
+                }
+                else {
+                    return '!RETRY=' + this.noAccesTokenPolicy; // tell the parent to retry after xxx ms
+                }
             }
         };
         /**
@@ -131,12 +147,14 @@ var NgGapi;
         oauthServiceProvider.setTokenRefreshPolicy(NgGapi.TokenRefreshPolicy.ON_DEMAND);
 });
  *
- * @returns {{setScopes: (function(any): undefined), setClientID: (function(any): undefined), $get: (function(): NgGapi.OAuth)}}
+ * @returns a provider with various setters
  */
 NgGapi['Config'] = function () {
     var scopes;
     var clientID;
-    var tokenRefreshPolicy;
+    var tokenRefreshPolicy = 0 /* ON_DEMAND */; // default is on demand
+    var noAccessTokenPolicy = 500; // default is to retry after 1/2 sec
+    var getAccessTokenFunction = undefined;
     return {
         setScopes: function (_scopes) {
             scopes = _scopes;
@@ -147,14 +165,20 @@ NgGapi['Config'] = function () {
         setTokenRefreshPolicy: function (_policy) {
             tokenRefreshPolicy = _policy;
         },
+        setNoAccessTokenPolicy: function (_policy) {
+            noAccessTokenPolicy = _policy;
+        },
+        setGetAccessTokenFunction: function (_function) {
+            getAccessTokenFunction = _function;
+        },
+        // this is the function called by the Angular DI system to return the service
         $get: function () {
             var myInjector = angular.injector(["ng"]);
             var $log = myInjector.get("$log");
             var $window = myInjector.get("$window");
-            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, $log, $window);
+            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, getAccessTokenFunction, $log, $window);
         }
     };
 };
-// define the PngGapi module. This will then be included by the host app with "angular .module('MyApp', ['PngGapi']);"
 angular.module('ngm.NgGapi', []);
 //# sourceMappingURL=oauth_s.js.map

@@ -1,4 +1,4 @@
-/// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
+// / <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 'use strict';
 var NgGapi;
@@ -15,8 +15,17 @@ var NgGapi;
             this.$q = $q;
             this.OauthService = OauthService;
             this.sig = 'HttpService'; // used in unit testing to confirm DI
+            this.testStatus = 'foo'; // this has no role in the functionality of OauthService. it's a helper property for unit tests
             //console.log('http cons');
         }
+        /**
+         * getter for the underlying Oauth service just in case the app needs it
+         *
+         * @returns {ng.IHttpService}
+         */
+        HttpService.prototype.getOauthService = function () {
+            return this.OauthService;
+        };
         /**
          * getter for the underlying $http service just in case the app needs it
          *
@@ -41,7 +50,7 @@ var NgGapi;
         /**
          * internal $http call. This is recursed for errors
          *
-         * @param config  the $http config object {method, url, params, data}
+         * @param configObject  the $http config object {method, url, params, data}
          * @param def  the parent deferred object that we will resolve or reject
          * @param retryCounter used to countdown recursions. set by outer method
          */
@@ -51,14 +60,34 @@ var NgGapi;
             if (!configObject.headers) {
                 configObject.headers = {};
             }
-            configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken(); // add auth header
-            var httpPromise = this.$http(configObject); // run the http call and capture the promise
-            httpPromise.success(function (data) {
-                def.resolve(data);
-            });
-            httpPromise.error(function (data, status, headers, configObject, statusText) {
-                _this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
-            });
+            var at = this.OauthService.getAccessToken(); // add auth header
+            if (at && (at.indexOf('!FAIL') != 0) && (at.indexOf('!RETRY=') != 0)) {
+                configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken(); // add auth header
+                var httpPromise = this.$http(configObject); // run the http call and capture the promise
+                httpPromise.success(function (data, status, headers, configObject, statusText) {
+                    if (data.nextPageToken) {
+                        def.notify(data);
+                        configObject.params.pageToken = data.nextPageToken;
+                        return _this._doHttp(configObject, def, retryCounter);
+                    }
+                    def.resolve(data);
+                });
+                httpPromise.error(function (data, status, headers, configObject, statusText) {
+                    _this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
+                });
+                return;
+            }
+            // here with no access token
+            if (at && at.indexOf('!FAIL') == 0) {
+                def.reject('401 no access token');
+            }
+            else {
+                var ms = at ? at.replace('!RETRY=', '') : 500;
+                //console.log('sleeping for ms='+ms);
+                this.sleep(+ms).then(function () {
+                    _this._doHttp(configObject, def, retryCounter);
+                });
+            }
         };
         /**
          * Called in the event of any error.
@@ -68,13 +97,12 @@ var NgGapi;
          * @param status        The numeric status
          * @param headers       Object map of response Headers
          * @param configObject  The original config object
-     * @param statusText    The textual response
+         * @param statusText    The textual response
          * @param def           The mid-level deferred object
          * @param retryCounter  The decrementing retry counter
          */
         HttpService.prototype.errorHandler = function (data, status, headers, configObject, statusText, def, retryCounter) {
             var _this = this;
-            console.log("statusText = " + statusText);
             // 404 - hard error
             if (status == 404) {
                 def.reject(status);
@@ -83,7 +111,7 @@ var NgGapi;
             // 401 - get new access token
             // retry after 0.5s
             if (status == 401) {
-                console.warn("Need to acquire a new Access Token and resubmit");
+                this.$log.warn("[H116] Need to acquire a new Access Token and resubmit");
                 this.OauthService.refreshAccessToken();
                 if (--retryCounter > 0) {
                     this.sleep(2000).then(function () {
@@ -124,7 +152,6 @@ var NgGapi;
             }
             // anything else is a hard error
             def.reject(status);
-            return;
         };
         /**
          * simple sleep(ms) returning a promise

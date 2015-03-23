@@ -1,4 +1,4 @@
-/// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
+// / <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 
 'use strict';
@@ -13,23 +13,32 @@ module NgGapi {
 	export class HttpService implements IHttpService {
 		sig = 'HttpService';                // used in unit testing to confirm DI
 
-		testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
-
+		testStatus:string = 'foo';                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
 
 		static $inject = ['$log', '$http', '$timeout', '$q', 'OauthService'];
-		constructor(private $log:ng.ILogService, private $http:ng.IHttpService, private $timeout:ng.ITimeoutService, private $q:ng.IQService, private OauthService:IOauthService) {
-      //console.log('http cons');
+
+		constructor(private $log:mng.ILogService, private $http:mng.IHttpService, private $timeout:mng.ITimeoutService, private $q:mng.IQService, private OauthService:IOauthService) {
+			//console.log('http cons');
 		}
 
-    /**
-     * getter for the underlying $http service just in case the app needs it
-     *
-     * @returns {ng.IHttpService}
-     */
-    get$http() {
-      return this.$http;
-    }
+		/**
+		 * getter for the underlying Oauth service just in case the app needs it
+		 *
+		 * @returns {ng.IHttpService}
+		 */
+		getOauthService():NgGapi.IOauthService {
+			return this.OauthService;
+		}
+
+		/**
+		 * getter for the underlying $http service just in case the app needs it
+		 *
+		 * @returns {ng.IHttpService}
+		 */
+		get$http():mng.IHttpService {
+			return this.$http;
+		}
 
 		/**
 		 * exported method for any $http call.
@@ -39,34 +48,52 @@ module NgGapi {
 		 *
 		 * @returns {IPromise<T>}
 		 */
-		doHttp(configObject:ng.IRequestConfig): ng.IPromise < any > {
+		doHttp(configObject:mng.IRequestConfig):mng.IPromise < any > {
 			var def = this.$q.defer();
 			this._doHttp(configObject, def, 10);
 			return def.promise;
 		}
 
 
-
 		/**
 		 * internal $http call. This is recursed for errors
 		 *
-		 * @param config  the $http config object {method, url, params, data}
+		 * @param configObject  the $http config object {method, url, params, data}
 		 * @param def  the parent deferred object that we will resolve or reject
 		 * @param retryCounter used to countdown recursions. set by outer method
 		 */
-		_doHttp(configObject: ng.IRequestConfig, def: ng.IDeferred < any > , retryCounter: number) {
-      // TODO suppress $http with a warning if getAccestoken returns undefined
-      if (!configObject.headers) {
-        configObject.headers = {};
-      }
-			configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken() ;                          // add auth header
-			var httpPromise = this.$http(configObject); // run the http call and capture the promise
-			httpPromise.success((data) => { // if http success, resolve the app promise
-				def.resolve(data);
-			});
-			httpPromise.error((data, status, headers, configObject, statusText) => { // for an error
-				this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
-			})
+		_doHttp(configObject:mng.IRequestConfig, def:mng.IDeferred < any >, retryCounter:number) {
+			// TODO suppress $http with a warning if getAccestoken returns undefined
+			if (!configObject.headers) {
+				configObject.headers = {};
+			}
+			var at = this.OauthService.getAccessToken();                                                                // add auth header
+			if (at && (at.indexOf('!FAIL') != 0) && (at.indexOf('!RETRY=') != 0)) {                                     // if there is an access token
+				configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken();                 // add auth header
+				var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
+				httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
+					if (data.nextPageToken) {                                                                           // if there is more data, emit a notify and recurse
+						def.notify(data);
+						configObject.params.pageToken = data.nextPageToken;
+						return this._doHttp(configObject, def, retryCounter);
+					}
+					def.resolve(data);
+				});
+				httpPromise.error((data, status, headers, configObject, statusText) => {                                // for an error
+					this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
+				})
+				return;
+			}
+			// here with no access token
+			if (at && at.indexOf('!FAIL') == 0) {                                                                       // if we are requested to fail
+				def.reject('401 no access token');
+			} else {
+				var ms = at?at.replace('!RETRY=', ''):500;
+				//console.log('sleeping for ms='+ms);
+				this.sleep(+ms).then(() => {
+					this._doHttp(configObject, def, retryCounter);
+				})
+			}
 		}
 
 		/**
@@ -77,12 +104,11 @@ module NgGapi {
 		 * @param status        The numeric status
 		 * @param headers       Object map of response Headers
 		 * @param configObject  The original config object
-     * @param statusText    The textual response
+		 * @param statusText    The textual response
 		 * @param def           The mid-level deferred object
 		 * @param retryCounter  The decrementing retry counter
 		 */
-		errorHandler(data:any, status:number, headers:{}, configObject:ng.IRequestConfig, statusText:string,  def:ng.IDeferred<any>, retryCounter:number) {
-      console.log("statusText = "+statusText);
+		errorHandler(data:any, status:number, headers:{}, configObject:mng.IRequestConfig, statusText:string, def:mng.IDeferred<any>, retryCounter:number) {
 			// 404 - hard error
 			if (status == 404) { // 404 is not recoverable, so reject the promise
 				def.reject(status);
@@ -92,7 +118,7 @@ module NgGapi {
 			// 401 - get new access token
 			// retry after 0.5s
 			if (status == 401) { // 401 need to refresh the token and then retry
-				console.warn("Need to acquire a new Access Token and resubmit");
+				this.$log.warn("[H116] Need to acquire a new Access Token and resubmit");
 				this.OauthService.refreshAccessToken();
 				if (--retryCounter > 0) { // number of retries set by caller
 					this.sleep(2000).then(() => {
@@ -131,17 +157,15 @@ module NgGapi {
 				return;
 			}
 
-      // anything else is a hard error
-      def.reject(status);
-      return;
+			// anything else is a hard error
+			def.reject(status);
 		}
-
 
 
 		/**
 		 * simple sleep(ms) returning a promise
 		 */
-		sleep(ms: number): ng.IPromise < any > {
+		sleep(ms:number):mng.IPromise < any > {
 			var def = this.$q.defer();
 			this.$timeout(() => {
 				def.resolve(0)
@@ -151,5 +175,6 @@ module NgGapi {
 	}
 }
 
+declare var angular: mng.IAngularStatic;
 angular.module('ngm.NgGapi')
-  .service('HttpService',NgGapi.HttpService );
+	.service('HttpService', NgGapi.HttpService);

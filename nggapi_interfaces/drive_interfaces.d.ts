@@ -1,4 +1,4 @@
-/// <reference path="../definitely_typed/angular/angular.d.ts"/>
+/// <reference path="angular_cropped.d.ts"/>
 
 /*
  ---------- Interfaces of the Drive Resources as defined within the Google documentation -----------
@@ -163,8 +163,8 @@ declare module NgGapi{
    * Interface definition for the HttpService. Mostly useful for a mock service
    */
   export interface IHttpService {
-    get$http():ng.IHttpService;
-    doHttp(configObject: ng.IRequestConfig):ng.IPromise<any>;
+    get$http():mng.IHttpService;
+    doHttp(configObject: mng.IRequestConfig):mng.IPromise<any>;
   }
 
 
@@ -172,9 +172,19 @@ declare module NgGapi{
    * Interface definition for the DriveService. Mostly useful for a mock service
    */
   export interface IDriveService {
+    getHttpService():NgGapi.IHttpService;
     files:{
-      get(params:IDriveGetParameters):IDriveResponseObject;
-      insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject;
+      get(params:IDriveGetParameters):IDriveResponseObject<IDriveFile>;
+      list(params:IDriveListParameters, excludeTrashed):IDriveResponseObject<IDriveFile[]>;
+      insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<IDriveFile>;
+      update(params:IDriveUpdateParameters):IDriveResponseObject<IDriveFile>;
+      patch(params:IDriveUpdateParameters):IDriveResponseObject<IDriveFile>;
+      trash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
+      untrash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
+      del(params:{fileId:string}):IDriveResponseObject<any>;
+      touch(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
+      watch(params:IWatchParameters):IDriveResponseObject<IApiChannel>;
+      emptyTrash():IDriveResponseObject<any>;
       //list(params:IDriveListParameters):IDriveresponseObject;
     }
   }
@@ -185,7 +195,7 @@ declare module NgGapi{
 
   /**
    * all methods will return this object containing a promise and data, where data would be one of
-   * the file content (i.e. from a Get alt=media),
+   * an object with a single property, 'media' which is the file content (i.e. from a Get alt=media),
    * the file meta data (e.g. from an Insert)
    * an array of file meta data (e.g. from a List)
    *
@@ -193,10 +203,11 @@ declare module NgGapi{
    * For lists, the promise will notify after each page
    * Failure is total failure, i.e. after any retries
    */
-  export interface IDriveResponseObject {
-    promise:ng.IPromise<{data:IDriveFile}>;
-    data:IDriveFile | Array<IDriveFile> | string;
-    headers:{}
+  export interface IDriveResponseObject<T> {
+    promise:mng.IPromise<{data:IDriveFile}>;
+    data:T
+    //data:IDriveFile | Array<IDriveFile> | {media: string};
+    headers:(name:string)=>string
   }
 
   /**
@@ -212,14 +223,15 @@ declare module NgGapi{
   }
 
   export interface IDriveListParameters {
-    corpus:string;	    //The body of items (files/documents) to which the query applies.  Acceptable values are: "DEFAULT": The items that the user has accessed. "DOMAIN": Items shared to the user's domain.
-    maxResults:number;  //	Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
-    pageToken:string;	  //Page token for files.
-    q:string;           // Query string for searching files. See https://developers.google.com/drive/search-parameters for more information about supported fields and operations.
+    corpus?:string;	                    //The body of items (files/documents) to which the query applies.  Acceptable values are: "DEFAULT": The items that the user has accessed. "DOMAIN": Items shared to the user's domain.
+    maxResults?:number;                 // Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
+    pageToken?:string;	                // Page token for files.
+    q?:string;                          // Query string for searching files. See https://developers.google.com/drive/search-parameters for more information about supported fields and operations.
+    fields?:string;                     // urlencoded list of fields to include in response
   }
 
   export interface IDriveInsertParameters {
-    uploadType:string;                  // The type of upload request to the /upload URI. Acceptable values are: media - Simple upload. Upload the media only, without any metadata. multipart - Multipart upload. Upload both the media and its metadata, in a single request. resumable - Resumable upload. Upload the file in a resumable fashion, using a series of at least two requests where the first request includes the metadata.
+    uploadType:string;                   // The type of upload request to the /upload URI. Acceptable values are: media - Simple upload. Upload the media only, without any metadata. multipart - Multipart upload. Upload both the media and its metadata, in a single request. resumable - Resumable upload. Upload the file in a resumable fashion, using a series of at least two requests where the first request includes the metadata.
     convert?:boolean;                    // Whether to convert this file to the corresponding Google Docs format. (Default: false)
     ocr?:boolean;                        // Whether to attempt OCR on .jpg, .png, .gif, or .pdf uploads. (Default: false)
     ocrLanguage?:string;                 //  If ocr is true, hints at the language to use. Valid values are ISO 639-1 codes.
@@ -235,10 +247,42 @@ declare module NgGapi{
     acknowledgeAbuse?:boolean;           // Whether the user is acknowledging the risk of downloading known malware or other abusive files. Ignored unless alt=media is specified. (Default: false)
     alt?:string;                         // Specifies the type of resource representation to return. The default is 'json' to return file metadata. Specifying 'media' will cause the file content to be returned.
     fields?:string;
-    revisionId?:string;                   //	Specifies the Revision ID that should be downloaded. Ignored unless alt=media is specified.
-    updateViewedDate?:boolean;            //	Whether to update the view date after successfully retrieving the file. (Default: false)
+    revisionId?:string;                  //	Specifies the Revision ID that should be downloaded. Ignored unless alt=media is specified.
+    updateViewedDate?:boolean;           //	Whether to update the view date after successfully retrieving the file. (Default: false)
   }
 
+  export interface IDriveUpdateParameters {
+    fileId:string;                        // The ID of the file to update.
+    addParents?:string;                   // Comma-separated list of parent IDs to add.
+    convert?:boolean;                     // Whether to convert this file to the corresponding Google Docs format. (Default: false)
+    newRevision?:boolean;                 // Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous revisions are preserved (causing increased use of the user's data storage quota). (Default: true)
+    ocr?:boolean;                         // Whether to attempt OCR on .jpg, .png, .gif, or .pdf uploads. (Default: false)
+    ocrLanguage?:string;                  //  If ocr is true, hints at the language to use. Valid values are ISO 639-1 codes.
+    pinned?:boolean;                      // Whether to pin the head revision of the uploaded file. A file can have a maximum of 200 pinned revisions. (Default: false)
+    timedTextLanguage?:string;            // The language of the timed text.
+    timedTextTrackName?:string;           // The timed text track name.
+    useContentAsIndexableText?:boolean;   // Whether to use the content as indexable text. (Default: false)
+    removeParents?:string;                // Comma-separated list of parent IDs to remove.
+    setModifiedDate?:boolean;             // Whether to set the modified date with the supplied modified date. (Default: false)
+    updateViewedDate?:boolean;            // Whether to update the view date after successfully updating the file. (Default: true)
+  }
 
+  export interface IWatchParameters {
+    id:string;                            // A UUID or similar unique string that identifies this channel.
+    token?:string;                        // An arbitrary string delivered to the target address with each notification delivered over this channel. Optional.
+    expiration?:number;                   // Date and time of notification channel expiration, expressed as a Unix timestamp, in milliseconds. Optional.
+    type?:string;	                      // The type of delivery mechanism used for this channel. The only option is web_hook.
+    address?:string;                      // The address where notifications are delivered for this channel.
+  }
 
+  export interface IApiChannel {
+    kind: string;
+    id: string;
+    resourceId: string;
+    resourceUri: string;
+    token: string;
+    expiration: number;
+  }
 }
+
+
