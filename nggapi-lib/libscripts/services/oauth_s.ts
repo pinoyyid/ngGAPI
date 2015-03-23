@@ -74,8 +74,10 @@ module NgGapi {
         this.testStatus = 'O55';
         return undefined;
       }
-      if (!!this.$window['gapi'].auth.getToken()) {
-        return this.$window['gapi'].auth.getToken()['access_token'];
+      if (!!this.$window['gapi'].auth.getToken()                                                                        // function returns something
+          && !!this.$window['gapi'].auth.getToken()['access_token']                                                     // with an access token
+          &&  (this.$window['gapi'].auth.getToken()['access_token'] != null)) {                                         // which isn't null
+        return this.$window['gapi'].auth.getToken()['access_token'];                                                    // return it
       } else {
         this.refreshAccessToken();
         if (this.noAccesTokenPolicy == 0) {                             // if we want to fail 401 for no access token

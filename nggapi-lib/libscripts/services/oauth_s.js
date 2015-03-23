@@ -70,8 +70,8 @@ var NgGapi;
                 this.testStatus = 'O55';
                 return undefined;
             }
-            if (!!this.$window['gapi'].auth.getToken()) {
-                return this.$window['gapi'].auth.getToken()['access_token'];
+            if (!!this.$window['gapi'].auth.getToken() && !!this.$window['gapi'].auth.getToken()['access_token'] && (this.$window['gapi'].auth.getToken()['access_token'] != null)) {
+                return this.$window['gapi'].auth.getToken()['access_token']; // return it
             }
             else {
                 this.refreshAccessToken();
