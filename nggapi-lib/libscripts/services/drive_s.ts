@@ -210,7 +210,8 @@ module NgGapi {
 
 			var co:mng.IRequestConfig = {                                                                               // build request config
 				method: 'PATCH',
-				url: this.self.filesUrl.replace(':id', params.fileId)
+				url: this.self.filesUrl.replace(':id', params.fileId),
+				data: params
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
