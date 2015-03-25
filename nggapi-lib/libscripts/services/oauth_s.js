@@ -148,7 +148,7 @@ var NgGapi;
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }).success(function (data, status, headers, config) {
                 _this.testingAccessToken = data['access_token'];
-                _this.$log.info('woohoo: test access token is ' + _this.testingAccessToken);
+                _this.$log.info('[O172]: test access token is ' + _this.testingAccessToken);
                 _this.isAuthInProgress = false;
                 // this callback will be called asynchronously
                 // when the response is available
@@ -169,15 +169,15 @@ var NgGapi;
             //console.log('authed');
             var token = this.$window['gapi'].auth.getToken();
             if (!token) {
-                this.$log.error('[O99] There is a problem that authorize has returned without an access token. Poss. access denied by user? ');
+                this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user? ');
                 return;
             }
             // if app has requested auto-refresh, set up the timeout to refresh
             if (this.tokenRefreshPolicy == 1 /* PRIOR_TO_EXPIRY */) {
                 var expiry = token.expires_in;
-                this.$log.log('[O120] token will refresh after ' + expiry * 950 + 'ms');
+                this.$log.log('[O203] token will refresh after ' + expiry * 950 + 'ms');
                 setTimeout(this.refreshAccessToken, expiry * 950); // refresh after 95% of the validity
-                this.testStatus = 'O120';
+                this.testStatus = 'O203';
             }
         };
         OauthService.prototype.isGapiLoaded = function () {
