@@ -291,17 +291,17 @@ describe('Service: DriveService', function () {
 	});
 
 
-	it('watch should return a file object', function () {
-		var id = 'foot';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/watch';
-		$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
-
-		var ro = DriveService.files.watch({id: id});
-		$httpBackend.flush();
-
-		expect(DriveService.lastFile.id).toBe(id);
-		expect(ro.data.id).toBe(id);
-	});
+	//it('watch should return a file object', function () {
+	//	var id = 'foot';
+	//	var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/watch';
+	//	$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
+	//
+	//	var ro = DriveService.files.watch({id: id});
+	//	$httpBackend.flush();
+	//
+	//	expect(DriveService.lastFile.id).toBe(id);
+	//	expect(ro.data.id).toBe(id);
+	//});
 
 	/*
 	 it('insert should call POST on the tasks endpoint', function() {

@@ -42,7 +42,7 @@ describe('Service: HttpService', function () {
 
 	it('errorhandler should reject a 404', function () {
 		var def = $q.defer();
-		HttpService.errorHandler(undefined, 404, undefined, undefined, undefined, def, 0);
+		HttpService.errorHandler({error: 'error message'}, 404, undefined, undefined, undefined, def, 0);
 		//def.promise.catch(function (status) {
 		//	expect(status).toBe(404);
 		//});
