@@ -9,7 +9,7 @@
         <script src="nggapi-drive.js"></script>
 ```
 * If you are developing in TypeScript, you'll probably want the definition file from `nggapi-interfaces/drive_interfaces.d.ts`
-* A simple app.js looks something like 
+* A simple `app.js` looks something like
 ```
 var myApp = angular.module('MyApp', ['ngm.NgGapi']);
 
