@@ -183,7 +183,7 @@ declare module NgGapi{
       untrash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
       del(params:{fileId:string}):IDriveResponseObject<any>;
       touch(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
-      watch(params:IWatchParameters):IDriveResponseObject<IApiChannel>;
+      watch(params:{fileId:string;alt?:string; revisionId?:string}, resource:IWatchBody):IDriveResponseObject<IApiChannel>;
       emptyTrash():IDriveResponseObject<any>;
       //list(params:IDriveListParameters):IDriveresponseObject;
     }
@@ -268,7 +268,7 @@ declare module NgGapi{
     updateViewedDate?:boolean;            // Whether to update the view date after successfully updating the file. (Default: true)
   }
 
-  export interface IWatchParameters {
+  export interface IWatchBody {
     id:string;                            // A UUID or similar unique string that identifies this channel.
     token?:string;                        // An arbitrary string delivered to the target address with each notification delivered over this channel. Optional.
     expiration?:number;                   // Date and time of notification channel expiration, expressed as a Unix timestamp, in milliseconds. Optional.

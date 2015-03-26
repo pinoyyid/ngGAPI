@@ -111,7 +111,7 @@ module NgGapi {
 		errorHandler(data:any, status:number, headers:{}, configObject:mng.IRequestConfig, statusText:string, def:mng.IDeferred<any>, retryCounter:number) {
 			// 404 - hard error
 			if (status == 404) { // 404 is not recoverable, so reject the promise
-				def.reject(status);
+				def.reject(status+" "+data.error.message);
 				return;
 			}
 
@@ -146,7 +146,8 @@ module NgGapi {
 			}
 
 			// 403 - rate limit, sleep for 2s to allow some more bucket tokens
-			if (status == 403 && statusText.toLowerCase().indexOf('rate limit') > -1) {
+			//if (status == 403) debugger;
+			if (status == 403 && data.error.message.toLowerCase().indexOf('rate limit') > -1) {
 				if (--retryCounter > 0) { // number of retries set by caller
 					this.sleep(2000).then(() => {
 						this._doHttp(configObject, def, retryCounter);
@@ -158,7 +159,7 @@ module NgGapi {
 			}
 
 			// anything else is a hard error
-			def.reject(status);
+			def.reject(status+" "+data.error.message);
 		}
 
 
