@@ -162,7 +162,7 @@ describe('Service: DriveService', function () {
 		var ro = DriveService.files.update({title: 'title-'});
 		ro.promise.then(
 			function () {expect('should have failed D170 missing fileId').toBe('false')},
-			function (reason) {expect(reason).toMatch('D170')}
+			function (reason) {expect(reason).toMatch('D193')}
 		);
 	});
 
@@ -172,7 +172,7 @@ describe('Service: DriveService', function () {
 		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
 		$httpBackend .whenPUT("") .respond({id: id } );
 
-		var ro = DriveService.files.update({fileId: id});
+		var ro = DriveService.files.update({title:'foo'}, {fileId: id});
 		$httpBackend.flush();
 
 		expect(DriveService.lastFile.id).toBe(id);
@@ -183,8 +183,8 @@ describe('Service: DriveService', function () {
 	it('patch should fail for missing fileId', function () {
 		var ro = DriveService.files.patch({title: 'title-'});
 		ro.promise.then(
-			function () {expect('should have failed D197 missing fileId').toBe('false')},
-			function (reason) {expect(reason).toMatch('D197')}
+			function () {expect('should have failed D230 missing fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D230')}
 		);
 	});
 

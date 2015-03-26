@@ -177,8 +177,8 @@ declare module NgGapi{
       get(params:IDriveGetParameters):IDriveResponseObject<IDriveFile>;
       list(params:IDriveListParameters, excludeTrashed):IDriveResponseObject<IDriveFile[]>;
       insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<IDriveFile>;
-      update(params:IDriveUpdateParameters):IDriveResponseObject<IDriveFile>;
-      patch(params:IDriveUpdateParameters):IDriveResponseObject<IDriveFile>;
+      update(file:IDriveFile, params:IDriveUpdateParameters, base64EncodedContent?:string):IDriveResponseObject<IDriveFile>;
+      patch(params:{fileId:string; resource:IDriveFile}):IDriveResponseObject<IDriveFile>;
       trash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
       untrash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
       del(params:{fileId:string}):IDriveResponseObject<any>;
@@ -252,7 +252,8 @@ declare module NgGapi{
   }
 
   export interface IDriveUpdateParameters {
-    fileId:string;                        // The ID of the file to update.
+    uploadType?:string;                   // The type of upload request to the /upload URI. Acceptable values are: media - Simple upload. Upload the media only, without any metadata. multipart - Multipart upload. Upload both the media and its metadata, in a single request. resumable - Resumable upload. Upload the file in a resumable fashion, using a series of at least two requests where the first request includes the metadata.
+    fileId?:string;                        // The ID of the file to update.
     addParents?:string;                   // Comma-separated list of parent IDs to add.
     convert?:boolean;                     // Whether to convert this file to the corresponding Google Docs format. (Default: false)
     newRevision?:boolean;                 // Whether a blob upload should create a new revision. If false, the blob data in the current head revision is replaced. If true or not set, a new blob is created as head revision, and previous revisions are preserved (causing increased use of the user's data storage quota). (Default: true)

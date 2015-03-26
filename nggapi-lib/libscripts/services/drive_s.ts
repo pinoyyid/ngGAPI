@@ -146,11 +146,11 @@ module NgGapi {
 		 */
 		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<NgGapi.IDriveFile> {
 			var configObject:mng.IRequestConfig;
-			if (!params) {
+			if (!params || !params.uploadType) {
 				configObject = {method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file};                // no params is a simple metadata insert
 			} else {
 				try {
-					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent);               // build a config object from params
+					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, true);               // build a config object from params
 					configObject.method = 'POST';
 					configObject.url = this.self.filesUploadUrl;                                                        // nb non-standard URL
 				} catch (ex) {                                                                                          // any validation errors throw an exception
@@ -162,34 +162,57 @@ module NgGapi {
 			var promise = this.self.HttpService.doHttp(configObject);
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
-				responseObject.headers = resp.headers;                                                                  // transcribe heqaders
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
 				this.self.transcribeProperties(resp, responseObject);
 				this.self.lastFile = resp;
 			});
 			return responseObject;
 		}
 
+
 		/**
-		 * Implements drive.update
+		 * Implements Update, both for metadata only and for multipart media content upload
+		 * TODO NB resumable uploads not yet supported
 		 *
-		 * @param params
+		 * See https://developers.google.com/drive/v2/reference/files/update for semantics including the params object
+		 *
+		 * @param file  Files resource
+		 * @param params see Google docs
+		 * @param base64EncodedContent
 		 * @returns IDriveResponseObject
 		 */
-		filesUpdate (params:NgGapi.IDriveUpdateParameters) {
-			if (!params || !params.fileId) {
-				var s = "[D170] Missing fileId";
-				return this.self.reject(s);
+		filesUpdate(file:IDriveFile, params?:IDriveUpdateParameters, base64EncodedContent?:string):IDriveResponseObject<NgGapi.IDriveFile> {
+			// validate there is an id somewhere, either in the passed file, or in params.fileId
+			var id;
+			if (params && params.fileId) {                                                                              // if in params.fileID
+				id = params.fileId;
+			} else {                                                                                                    // else
+				if (file.id) {                                                                                          // if in file object
+					id = file.id;
+				} else {                                                                                                // if no ID
+					var s = "[D193] Missing fileId";
+					return this.self.reject(s);
+				}
+			}
+			var configObject:mng.IRequestConfig;
+			if (!params || !params.uploadType) {
+				configObject = {method: 'PUT', url: this.self.filesUrl.replace(':id', params.fileId), data: file};      // no params is a simple metadata insert
+			} else {
+				try {
+					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, false);               // build a config object from params
+					configObject.method = 'PUT';
+					configObject.url = this.self.filesUploadUrl+'/'+params.fileId;                                      // nb non-standard URL
+				} catch (ex) {                                                                                          // any validation errors throw an exception
+					return this.self.reject(ex);
+				}
 			}
 
-			var co:mng.IRequestConfig = {                                                                               // build request config
-				method: 'PUT',
-				url: this.self.filesUrl.replace(':id', params.fileId)
-			};
-			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+
+			var promise = this.self.HttpService.doHttp(configObject);
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
-				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-				this.self.transcribeProperties(resp, responseObject);                                                   // if file, transcribe properties
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				this.self.transcribeProperties(resp, responseObject);
 				this.self.lastFile = resp;
 			});
 			return responseObject;
@@ -199,19 +222,19 @@ module NgGapi {
 		/**
 		 * Implements drive.patch
 		 *
-		 * @param params
+		 * @param params containg a fileID and a files resource
 		 * @returns IDriveResponseObject
 		 */
-		filesPatch (params:NgGapi.IDriveUpdateParameters) {
+		filesPatch (params:{fileId:string; resource:IDriveFile}):IDriveResponseObject<IDriveFile> {
 			if (!params || !params.fileId) {
-				var s = "[D197] Missing fileId";
+				var s = "[D230] Missing fileId";
 				return this.self.reject(s);
 			}
 
 			var co:mng.IRequestConfig = {                                                                               // build request config
 				method: 'PATCH',
 				url: this.self.filesUrl.replace(':id', params.fileId),
-				data: params
+				data: params.resource
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
@@ -294,7 +317,7 @@ module NgGapi {
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
-				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
 			});
 			return responseObject;
 		}
@@ -395,13 +418,14 @@ module NgGapi {
 		 * @param file
 		 * @param params
 		 * @param base64EncodedContent
+		 * @param isInsert true for insert, false/undefined for Update
 		 * @returns {undefined}
 		 *
 		 * @throws D115 resumables not supported
 		 * @throws D119 safety check that the media is base64 encoded
 		 * @throws D125 safety check there is a mime type
 		 */
-		buildUploadConfigObject(file:IDriveFile, params:IDriveInsertParameters, base64EncodedContent:string):mng.IRequestConfig {
+		buildUploadConfigObject(file:IDriveFile, params:IDriveInsertParameters|IDriveUpdateParameters, base64EncodedContent:string, isInsert:boolean):mng.IRequestConfig {
 			// check for a resumable upload and reject coz we don't support them yet
 			if (params.uploadType == 'resumable') {
 				throw "[D136] resumable uploads are not currently supported";
@@ -414,7 +438,7 @@ module NgGapi {
 
 			// check the dev provided a mime type for media or multipart
 			if ((params.uploadType == 'multipart' || params.uploadType == 'media')
-				&& (!file || !file.mimeType)) {
+				&& (isInsert && (!file || !file.mimeType))) {
 				throw ("[D148] file metadata is missing mandatory mime type");
 			}
 
@@ -424,13 +448,17 @@ module NgGapi {
 			if (params.uploadType == 'multipart') {
 				var boundary = '-------3141592ff65358979323846';
 				var delimiter = "\r\n--" + boundary + "\r\n";
+				var mimeHeader = '';
+				if (isInsert) {                                                                                         // only set a mime header for inserts
+					mimeHeader = 'Content-Type: ' + file.mimeType + '\r\n';                                             // updates uses existing file
+				}
 				var close_delim = "\r\n--" + boundary + "--";
 				body =
 					delimiter +
 					'Content-Type: application/json\r\n\r\n' +
 					JSON.stringify(file) +
 					delimiter +
-					'Content-Type: ' + file.mimeType + '\r\n' +
+					mimeHeader +
 					'Content-Transfer-Encoding: base64\r\n' +
 					'\r\n' +
 					base64EncodedContent +
@@ -443,8 +471,9 @@ module NgGapi {
 			if (params.uploadType == 'media') {
 				body = base64EncodedContent;
 				var headers = {};
-				headers['Content-Type'] = file.mimeType;
-				headers['Content-Length'] = base64EncodedContent.length;
+				if (isInsert) {
+					headers['Content-Type'] = file.mimeType;
+				}
 				headers['Content-Transfer-Encoding'] = 'base64';
 			}
 
