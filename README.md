@@ -22,7 +22,7 @@ angular.module('ngm.NgGapi')
 		OauthServiceProvider.setNoAccessTokenPolicy(999);                 // 0 = fail, > 0 = retry after x
 	});
 ```
-* A simple ngGAPI call to create a new file looks something like :-
+* The syntax of the ngGAPI Drive calls mimics the Google JavaScript library. So you'll be reading https://developers.google.com/drive/v2/reference/files#methods and then each sub page for each method, and looking at the JavaScript tab. See **API** below for more detail. For example, a simple ngGAPI call to create a new, empty file looks something like :-
 ```
   DriveService.files.insert({title: 'file title', mimeType:'text/plain'})
   .promise.then(()=>{console.log('new file inserted')})
