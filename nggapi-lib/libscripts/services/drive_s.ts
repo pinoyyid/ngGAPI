@@ -325,19 +325,23 @@ module NgGapi {
 
 		/**
 		 * Implements drive.Watch
+		 * NB This is not available as CORS endpoint for browser clients
 		 *
-		 * @param params IWatchParameters
+		 * @param params mandatory fileID optional alt and revisionId
 		 * @returns IDriveResponseObject
 		 */
-		filesWatch (params:IWatchParameters) {
-			if (!params || !params.id) {
+		filesWatch (params:{fileId:string}, resource:IWatchBody) {
+			this.self.$log.warn('[D334] NB files.watch is not available as a CORS endpoint for browser clients.');
+			if (!params || !params.fileId) {
 				var s = "[D302] Missing id";
 				return this.self.reject(s);
 			}
 
 			var co:mng.IRequestConfig = {                                                                               // build request config
 				method: 'POST',
-				url: this.self.filesUrl.replace(':id', params.id)+this.self.urlWatchSuffix
+				url: this.self.filesUrl.replace(':id', params.fileId)+this.self.urlWatchSuffix,
+				params: params,
+				data: resource
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
 			var responseObject:IDriveResponseObject<IApiChannel> = {promise: promise, data: undefined, headers: undefined};
@@ -383,7 +387,7 @@ module NgGapi {
 		 */
 		filesEmptyTrash () {
 			var co:mng.IRequestConfig = {                                                                               // build request config
-				method: 'POST',
+				method: 'DELETE',
 				url: this.self.filesUrl.replace(':id', 'trash')
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService

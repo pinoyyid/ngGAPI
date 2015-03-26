@@ -310,19 +310,23 @@ var NgGapi;
         };
         /**
          * Implements drive.Watch
+         * NB This is not available as CORS endpoint for browser clients
          *
-         * @param params IWatchParameters
+         * @param params mandatory fileID optional alt and revisionId
          * @returns IDriveResponseObject
          */
-        DriveService.prototype.filesWatch = function (params) {
+        DriveService.prototype.filesWatch = function (params, resource) {
             var _this = this;
-            if (!params || !params.id) {
+            this.self.$log.warn('[D334] NB files.watch is not available as a CORS endpoint for browser clients.');
+            if (!params || !params.fileId) {
                 var s = "[D302] Missing id";
                 return this.self.reject(s);
             }
             var co = {
                 method: 'POST',
-                url: this.self.filesUrl.replace(':id', params.id) + this.self.urlWatchSuffix
+                url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlWatchSuffix,
+                params: params,
+                data: resource
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = { promise: promise, data: undefined, headers: undefined };
@@ -365,7 +369,7 @@ var NgGapi;
          */
         DriveService.prototype.filesEmptyTrash = function () {
             var co = {
-                method: 'POST',
+                method: 'DELETE',
                 url: this.self.filesUrl.replace(':id', 'trash')
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
