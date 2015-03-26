@@ -14,7 +14,8 @@
 <!-- Load angular -->
 <script src="../bower_components/angular-1.4.0-beta.5/angular.js"></script>
 <!-- Load the OauthService. Must be done before app-->
-<script src="libscripts/services/oauth_s.js"></script>
+<Zscript src="libscripts/services/oauth_s.js"></Zscript>
+<script src="dist-lib/nggapi-base.min.js"></script>
 <!-- The app in its entirety -->
 <script>
     // declare your angular app with ngm.NgGapi as a required module
@@ -50,7 +51,8 @@
     angular.module('MyApp').controller('MainCtrl', MainCtrl);
 </script>
 <!-- Load the other two js files. These will all be bundled and minified in the distro -->
-<script src="libscripts/services/http_s.js"></script>
-<script src="libscripts/services/drive_s.js"></script>
+<script src="dist-lib/nggapi-drive.min.js"></script>
+<Zscript src="libscripts/services/http_s.js"></Zscript>
+<Zscript src="libscripts/services/drive_s.js"></Zscript>
 </body>
 </html>

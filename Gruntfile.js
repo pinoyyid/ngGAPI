@@ -27,6 +27,19 @@ module.exports = function (grunt) {
     // Project settings
     yeoman: appConfig,
 
+
+    uglify: {
+      base: {
+        files: {
+          'nggapi-lib/dist-lib/nggapi-base.min.js': ['nggapi-lib/libscripts/services/oauth_s.js', 'nggapi-lib/libscripts/services/http_s.js']
+        }
+      },
+      drive: {
+        files: {
+          'nggapi-lib/dist-lib/nggapi-drive.min.js': ['nggapi-lib/libscripts/services/drive_s.js']
+        }
+      }
+    },
     // Watches files for changes and runs tasks based on the changed files
     watch: {
       bower: {
