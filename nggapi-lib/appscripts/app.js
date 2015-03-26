@@ -7,7 +7,8 @@ angular.module('ngm.NgGapi')
 	.provider('OauthService', NgGapi.Config)
 	.config(function (OauthServiceProvider) {
 		OauthServiceProvider.setScopes('https://www.googleapis.com/auth/drive.file');
-		OauthServiceProvider.setClientID('700995682262-2kk81vdcu8j83j0ahjmk84u1drcbg5di.apps.googleusercontent.com');
+		//OauthServiceProvider.setClientID('700995682262-2kk81vdcu8j83j0ahjmk84u1drcbg5di.apps.googleusercontent.com');
+		OauthServiceProvider.setClientID('292329129968-nrf447v3m1jqknroi1naii0kfs92bvf1.apps.googleusercontent.com');
 		OauthServiceProvider.setTokenRefreshPolicy(NgGapi.TokenRefreshPolicy.ON_DEMAND);
 		OauthServiceProvider.setNoAccessTokenPolicy(999);                 // 0 = fail, > 0 = retry after x
 		//OauthServiceProvider.setGetAccessTokenFunction(function () {console.log('heee haaaa')});  // see below for pseudo code

@@ -147,11 +147,14 @@ describe('Service: DriveService', function () {
 
 
 	it('list should fail for missing nextPageToken', function () {
+		$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
+
 		var ro = DriveService.files.list({fields: 'foo'});
 		ro.promise.then(
-			function () {expect('should have failed D82 no resumable yet').toBe('false')},
-			function (reason) {expect(reason).toMatch('D82')}
+			function (reason) {},
+			function () {expect('should not have failed D82 no nextpageToken yet').toBe('false')}
 		);
+		$httpBackend.flush();
 	});
 
 
@@ -159,7 +162,7 @@ describe('Service: DriveService', function () {
 		var ro = DriveService.files.update({title: 'title-'});
 		ro.promise.then(
 			function () {expect('should have failed D170 missing fileId').toBe('false')},
-			function (reason) {expect(reason).toMatch('D170')}
+			function (reason) {expect(reason).toMatch('D193')}
 		);
 	});
 
@@ -169,7 +172,7 @@ describe('Service: DriveService', function () {
 		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
 		$httpBackend .whenPUT("") .respond({id: id } );
 
-		var ro = DriveService.files.update({fileId: id});
+		var ro = DriveService.files.update({title:'foo'}, {fileId: id});
 		$httpBackend.flush();
 
 		expect(DriveService.lastFile.id).toBe(id);
@@ -180,8 +183,8 @@ describe('Service: DriveService', function () {
 	it('patch should fail for missing fileId', function () {
 		var ro = DriveService.files.patch({title: 'title-'});
 		ro.promise.then(
-			function () {expect('should have failed D197 missing fileId').toBe('false')},
-			function (reason) {expect(reason).toMatch('D197')}
+			function () {expect('should have failed D230 missing fileId').toBe('false')},
+			function (reason) {expect(reason).toMatch('D230')}
 		);
 	});
 
@@ -288,17 +291,17 @@ describe('Service: DriveService', function () {
 	});
 
 
-	it('watch should return a file object', function () {
-		var id = 'foot';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/watch';
-		$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
-
-		var ro = DriveService.files.watch({id: id});
-		$httpBackend.flush();
-
-		expect(DriveService.lastFile.id).toBe(id);
-		expect(ro.data.id).toBe(id);
-	});
+	//it('watch should return a file object', function () {
+	//	var id = 'foot';
+	//	var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/watch';
+	//	$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
+	//
+	//	var ro = DriveService.files.watch({id: id});
+	//	$httpBackend.flush();
+	//
+	//	expect(DriveService.lastFile.id).toBe(id);
+	//	expect(ro.data.id).toBe(id);
+	//});
 
 	/*
 	 it('insert should call POST on the tasks endpoint', function() {

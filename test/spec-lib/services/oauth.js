@@ -85,7 +85,7 @@ describe('Service: OauthService', function () {
     $window.gapi.auth.getToken = function () {return {access_token: "my_at", expires_in: 3600}};
     OauthService.tokenRefreshPolicy = NgGapi.TokenRefreshPolicy.PRIOR_TO_EXPIRY;
     OauthService.refreshCallback();
-    expect(OauthService.testStatus).toEqual('O120');
+    expect(OauthService.testStatus).toEqual('O203');
   });
 
 });

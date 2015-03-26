@@ -105,7 +105,7 @@ var NgGapi;
             var _this = this;
             // 404 - hard error
             if (status == 404) {
-                def.reject(status);
+                def.reject(status + " " + data.error.message);
                 return;
             }
             // 401 - get new access token
@@ -139,7 +139,8 @@ var NgGapi;
                 return;
             }
             // 403 - rate limit, sleep for 2s to allow some more bucket tokens
-            if (status == 403 && statusText.toLowerCase().indexOf('rate limit') > -1) {
+            //if (status == 403) debugger;
+            if (status == 403 && data.error.message.toLowerCase().indexOf('rate limit') > -1) {
                 if (--retryCounter > 0) {
                     this.sleep(2000).then(function () {
                         _this._doHttp(configObject, def, retryCounter);
@@ -151,7 +152,7 @@ var NgGapi;
                 return;
             }
             // anything else is a hard error
-            def.reject(status);
+            def.reject(status + " " + data.error.message);
         };
         /**
          * simple sleep(ms) returning a promise

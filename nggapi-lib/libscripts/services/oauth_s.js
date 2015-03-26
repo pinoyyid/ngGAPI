@@ -34,10 +34,13 @@ var NgGapi;
          * @param tokenRefreshPolicy  One of the TokenRefreshPolicy Enum values
          * @param noAccessTokenPolicy (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
          * @param ownGetAccessTokenFunction (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
+         * @param testingRefreshToken - if set, this is used to fetch access tokens instead of gapi
+         * @param testingClientSecret - if set, this is used to fetch access tokens instead of gapi
          * @param $log
          * @param $window
+         * @param $http
          */
-        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, ownGetAccessTokenFunction, $log, $window) {
+        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, ownGetAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http) {
             //console.log("OAuth instantiated with " + scopes);
             //$log.log("scopes", this.scopes);
             //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
@@ -47,8 +50,11 @@ var NgGapi;
             this.tokenRefreshPolicy = tokenRefreshPolicy;
             this.noAccesTokenPolicy = noAccesTokenPolicy;
             this.ownGetAccessTokenFunction = ownGetAccessTokenFunction;
+            this.testingRefreshToken = testingRefreshToken;
+            this.testingClientSecret = testingClientSecret;
             this.$log = $log;
             this.$window = $window;
+            this.$http = $http;
             this.sig = 'OauthService'; // used in unit testing to confirm DI
             this.isAuthInProgress = false; // true if there is an outstanding auth (ie. refresh token) in progress to prevent multiples
             this.isAuthedYet = false; // first time flag, used to set immediate mode
@@ -65,13 +71,20 @@ var NgGapi;
          * @return the access token string or "!FAIL" for parent to fail 401, or "!RETRY=xxx" for parent to retry
          */
         OauthService.prototype.getAccessToken = function () {
+            if (!!this.testingAccessToken) {
+                return this.testingAccessToken; // return it
+            }
+            if (!!this.testingRefreshToken) {
+                this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret); // use it to fetch an a_t
+                return '!RETRY=1000'; // allow 1s
+            }
             if (!this.isGapiLoaded()) {
                 this.$log.warn('[O55] waiting for the gapi script to download');
                 this.testStatus = 'O55';
                 return undefined;
             }
-            if (!!this.$window['gapi'].auth.getToken()) {
-                return this.$window['gapi'].auth.getToken()['access_token'];
+            if (!!this.$window['gapi'].auth.getToken() && !!this.$window['gapi'].auth.getToken()['access_token'] && (this.$window['gapi'].auth.getToken()['access_token'] != null)) {
+                return this.$window['gapi'].auth.getToken()['access_token']; // return it
             }
             else {
                 this.refreshAccessToken();
@@ -107,6 +120,44 @@ var NgGapi;
             }); // callback invoked when gapi refresh returns with a new token
         };
         /**
+         *
+         *  Uses a poked refresh token to fetch a new access token. Only used for e2e testing
+         *
+         * @param rt the refresh token
+         * @param secret the client secret
+         */
+        OauthService.prototype.refreshAccessTokenUsingTestRefreshToken = function (rt, secret) {
+            var _this = this;
+            if (this.isAuthInProgress) {
+                this.$log.warn('[O143] refresh access token suppressed because there is already such a request in progress');
+                this.testStatus = 'O143';
+                return;
+            }
+            this.isAuthInProgress = true;
+            var url = 'https://www.googleapis.com/oauth2/v3/token';
+            this.$http({
+                method: 'POST',
+                url: url,
+                params: {
+                    client_id: this.clientId,
+                    //client_secret:'Y_vhMLV9wkr88APsQWXPUrhq',
+                    client_secret: secret,
+                    refresh_token: rt,
+                    grant_type: 'refresh_token'
+                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            }).success(function (data, status, headers, config) {
+                _this.testingAccessToken = data['access_token'];
+                _this.$log.info('[O172]: test access token is ' + _this.testingAccessToken);
+                _this.isAuthInProgress = false;
+                // this callback will be called asynchronously
+                // when the response is available
+            }).error(function (data, status, headers, config) {
+                // called asynchronously if an error occurs
+                // or server returns response with an error status.
+            });
+        };
+        /**
          * called when gapi.auth.authorize returns
          * Reports an error if no token.
          *
@@ -118,15 +169,15 @@ var NgGapi;
             //console.log('authed');
             var token = this.$window['gapi'].auth.getToken();
             if (!token) {
-                this.$log.error('[O99] There is a problem that authorize has returned without an access token. Poss. access denied by user? ');
+                this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user? ');
                 return;
             }
             // if app has requested auto-refresh, set up the timeout to refresh
             if (this.tokenRefreshPolicy == 1 /* PRIOR_TO_EXPIRY */) {
                 var expiry = token.expires_in;
-                this.$log.log('[O120] token will refresh after ' + expiry * 950 + 'ms');
+                this.$log.log('[O203] token will refresh after ' + expiry * 950 + 'ms');
                 setTimeout(this.refreshAccessToken, expiry * 950); // refresh after 95% of the validity
-                this.testStatus = 'O120';
+                this.testStatus = 'O203';
             }
         };
         OauthService.prototype.isGapiLoaded = function () {
@@ -155,6 +206,8 @@ NgGapi['Config'] = function () {
     var tokenRefreshPolicy = 0 /* ON_DEMAND */; // default is on demand
     var noAccessTokenPolicy = 500; // default is to retry after 1/2 sec
     var getAccessTokenFunction = undefined;
+    var testingRefreshToken = undefined;
+    var testingClientSecret = undefined;
     return {
         setScopes: function (_scopes) {
             scopes = _scopes;
@@ -171,12 +224,19 @@ NgGapi['Config'] = function () {
         setGetAccessTokenFunction: function (_function) {
             getAccessTokenFunction = _function;
         },
+        setTestingRefreshToken: function (_rt) {
+            testingRefreshToken = _rt;
+        },
+        setTestingClientSecret: function (_secret) {
+            testingClientSecret = _secret;
+        },
         // this is the function called by the Angular DI system to return the service
         $get: function () {
             var myInjector = angular.injector(["ng"]);
             var $log = myInjector.get("$log");
             var $window = myInjector.get("$window");
-            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, getAccessTokenFunction, $log, $window);
+            var $http = myInjector.get("$http");
+            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, getAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http);
         }
     };
 };

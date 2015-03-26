@@ -14,7 +14,8 @@
 <!-- Load angular -->
 <script src="../bower_components/angular-1.4.0-beta.5/angular.js"></script>
 <!-- Load the OauthService. Must be done before app-->
-<script src="libscripts/services/oauth_s.js"></script>
+<Zscript src="libscripts/services/oauth_s.js"></Zscript>
+<script src="dist-lib/nggapi-base.min.js"></script>
 <!-- The app in its entirety -->
 <script>
     // declare your angular app with ngm.NgGapi as a required module
@@ -24,8 +25,11 @@
     angular.module('ngm.NgGapi')
             .provider('OauthService', NgGapi.Config)
             .config(function (OauthServiceProvider) {
-                OauthServiceProvider.setScopes('https://www.googleapis.com/auth/drive');
-                OauthServiceProvider.setClientID('700995682262-2kk81vdcu8j83j0ahjmk84u1drcbg5di.apps.googleusercontent.com');
+                OauthServiceProvider.setScopes('https://www.googleapis.com/auth/drive.file');
+                OauthServiceProvider.setClientID('292329129968-nrf447v3m1jqknroi1naii0kfs92bvf1.apps.googleusercontent.com');
+                // for testing. uncomment the following and use a valid refresh token for a valid client secret
+//                OauthServiceProvider.setTestingRefreshToken('1/3g-77FfV8KQWh3ILJyUMEudVrK5jSpoR30zcRFq6');
+//                OauthServiceProvider.setTestingClientSecret('Y_vhMLV9wkdq');
             });
 
     // define a controller ()
@@ -47,7 +51,8 @@
     angular.module('MyApp').controller('MainCtrl', MainCtrl);
 </script>
 <!-- Load the other two js files. These will all be bundled and minified in the distro -->
-<script src="libscripts/services/http_s.js"></script>
-<script src="libscripts/services/drive_s.js"></script>
+<script src="dist-lib/nggapi-drive.min.js"></script>
+<Zscript src="libscripts/services/http_s.js"></Zscript>
+<Zscript src="libscripts/services/drive_s.js"></Zscript>
 </body>
 </html>

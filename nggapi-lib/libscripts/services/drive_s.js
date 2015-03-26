@@ -81,7 +81,10 @@ var NgGapi;
         };
         /**
          * Implements files.List
-         * Validates that dev hasn't inadvertently excluded nextPageToken from response
+         * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+         * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+         * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+         * and omitting the pageToken.
          *
          * responseObject.data contains an array of all results across all pages
          *
@@ -94,7 +97,7 @@ var NgGapi;
          */
         DriveService.prototype.filesList = function (params, excludeTrashed) {
             if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
-                return this.self.reject('[D82] You have tried to list files with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page');
+                this.self.$log.warn('[D82] You have tried to list files with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
             }
             if (excludeTrashed) {
                 var trashed = 'trashed = false';
@@ -135,12 +138,12 @@ var NgGapi;
         DriveService.prototype.filesInsert = function (file, params, base64EncodedContent) {
             var _this = this;
             var configObject;
-            if (!params) {
+            if (!params || !params.uploadType) {
                 configObject = { method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file }; // no params is a simple metadata insert
             }
             else {
                 try {
-                    configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent); // build a config object from params
+                    configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, true); // build a config object from params
                     configObject.method = 'POST';
                     configObject.url = this.self.filesUploadUrl; // nb non-standard URL
                 }
@@ -151,33 +154,58 @@ var NgGapi;
             var promise = this.self.HttpService.doHttp(configObject);
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
-                responseObject.headers = resp.headers; // transcribe heqaders
+                responseObject.headers = resp.headers; // transcribe headers
                 _this.self.transcribeProperties(resp, responseObject);
                 _this.self.lastFile = resp;
             });
             return responseObject;
         };
         /**
-         * Implements drive.update
+         * Implements Update, both for metadata only and for multipart media content upload
+         * TODO NB resumable uploads not yet supported
          *
-         * @param params
+         * See https://developers.google.com/drive/v2/reference/files/update for semantics including the params object
+         *
+         * @param file  Files resource
+         * @param params see Google docs
+         * @param base64EncodedContent
          * @returns IDriveResponseObject
          */
-        DriveService.prototype.filesUpdate = function (params) {
+        DriveService.prototype.filesUpdate = function (file, params, base64EncodedContent) {
             var _this = this;
-            if (!params || !params.fileId) {
-                var s = "[D170] Missing fileId";
-                return this.self.reject(s);
+            // validate there is an id somewhere, either in the passed file, or in params.fileId
+            var id;
+            if (params && params.fileId) {
+                id = params.fileId;
             }
-            var co = {
-                method: 'PUT',
-                url: this.self.filesUrl.replace(':id', params.fileId)
-            };
-            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            else {
+                if (file.id) {
+                    id = file.id;
+                }
+                else {
+                    var s = "[D193] Missing fileId";
+                    return this.self.reject(s);
+                }
+            }
+            var configObject;
+            if (!params || !params.uploadType) {
+                configObject = { method: 'PUT', url: this.self.filesUrl.replace(':id', params.fileId), data: file }; // no params is a simple metadata insert
+            }
+            else {
+                try {
+                    configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, false); // build a config object from params
+                    configObject.method = 'PUT';
+                    configObject.url = this.self.filesUploadUrl + '/' + params.fileId; // nb non-standard URL
+                }
+                catch (ex) {
+                    return this.self.reject(ex);
+                }
+            }
+            var promise = this.self.HttpService.doHttp(configObject);
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
-                responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
+                responseObject.headers = resp.headers; // transcribe headers
+                _this.self.transcribeProperties(resp, responseObject);
                 _this.self.lastFile = resp;
             });
             return responseObject;
@@ -185,18 +213,19 @@ var NgGapi;
         /**
          * Implements drive.patch
          *
-         * @param params
+         * @param params containg a fileID and a files resource
          * @returns IDriveResponseObject
          */
         DriveService.prototype.filesPatch = function (params) {
             var _this = this;
             if (!params || !params.fileId) {
-                var s = "[D197] Missing fileId";
+                var s = "[D230] Missing fileId";
                 return this.self.reject(s);
             }
             var co = {
                 method: 'PATCH',
-                url: this.self.filesUrl.replace(':id', params.fileId)
+                url: this.self.filesUrl.replace(':id', params.fileId),
+                data: params.resource
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = { promise: promise, data: {}, headers: undefined };
@@ -275,25 +304,29 @@ var NgGapi;
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
-                responseObject.headers = resp.headers; // transcribe headers function
+                responseObject.headers = resp.headers; // transcribe headers
             });
             return responseObject;
         };
         /**
          * Implements drive.Watch
+         * NB This is not available as CORS endpoint for browser clients
          *
-         * @param params IWatchParameters
+         * @param params mandatory fileID optional alt and revisionId
          * @returns IDriveResponseObject
          */
-        DriveService.prototype.filesWatch = function (params) {
+        DriveService.prototype.filesWatch = function (params, resource) {
             var _this = this;
-            if (!params || !params.id) {
+            this.self.$log.warn('[D334] NB files.watch is not available as a CORS endpoint for browser clients.');
+            if (!params || !params.fileId) {
                 var s = "[D302] Missing id";
                 return this.self.reject(s);
             }
             var co = {
                 method: 'POST',
-                url: this.self.filesUrl.replace(':id', params.id) + this.self.urlWatchSuffix
+                url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlWatchSuffix,
+                params: params,
+                data: resource
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = { promise: promise, data: undefined, headers: undefined };
@@ -336,7 +369,7 @@ var NgGapi;
          */
         DriveService.prototype.filesEmptyTrash = function () {
             var co = {
-                method: 'POST',
+                method: 'DELETE',
                 url: this.self.filesUrl.replace(':id', 'trash')
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
@@ -367,13 +400,14 @@ var NgGapi;
          * @param file
          * @param params
          * @param base64EncodedContent
+         * @param isInsert true for insert, false/undefined for Update
          * @returns {undefined}
          *
          * @throws D115 resumables not supported
          * @throws D119 safety check that the media is base64 encoded
          * @throws D125 safety check there is a mime type
          */
-        DriveService.prototype.buildUploadConfigObject = function (file, params, base64EncodedContent) {
+        DriveService.prototype.buildUploadConfigObject = function (file, params, base64EncodedContent, isInsert) {
             // check for a resumable upload and reject coz we don't support them yet
             if (params.uploadType == 'resumable') {
                 throw "[D136] resumable uploads are not currently supported";
@@ -383,7 +417,7 @@ var NgGapi;
                 throw ("[D142] content does not appear to be base64 encoded.");
             }
             // check the dev provided a mime type for media or multipart
-            if ((params.uploadType == 'multipart' || params.uploadType == 'media') && (!file || !file.mimeType)) {
+            if ((params.uploadType == 'multipart' || params.uploadType == 'media') && (isInsert && (!file || !file.mimeType))) {
                 throw ("[D148] file metadata is missing mandatory mime type");
             }
             //			var base64Data = window['tools'].base64Encode(fileContent);
@@ -391,8 +425,12 @@ var NgGapi;
             if (params.uploadType == 'multipart') {
                 var boundary = '-------3141592ff65358979323846';
                 var delimiter = "\r\n--" + boundary + "\r\n";
+                var mimeHeader = '';
+                if (isInsert) {
+                    mimeHeader = 'Content-Type: ' + file.mimeType + '\r\n'; // updates uses existing file
+                }
                 var close_delim = "\r\n--" + boundary + "--";
-                body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(file) + delimiter + 'Content-Type: ' + file.mimeType + '\r\n' + 'Content-Transfer-Encoding: base64\r\n' + '\r\n' + base64EncodedContent + close_delim;
+                body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(file) + delimiter + mimeHeader + 'Content-Transfer-Encoding: base64\r\n' + '\r\n' + base64EncodedContent + close_delim;
                 //params['alt'] = 'json';
                 var headers = {};
                 headers['Content-Type'] = 'multipart/mixed; boundary="-------3141592ff65358979323846"';
@@ -400,8 +438,9 @@ var NgGapi;
             if (params.uploadType == 'media') {
                 body = base64EncodedContent;
                 var headers = {};
-                headers['Content-Type'] = file.mimeType;
-                headers['Content-Length'] = base64EncodedContent.length;
+                if (isInsert) {
+                    headers['Content-Type'] = file.mimeType;
+                }
                 headers['Content-Transfer-Encoding'] = 'base64';
             }
             // return the finished config object
