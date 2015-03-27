@@ -44,7 +44,7 @@ call | gapi.client.drive.files.patch  | DriveService.files.patch <br>//(where "D
 return | A callback function  | A `ResponseObject` containing a promise and the response data ({promise:ng.IPromise, data:NgGapi.IDriveFile})   
 validation | None. Whatever you submit is sent to Google | Some. We detect some common errors (eg. a missing fileId for a GET and throw an exception)
 
-Example: Here is the Get method being used to retrieve a file in both Google gapi amd ngGAPI
+Example: Here is the Get method being used to retrieve a file in both Google gapi and ngGAPI
 ```
 // Google gapi
 function getFile(fileId) {
@@ -60,9 +60,9 @@ function getFile(fileId) {
 ```
 // NgGAPI
 function getFile(fileId) {
- var request = DriveService.files.get({
+ DriveService.files.get({
     'fileId': fileId
-   }).then((resp)=>{console.log('Title: ' + resp.title)});
+   }).promise.then((resp)=>{console.log('Title: ' + resp.title)});
 }
 ```
 
@@ -94,7 +94,8 @@ Here are the TypeScript definitions (from drive_interfaces.d.ts) for the DriveSe
  * emptyTrash():IDriveResponseObject<any>;
 
 Remember the parameters mimic the [Google API docs](https://developers.google.com/drive/v2/reference/files#methods), 
-so refer to the appropriate page for details.
+so refer to the appropriate page for details. There are two exceptions for media content Insert and media content Update. 
+The Google library leaves it as an exercise for the developer to construct the multipart mime body, whereas ngGAPI does this for you.
  
 ### OAuth2
 In order to access any Google API, your application needs an access token. 
@@ -112,19 +113,24 @@ There are other options you can set to control the behaviour of OAuth if the def
 angular.module('ngm.NgGapi')
 	.provider('OauthService', NgGapi.Config)
 	.config(function (OauthServiceProvider) {
-	// Set the desired scopes using a space-separated list of scopes
+	
+			// Set the desired scopes using a space-separated list of scopes
 		OauthServiceProvider.setScopes('https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly');
-	// set the client ID as obtained from the Google API Console
+		
+			// set the client ID as obtained from the Google API Console
 		OauthServiceProvider.setClientID('2231299-2bvf1.apps.googleusercontent.com');
-	// Configure how the access token should be refreshed, options are:-
-	//     TokenRefreshPolicy.ON_DEMAND:        The token will be allowed to expire and then refreshed after a 401 failure
-	//     TokenRefreshPolicy.PRIOR_TO_EXPIRY : The token will be refreshed shortly before it is due to expire, preventing any 401's
+		
+			// Configure how the access token should be refreshed, options are:-
+			//     TokenRefreshPolicy.ON_DEMAND:        The token will be allowed to expire and then refreshed after a 401 failure
+			//     TokenRefreshPolicy.PRIOR_TO_EXPIRY : The token will be refreshed shortly before it is due to expire, preventing any 401's
 		OauthServiceProvider.setTokenRefreshPolicy(NgGapi.TokenRefreshPolicy.ON_DEMAND);
-	// Configure what a request should do if there is no access token
-	//    ms=0: The request will fail and return an error to the application to deal with
-	//    ms>0: The request will be retried 10 times with a delay of ms milliseconds. The default is ms=500
+		
+			// Configure what a request should do if there is no access token
+			//    ms=0: The request will fail and return an error to the application to deal with
+			//    ms>0: The request will be retried 10 times with a delay of ms milliseconds. The default is ms=500
 		OauthServiceProvider.setNoAccessTokenPolicy(1000);                 
-	// provide your own function to return an access token. myFunction should return a string which will be set into the Authorization Bearer header 
+		
+			// provide your own function to return an access token. myFunction should return a string which will be set into the Authorization Bearer header 
 		OauthServiceProvider.setGetAccessTokenFunction: function (myFunction) {
 	});
 ```
