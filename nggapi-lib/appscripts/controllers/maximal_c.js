@@ -1,5 +1,4 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-// TODO need to extract all interfaces to a single definition file
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 var MaximalCtrl = (function () {
     function MaximalCtrl($scope, $log, $q, DriveService) {
@@ -14,7 +13,7 @@ var MaximalCtrl = (function () {
         this.doEverything();
     }
     /**
-     * perform all steps
+     * perform all steps using promise chaining to run them in sequence
      */
     MaximalCtrl.prototype.doEverything = function () {
         var _this = this;
@@ -39,7 +38,7 @@ var MaximalCtrl = (function () {
         }).then(function () {
             return _this.emptyTrash();
         }).then(function () {
-            console.log('next ??');
+            console.log('All done');
         });
     };
     /**

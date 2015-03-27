@@ -1,5 +1,4 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-// TODO need to extract all interfaces to a single definition file
 /// <reference path="../../../nggapi_interfaces/drive_interfaces.d.ts"/>
 
 class MaximalCtrl {
@@ -20,7 +19,7 @@ class MaximalCtrl {
 
 
 	/**
-	 * perform all steps
+	 * perform all steps using promise chaining to run them in sequence
 	 */
 	doEverything() {
 		this.insertFiles('delmexxx', 2)
@@ -34,7 +33,7 @@ class MaximalCtrl {
 			.then (() => {return this.untrashFile(this.currentFile.id)})
 			.then (() => {return this.deleteFile(this.currentFile.id)})
 			.then (() => {return this.emptyTrash()})
-			.then( ()=>{ console.log('next ??')}
+			.then( ()=>{ console.log('All done')}
 		);
 	}
 
@@ -76,7 +75,6 @@ class MaximalCtrl {
 		return def.promise;
 	}
 
-
 	getFile(id:string):ng.IPromise<NgGapi.IDriveFile> {
 		var currentStep = {op:'Getting a file', status:'', data:undefined};
 		this.steps.push(currentStep);
@@ -84,7 +82,7 @@ class MaximalCtrl {
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = resp.title;
-		})
+		});
 		return ro.promise;
 	}
 
@@ -95,7 +93,7 @@ class MaximalCtrl {
 		ro.promise.then((resp:any) => {
 			currentStep.status = 'done';
 			currentStep.data = resp;
-		})
+		});
 		return ro.promise;
 	}
 
@@ -106,10 +104,9 @@ class MaximalCtrl {
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = resp.title;
-		})
+		});
 		return ro.promise;
 	}
-
 
 	updateFileTitle(id: string, newTitle:string):ng.IPromise<NgGapi.IDriveFile> {
 		var currentStep = {op:'Using Update to update a file\'s title', status:'', data:undefined};
@@ -118,10 +115,9 @@ class MaximalCtrl {
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = resp.title;
-		})
+		});
 		return ro.promise;
 	}
-
 
 	updateFileContent(id: string, newContent:string):ng.IPromise<NgGapi.IDriveFile> {
 		var currentStep = {op:'Using Update to update a file\'s content', status:'', data:undefined};
@@ -130,10 +126,9 @@ class MaximalCtrl {
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = 'content length = '+resp.fileSize;
-		})
+		});
 		return ro.promise;
 	}
-
 
 	touchFile(id: string):ng.IPromise<NgGapi.IDriveFile> {
 		var currentStep = {op:'Using Touch to update a file\'s last modified date', status:'', data:undefined};
@@ -142,10 +137,9 @@ class MaximalCtrl {
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = resp.modifiedDate;
-		})
+		});
 		return ro.promise;
 	}
-
 
 	trashFile(id: string):ng.IPromise<NgGapi.IDriveFile> {
 		var currentStep = {op:'Trash a file', status:'', data:undefined};
@@ -154,11 +148,9 @@ class MaximalCtrl {
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = 'trashed='+resp.labels.trashed;
-		})
+		});
 		return ro.promise;
 	}
-
-
 
 	untrashFile(id: string):ng.IPromise<NgGapi.IDriveFile> {
 		var currentStep = {op:'Untrash a file', status:'', data:undefined};
@@ -167,11 +159,9 @@ class MaximalCtrl {
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = 'trashed='+resp.labels.trashed;
-		})
+		});
 		return ro.promise;
 	}
-
-
 
 	deleteFile(id: string):ng.IPromise<NgGapi.IDriveFile> {
 		var currentStep = {op:'Delete a file', status:'', data:undefined};
@@ -180,11 +170,9 @@ class MaximalCtrl {
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = resp;
-		})
+		});
 		return ro.promise;
 	}
-
-
 
 	emptyTrash():ng.IPromise<NgGapi.IDriveFile> {
 		var currentStep = {op:'Empty trash', status:'', data:undefined};
@@ -198,7 +186,7 @@ class MaximalCtrl {
 			(resp:any) => {
 				currentStep.status = 'failed';
 				currentStep.data = resp;
-		})
+		});
 		return ro.promise;
 	}
 
@@ -209,13 +197,13 @@ class MaximalCtrl {
 			id: 'aUUID',
 			type: 'web_hook',
 			address: 'dev.clevernote.co:8888'
-		}
+		};
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.watch({fileId:id, alt:'media'},watchBody);
 		ro.promise.then(
 			(resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = resp.kind+" "+resp['resourceUri'];
-		} )
+		} );
 		return ro.promise;
 	}
 

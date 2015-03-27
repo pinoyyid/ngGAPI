@@ -36,7 +36,7 @@ The API that ngGAPI presents to your app is modelled on the Google gapi client. 
 
  | Google gapi  | ngGapi 
 ---| ------------- | ------------- 
-call | gapi.client.drive.files.patch  | DriveService.files.patch (where "DriveService" is the injected service name)
+call | gapi.client.drive.files.patch  | DriveService.files.patch <br>//(where "DriveService" is the injected service name)
 return | A callback function  | A `ResponseObject` containing a promise and the response data ({promise:ng.IPromise, data:NgGapi.IDriveFile})   
 validation | None. Whatever you submit is sent to Google | Some. We detect some common errors (eg. a missing fileId for a GET and throw an exception)
 
@@ -56,7 +56,7 @@ function getFile(fileId) {
 ```
 // NgGAPI
 function getFile(fileId) {
- var request = DriveService.drive.files.get({
+ var request = DriveService.files.get({
     'fileId': fileId
    }).then((resp)=>{console.log('Title: ' + resp.title)});
 }
@@ -67,10 +67,13 @@ In that case, the above example can be simplified to:-
 
 ```
 // NgGapi assigning directly to the viewmodel
-function getFile(fileId) {
- var fetchedFile = DriveService.drive.files.get({ 'fileId': fileId }).data;
+function getFile(fileId, $scope) {
+ $scope.fetchedFile = DriveService.drive.files.get({ 'fileId': fileId }).data;
 }
 ```
+
+So the key points to remember are that all calls look like their gapi equivalents (so refer to the Google documentation for specifics on the parameters), 
+and that they all return a ResponseObject containing a promise and the data.
 
 ### OAuth2
 In order to access any Google API, your application needs an access token. 
@@ -105,8 +108,8 @@ angular.module('ngm.NgGapi')
 	});
 ```
 
-One of the problems developing applications that access Google Drive is how to achieve headless end to 
-end testing when acquiring an access token generally requires a logged in browser session. 
+One of the problems developing applications that access Google Drive is how to achieve headless, end-to-end 
+testing when acquiring an access token generally requires a logged in browser session. 
 ngGAPI deals with this by allowing you to set a refresh token and client secret directly into the configuration, which allows your
 app to acquire access tokens without being logged in. See [This StackOverflow answer](http://stackoverflow.com/questions/19766912/how-do-i-authorise-a-background-web-app-without-user-intervention-canonical/19766913#19766913)
 for the steps required to get a refresh token.
@@ -117,13 +120,41 @@ for the steps required to get a refresh token.
 
 
 ### FAQ
-#### Does ngGAPI wrap Google gapi?
-No. One of the motivations of writing ngGAPI was to reduce the dependency on unsupported, closed source libraries. By using ngGAPI, which is open, 
-which directly calls AngularJS $http, which is open, you have access to the source code of your entire stack. 
+#### Does ngGAPI wrap Google the gapi library?
+No. One of the motivations of writing ngGAPI was to reduce the dependency on unsupported, closed source libraries. By using ngGAPI (which is open), 
+which directly calls AngularJS $http (which is also open), you have access to the source code of your entire stack. 
 The other reason was that Google gapi hides the underlying http transport, so for example, timeouts are not configurable. 
 With ngGAPI, the full stack is exposed to your application.
 
 Note that we **do** use the gapi auth library for OAuth, as this deals with a lot of the Google specific session handling and iframing required.
+
+#### So does this mean I don't need to read all the Google Documentation?
+Not at all. In order to successfully use Google Drive, you still need to understand its capabilities and behaviours, as well as the specific parameters required
+to invoke those capabilities and behaviours. What ngGAPI gives is a sensible way to deliver those parameters and deal with the response in an AngularJS fashion.
+We've patterned our API on gapi to make it easier to migrate existing projects and to provide a "key" into the Google documentation.
+
+#### I still don't get how to do OAuth?
+You're not alone. Luckily, we think we've done a pretty good job of removing the need to know too much. 
+If your project is set up on Google API Console (ie. you have a client ID), and you've set the client ID and scopes as described above, it will Just Work&trade;
+
+#### Show me the code
+We've created two sample apps for you to look at.
+
+The first is [minimal app](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi-lib/minimal.html) which strips it all down so all of the code lives within the HTML page.
+This example shows fetching a list of Drive files and displaying the. 
+
+The second is [fuller app](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi-lib/index.html) which does most of its work in [this controller](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi-lib/appscripts/controllers/maximal_c.ts).
+
+If you want to run either of these, you'll need to:-
+1. Replace the client ID with your own 
+1. Serve them from a URL origin that has been configured into your Google API Console
+
+
+#### How do I get help?
+Post a question on StackOverflow using the "google-drive-sdk" tag. If you've found a problem, please raise an issue here on GitHub.
+
+#### How do I thank you enough?
+Just doing our job ma'am.
 
 ### Notes on cloning and hacking this repo 
 * Clone with `git clone https://github.com/pinoyyid/ngGAPI.git`
