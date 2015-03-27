@@ -40,6 +40,11 @@
 <!-- Load the OauthService. Must be done before app-->
 <script src="dist_lib/nggapi_base.min.js"></script>
 <!-- The app in its entirety -->
+<!-- Load a file that sets credentials, thus
+var refreshToken = '1/3g-7712FfVkKQWhVrK5jSpoR30zcRFq6';
+var clientSecret = 'Y_vhMLVU6rhq';
+-->
+<script src="appscripts/credentials.js"></script>
 <script>
     // declare your angular app with ngm.NgGapi as a required module
     var myApp = angular.module('MyApp', ['ngm.NgGapi']);
@@ -50,6 +55,8 @@
             .config(function (OauthServiceProvider) {
                 OauthServiceProvider.setScopes('https://www.googleapis.com/auth/drive.file');
                 OauthServiceProvider.setClientID('292329129968-nrf447v3m1jqknroi1naii0kfs92bvf1.apps.googleusercontent.com');
+                OauthServiceProvider.setTestingRefreshToken(refreshToken);
+                OauthServiceProvider.setTestingClientSecret(clientSecret);
             });
 </script>
 <!-- Load the other two js files. These will all be bundled and minified in the distro -->
