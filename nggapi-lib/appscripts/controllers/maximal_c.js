@@ -75,14 +75,32 @@ var MaximalCtrl = (function () {
         }
         return def.promise;
     };
+    /*
+    Each function follows the same pattern. I've commented the first one, getFile. The rest are structured the same way.
+
+    The goal of each function is to update the UI with what it is about to do, then do it, then update the UI with part
+    of the response, finally returning the promise so the function calls can be chained together.
+     */
+    /**
+     * get's a file's metadata for a given id
+     *
+     * @param id  The file ID
+     * @returns {mng.IPromise<{data: IDriveFile}>} The promise for chaining
+     */
     MaximalCtrl.prototype.getFile = function (id) {
+        // create a step object containing what we're about to do
         var currentStep = { op: 'Getting a file', status: '', data: undefined };
+        // push that step object onto the list which is displayed via an ng-repeat
         this.steps.push(currentStep);
+        // do the get, storing its ResponseObject in ro
         var ro = this.DriveService.files.get({ fileId: id });
+        // create a then function on ro which will execute on completion
         ro.promise.then(function (resp) {
+            // update the display with the status and response data
             currentStep.status = 'done';
             currentStep.data = resp.title;
         });
+        // return the promise for chaining
         return ro.promise;
     };
     MaximalCtrl.prototype.getFileContents = function (id) {
