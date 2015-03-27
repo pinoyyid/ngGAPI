@@ -15,6 +15,8 @@ module.exports = function (grunt) {
   // Time how long tasks take. Can help when optimizing build times
   require('time-grunt')(grunt);
 
+  grunt.loadNpmTasks('grunt-contrib-compress');
+
   // Configurable paths for the application
   var appConfig = {
     app:  'demo-app',
@@ -27,16 +29,29 @@ module.exports = function (grunt) {
     // Project settings
     yeoman: appConfig,
 
+    compress: {
+      dist: {
+        options: {
+          archive: 'nggapi_dist.zip'
+        },
+        files: [
+          {src: ['nggapi_lib/dist_lib/*', 'nggapi_interfaces/*_interfaces*' ], dest: '', filter: 'isFile'}, // includes files in path
+          //{src: ['path/**'], dest: 'internal_folder2/'}, // includes files in path and its subdirs
+          //{expand: true, cwd: 'path/', src: ['**'], dest: 'internal_folder3/'}, // makes all src relative to cwd
+          //{flatten: true, src: ['path/**'], dest: 'internal_folder4/', filter: 'isFile'} // flattens results to a single level
+        ]
+      }
+    },
 
     uglify: {
       base: {
         files: {
-          'nggapi-lib/dist-lib/nggapi-base.min.js': ['nggapi-lib/libscripts/services/oauth_s.js', 'nggapi-lib/libscripts/services/http_s.js']
+          'nggapi_lib/dist_lib/nggapi_base.min.js': ['nggapi_lib/libscripts/services/oauth_s.js', 'nggapi_lib/libscripts/services/http_s.js']
         }
       },
       drive: {
         files: {
-          'nggapi-lib/dist-lib/nggapi-drive.min.js': ['nggapi-lib/libscripts/services/drive_s.js']
+          'nggapi_lib/dist_lib/nggapi_drive.min.js': ['nggapi_lib/libscripts/services/drive_s.js']
         }
       }
     },
@@ -367,7 +382,7 @@ module.exports = function (grunt) {
       },
       // test the ngGAPI library
       unitlib: {
-        configFile: 'test/karma-lib.conf.js',
+        configFile: 'test/karma_lib.conf.js',
         singleRun: true
       }
     }
@@ -395,6 +410,10 @@ module.exports = function (grunt) {
     grunt.task.run(['serve:' + target]);
   });
 
+  grunt.registerTask('distlib', [
+      'uglify',
+      'compress:dist'
+  ]);
   grunt.registerTask('test', [
     'clean:server',
     'concurrent:test',
