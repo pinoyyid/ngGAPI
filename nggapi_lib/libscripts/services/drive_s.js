@@ -313,6 +313,7 @@ var NgGapi;
          * NB This is not available as CORS endpoint for browser clients
          *
          * @param params mandatory fileID optional alt and revisionId
+         * @param resource
          * @returns IDriveResponseObject
          */
         DriveService.prototype.filesWatch = function (params, resource) {

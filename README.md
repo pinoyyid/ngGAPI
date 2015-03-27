@@ -79,6 +79,23 @@ function getFile(fileId, $scope) {
 So the key points to remember are that all calls look like their gapi equivalents (so refer to the Google documentation for specifics on the parameters), 
 and that they all return a ResponseObject containing a promise and the data.
 
+Here are the TypeScript definitions (from drive_interfaces.d.ts) for the DriveService.files methods
+
+ * get(params:IDriveGetParameters):IDriveResponseObject<IDriveFile>;
+ * list(params:IDriveListParameters, excludeTrashed):IDriveResponseObject<IDriveFile[]>;
+ * insert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<IDriveFile>;
+ * update(file:IDriveFile, params:IDriveUpdateParameters, base64EncodedContent?:string):IDriveResponseObject<IDriveFile>;
+ * patch(params:{fileId:string; resource:IDriveFile}):IDriveResponseObject<IDriveFile>;
+ * trash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
+ * untrash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
+ * del(params:{fileId:string}):IDriveResponseObject<any>;
+ * touch(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
+ * watch(params:{fileId:string;alt?:string; revisionId?:string}, resource:IWatchBody):IDriveResponseObject<IApiChannel>;
+ * emptyTrash():IDriveResponseObject<any>;
+
+Remember the parameters mimic the [Google API docs](https://developers.google.com/drive/v2/reference/files#methods), 
+so refer to the appropriate page for details.
+ 
 ### OAuth2
 In order to access any Google API, your application needs an access token. 
 With ngGAPI, this is as simple as setting your client ID and required scopes.

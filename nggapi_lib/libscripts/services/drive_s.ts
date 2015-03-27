@@ -150,7 +150,7 @@ module NgGapi {
 				configObject = {method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file};                // no params is a simple metadata insert
 			} else {
 				try {
-					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, true);               // build a config object from params
+					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, true);         // build a config object from params
 					configObject.method = 'POST';
 					configObject.url = this.self.filesUploadUrl;                                                        // nb non-standard URL
 				} catch (ex) {                                                                                          // any validation errors throw an exception
@@ -199,14 +199,13 @@ module NgGapi {
 				configObject = {method: 'PUT', url: this.self.filesUrl.replace(':id', params.fileId), data: file};      // no params is a simple metadata insert
 			} else {
 				try {
-					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, false);               // build a config object from params
+					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, false);        // build a config object from params
 					configObject.method = 'PUT';
 					configObject.url = this.self.filesUploadUrl+'/'+params.fileId;                                      // nb non-standard URL
 				} catch (ex) {                                                                                          // any validation errors throw an exception
 					return this.self.reject(ex);
 				}
 			}
-
 
 			var promise = this.self.HttpService.doHttp(configObject);
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
@@ -328,6 +327,7 @@ module NgGapi {
 		 * NB This is not available as CORS endpoint for browser clients
 		 *
 		 * @param params mandatory fileID optional alt and revisionId
+		 * @param resource
 		 * @returns IDriveResponseObject
 		 */
 		filesWatch (params:{fileId:string}, resource:IWatchBody) {
