@@ -84,14 +84,14 @@ class MaximalCtrl {
 	 */
 
 	/**
-	 * get's a file's metadata for a given id
+	 * Get a file's metadata for a given id
 	 *
 	 * @param id  The file ID
 	 * @returns {mng.IPromise<{data: IDriveFile}>} The promise for chaining
 	 */
 	getFile(id:string):ng.IPromise<NgGapi.IDriveFile> {
 		// create a step object containing what we're about to do
-		var currentStep = {op:'Getting a file', status:'', data:undefined};
+		var currentStep = {op:'Getting a file', status:'...', data:undefined};
 		// push that step object onto the list which is displayed via an ng-repeat
 		this.steps.push(currentStep);
 		// do the get, storing its ResponseObject in ro
@@ -107,7 +107,7 @@ class MaximalCtrl {
 	}
 
 	getFileContents(id:string):ng.IPromise<any> {
-		var currentStep = {op:'Getting a file\'s contents', status:'', data:undefined};
+		var currentStep = {op:'Getting a file\'s contents', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<any> = this.DriveService.files.get({fileId: id, alt:'media'});
 		ro.promise.then((resp:any) => {
@@ -118,7 +118,7 @@ class MaximalCtrl {
 	}
 
 	patchFileTitle(id: string, newTitle:string):ng.IPromise<NgGapi.IDriveFile> {
-		var currentStep = {op:'Using Patch to update a file\'s title', status:'', data:undefined};
+		var currentStep = {op:'Using Patch to update a file\'s title', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.patch({fileId:id, resource:{title:newTitle}});
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
@@ -129,7 +129,7 @@ class MaximalCtrl {
 	}
 
 	updateFileTitle(id: string, newTitle:string):ng.IPromise<NgGapi.IDriveFile> {
-		var currentStep = {op:'Using Update to update a file\'s title', status:'', data:undefined};
+		var currentStep = {op:'Using Update to update a file\'s title', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.update({title:newTitle},{fileId: id});
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
@@ -140,7 +140,7 @@ class MaximalCtrl {
 	}
 
 	updateFileContent(id: string, newContent:string):ng.IPromise<NgGapi.IDriveFile> {
-		var currentStep = {op:'Using Update to update a file\'s content', status:'', data:undefined};
+		var currentStep = {op:'Using Update to update a file\'s content', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.update(undefined,{fileId: id, uploadType:'media'},btoa(newContent));
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
@@ -151,7 +151,7 @@ class MaximalCtrl {
 	}
 
 	touchFile(id: string):ng.IPromise<NgGapi.IDriveFile> {
-		var currentStep = {op:'Using Touch to update a file\'s last modified date', status:'', data:undefined};
+		var currentStep = {op:'Using Touch to update a file\'s last modified date', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.touch({fileId:id});
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
@@ -162,7 +162,7 @@ class MaximalCtrl {
 	}
 
 	trashFile(id: string):ng.IPromise<NgGapi.IDriveFile> {
-		var currentStep = {op:'Trash a file', status:'', data:undefined};
+		var currentStep = {op:'Trash a file', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.trash({fileId:id});
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
@@ -173,7 +173,7 @@ class MaximalCtrl {
 	}
 
 	untrashFile(id: string):ng.IPromise<NgGapi.IDriveFile> {
-		var currentStep = {op:'Untrash a file', status:'', data:undefined};
+		var currentStep = {op:'Untrash a file', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.untrash({fileId:id});
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
@@ -184,7 +184,7 @@ class MaximalCtrl {
 	}
 
 	deleteFile(id: string):ng.IPromise<NgGapi.IDriveFile> {
-		var currentStep = {op:'Delete a file', status:'', data:undefined};
+		var currentStep = {op:'Delete a file', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.del({fileId:id});
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
@@ -195,7 +195,7 @@ class MaximalCtrl {
 	}
 
 	emptyTrash():ng.IPromise<NgGapi.IDriveFile> {
-		var currentStep = {op:'Empty trash', status:'', data:undefined};
+		var currentStep = {op:'Empty trash', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.emptyTrash();
 		ro.promise.then(
@@ -211,7 +211,7 @@ class MaximalCtrl {
 	}
 
 	watchFile(id: string):ng.IPromise<NgGapi.IDriveFile> {
-		var currentStep = {op:'Using Watch to get a file\'s update channel', status:'', data:undefined};
+		var currentStep = {op:'Using Watch to get a file\'s update channel', status:'...', data:undefined};
 		this.steps.push(currentStep);
 		var watchBody = {
 			id: 'aUUID',

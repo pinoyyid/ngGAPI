@@ -82,14 +82,14 @@ var MaximalCtrl = (function () {
     of the response, finally returning the promise so the function calls can be chained together.
      */
     /**
-     * get's a file's metadata for a given id
+     * Get a file's metadata for a given id
      *
      * @param id  The file ID
      * @returns {mng.IPromise<{data: IDriveFile}>} The promise for chaining
      */
     MaximalCtrl.prototype.getFile = function (id) {
         // create a step object containing what we're about to do
-        var currentStep = { op: 'Getting a file', status: '', data: undefined };
+        var currentStep = { op: 'Getting a file', status: '...', data: undefined };
         // push that step object onto the list which is displayed via an ng-repeat
         this.steps.push(currentStep);
         // do the get, storing its ResponseObject in ro
@@ -104,7 +104,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.getFileContents = function (id) {
-        var currentStep = { op: 'Getting a file\'s contents', status: '', data: undefined };
+        var currentStep = { op: 'Getting a file\'s contents', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.get({ fileId: id, alt: 'media' });
         ro.promise.then(function (resp) {
@@ -114,7 +114,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.patchFileTitle = function (id, newTitle) {
-        var currentStep = { op: 'Using Patch to update a file\'s title', status: '', data: undefined };
+        var currentStep = { op: 'Using Patch to update a file\'s title', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.patch({ fileId: id, resource: { title: newTitle } });
         ro.promise.then(function (resp) {
@@ -124,7 +124,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.updateFileTitle = function (id, newTitle) {
-        var currentStep = { op: 'Using Update to update a file\'s title', status: '', data: undefined };
+        var currentStep = { op: 'Using Update to update a file\'s title', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.update({ title: newTitle }, { fileId: id });
         ro.promise.then(function (resp) {
@@ -134,7 +134,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.updateFileContent = function (id, newContent) {
-        var currentStep = { op: 'Using Update to update a file\'s content', status: '', data: undefined };
+        var currentStep = { op: 'Using Update to update a file\'s content', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.update(undefined, { fileId: id, uploadType: 'media' }, btoa(newContent));
         ro.promise.then(function (resp) {
@@ -144,7 +144,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.touchFile = function (id) {
-        var currentStep = { op: 'Using Touch to update a file\'s last modified date', status: '', data: undefined };
+        var currentStep = { op: 'Using Touch to update a file\'s last modified date', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.touch({ fileId: id });
         ro.promise.then(function (resp) {
@@ -154,7 +154,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.trashFile = function (id) {
-        var currentStep = { op: 'Trash a file', status: '', data: undefined };
+        var currentStep = { op: 'Trash a file', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.trash({ fileId: id });
         ro.promise.then(function (resp) {
@@ -164,7 +164,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.untrashFile = function (id) {
-        var currentStep = { op: 'Untrash a file', status: '', data: undefined };
+        var currentStep = { op: 'Untrash a file', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.untrash({ fileId: id });
         ro.promise.then(function (resp) {
@@ -174,7 +174,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.deleteFile = function (id) {
-        var currentStep = { op: 'Delete a file', status: '', data: undefined };
+        var currentStep = { op: 'Delete a file', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.del({ fileId: id });
         ro.promise.then(function (resp) {
@@ -184,7 +184,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.emptyTrash = function () {
-        var currentStep = { op: 'Empty trash', status: '', data: undefined };
+        var currentStep = { op: 'Empty trash', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.emptyTrash();
         ro.promise.then(function (resp) {
@@ -197,7 +197,7 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.watchFile = function (id) {
-        var currentStep = { op: 'Using Watch to get a file\'s update channel', status: '', data: undefined };
+        var currentStep = { op: 'Using Watch to get a file\'s update channel', status: '...', data: undefined };
         this.steps.push(currentStep);
         var watchBody = {
             id: 'aUUID',
