@@ -1,14 +1,15 @@
 ## ngGAPI - Google APIs for AngularJS done the Angular way
 
 ### Quick Start
-* There are 2 js files that are required from `nggapi-lib/dist-lib/` TODO change to zip
+* Download and unzip https://github.com/pinoyyid/ngGAPI/blob/nggapi_lib/nggapi_dist.zip?raw=true . 
+This will create a folder `/nggapi_lib/dist_lib/` containing the two minified files that comprise the ngGAPI Drive library.
 * In your HTML, `nggapi-base.min.js` must be loaded before your app declaration, and `nggapi-drive.min.js` must be loaded afterwards. e.g.
 ```
         <script src="nggapi-base.min.js"></script>
         <script src="app.js"></script>
         <script src="nggapi-drive.js"></script>
 ```
-* If you are developing in TypeScript, you'll want the definition file from `nggapi-interfaces/drive_interfaces.d.ts`
+* If you are developing in TypeScript, you'll want to reference the definition file from `nggapi-interfaces/drive_interfaces.d.ts`
 * A simple `app.js` looks something like
 ```
 var myApp = angular.module('MyApp', ['ngm.NgGapi']);
@@ -22,7 +23,10 @@ angular.module('ngm.NgGapi')
 		OauthServiceProvider.setNoAccessTokenPolicy(999);                 // 0 = fail, > 0 = retry after x
 	});
 ```
-* The syntax of the ngGAPI Drive calls mimics the Google JavaScript library. So you'll be reading https://developers.google.com/drive/v2/reference/files#methods and then each sub page for each method, and looking at the JavaScript tab. See **API** below for more detail. For example, a simple ngGAPI call to create a new, empty file looks something like :-
+* The syntax of the ngGAPI Drive calls mimics the Google JavaScript library. 
+So you'll be reading https://developers.google.com/drive/v2/reference/files#methods and then each sub page for each method, 
+and looking at the JavaScript tab. See **API details** below for more detail. 
+For example, a simple ngGAPI call to create a new, empty file looks something like :-
 ```
   DriveService.files.insert({title: 'file title', mimeType:'text/plain'})
   .promise.then(()=>{console.log('new file inserted')})
