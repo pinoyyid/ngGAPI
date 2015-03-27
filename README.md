@@ -1,4 +1,4 @@
-## ngGAPI - Google APIs for AngularJS done the Angular way
+## ngGAPI - Google APIs for AngularJS 
 
 ### Quick Start
 * Download and unzip https://github.com/pinoyyid/ngGAPI/blob/nggapi_lib/nggapi_dist.zip?raw=true . 
@@ -139,7 +139,7 @@ One of the problems developing applications that access Google Drive is how to a
 testing when acquiring an access token generally requires a logged in browser session. 
 ngGAPI deals with this by allowing you to set a refresh token and client secret directly into the configuration, which allows your
 app to acquire access tokens without being logged in. See [This StackOverflow answer](http://stackoverflow.com/questions/19766912/how-do-i-authorise-a-background-web-app-without-user-intervention-canonical/19766913#19766913)
-for the steps required to get a refresh token.
+for the steps required to get such a refresh token.
 
 	// set your own credentials for unattended e2e testing. NB, for security, the credentials should be stored in a separate .js file which is in .gitignore 
 		OauthServiceProvider.setTestingRefreshToken(MY_REFRESHTOKEN).
@@ -168,11 +168,12 @@ If your project is set up on Google API Console (ie. you have a client ID), and 
 We've created two sample apps for you to look at.
 
 The first is [minimal app](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi-lib/minimal.html) which strips it all down so all of the code lives within the HTML page.
-This example shows fetching a list of Drive files and displaying the. 
+This example shows fetching a list of Drive files and displaying the titles. 
 
 The second is [fuller app](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi-lib/index.html) which does most of its work in [this controller](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi-lib/appscripts/controllers/maximal_c.ts).
 
 If you want to run either of these, you'll need to:-
+
 1. Replace the client ID with your own 
 1. Serve them from a URL origin that has been configured into your Google API Console
 
