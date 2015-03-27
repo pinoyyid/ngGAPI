@@ -1,7 +1,7 @@
 ## ngGAPI - Google APIs for AngularJS done the Angular way
 
 ### Quick Start
-* There are 2 js files that are required from `nggapi-lib/dist-lib/`
+* There are 2 js files that are required from `nggapi-lib/dist-lib/` TODO change to zip
 * In your HTML, `nggapi-base.min.js` must be loaded before your app declaration, and `nggapi-drive.min.js` must be loaded afterwards. e.g.
 ```
         <script src="nggapi-base.min.js"></script>
