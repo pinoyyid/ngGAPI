@@ -32,7 +32,7 @@ module.exports = function (grunt) {
     compress: {
       dist: {
         options: {
-          archive: 'nggapi_dist.zip'
+          archive: 'nggapi_lib/nggapi_dist.zip'
         },
         files: [
           {src: ['nggapi_lib/dist_lib/*', 'nggapi_interfaces/*_interfaces*' ], dest: '', filter: 'isFile'}, // includes files in path
