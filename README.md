@@ -33,6 +33,7 @@ NB. We will be creating distributions for npm and bower soon.
 ### API details
 
 The API that ngGAPI presents to your app is modelled on the Google gapi client. Generally this means that the syntax for calling a method looks like the Google JavaScript equivalent, but with the following differences:-
+
  | Google gapi  | ngGapi |
 --| ------------- | ------------- |
 call | Content Cell  | Content Cell  |
