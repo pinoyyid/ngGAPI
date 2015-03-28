@@ -15,6 +15,7 @@ var NgGapi;
             this.$q = $q;
             this.OauthService = OauthService;
             this.sig = 'HttpService'; // used in unit testing to confirm DI
+            this.RETRY_COUNT = 15;
             this.testStatus = 'foo'; // this has no role in the functionality of OauthService. it's a helper property for unit tests
             //console.log('http cons');
         }
@@ -44,7 +45,7 @@ var NgGapi;
          */
         HttpService.prototype.doHttp = function (configObject) {
             var def = this.$q.defer();
-            this._doHttp(configObject, def, 10);
+            this._doHttp(configObject, def, this.RETRY_COUNT);
             return def.promise;
         };
         /**
@@ -65,6 +66,7 @@ var NgGapi;
                 configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken(); // add auth header
                 var httpPromise = this.$http(configObject); // run the http call and capture the promise
                 httpPromise.success(function (data, status, headers, configObject, statusText) {
+                    _this.$log.debug(status);
                     if (data.nextPageToken) {
                         def.notify(data);
                         configObject.params.pageToken = data.nextPageToken;
@@ -119,7 +121,7 @@ var NgGapi;
                     });
                 }
                 else {
-                    def.reject("401-0");
+                    def.reject(status + ' ' + data.error.message);
                 }
                 return;
             }
@@ -134,20 +136,22 @@ var NgGapi;
                     });
                 }
                 else {
-                    def.reject("501-0");
+                    def.reject(status + ' ' + data.error.message);
                 }
                 return;
             }
-            // 403 - rate limit, sleep for 2s to allow some more bucket tokens
+            // 403 - rate limit, sleep for 2s x the number of retries to allow some more bucket tokens
             //if (status == 403) debugger;
             if (status == 403 && data.error.message.toLowerCase().indexOf('rate limit') > -1) {
+                this.$log.warn('[H153] 403 rate limit. retryConter = ' + retryCounter);
                 if (--retryCounter > 0) {
-                    this.sleep(2000).then(function () {
+                    this.sleep(2000 * (this.RETRY_COUNT - retryCounter)).then(function () {
                         _this._doHttp(configObject, def, retryCounter);
                     });
                 }
                 else {
-                    def.reject("501-0");
+                    this.$log.warn('[H159] Giving up after ' + this.RETRY_COUNT + ' attempts failed with ' + status + ' ' + data.error.message);
+                    def.reject(status + ' ' + data.error.message);
                 }
                 return;
             }

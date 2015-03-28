@@ -11,7 +11,8 @@ module NgGapi {
 	 * Basically a wrapper for $http that deals with the most common GAPI error conditions and returns an application level promise in place of the low level $http promise
 	 */
 	export class HttpService implements IHttpService {
-		sig = 'HttpService';                // used in unit testing to confirm DI
+		sig = 'HttpService';                       // used in unit testing to confirm DI
+		RETRY_COUNT = 15;
 
 		testStatus:string = 'foo';                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
@@ -50,7 +51,7 @@ module NgGapi {
 		 */
 		doHttp(configObject:mng.IRequestConfig):mng.IPromise < any > {
 			var def = this.$q.defer();
-			this._doHttp(configObject, def, 10);
+			this._doHttp(configObject, def, this.RETRY_COUNT);
 			return def.promise;
 		}
 
@@ -72,6 +73,7 @@ module NgGapi {
 				configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken();                 // add auth header
 				var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
 				httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
+					this.$log.debug(status);
 					if (data.nextPageToken) {                                                                           // if there is more data, emit a notify and recurse
 						def.notify(data);
 						configObject.params.pageToken = data.nextPageToken;
@@ -125,7 +127,7 @@ module NgGapi {
 						this._doHttp(configObject, def, retryCounter);
 					})
 				} else {
-					def.reject("401-0");
+					def.reject(status + ' ' +data.error.message);
 				}
 				return;
 			}
@@ -140,20 +142,22 @@ module NgGapi {
 						this._doHttp(configObject, def, retryCounter);
 					})
 				} else {
-					def.reject("501-0");
+					def.reject(status + ' ' +data.error.message);
 				}
 				return;
 			}
 
-			// 403 - rate limit, sleep for 2s to allow some more bucket tokens
+			// 403 - rate limit, sleep for 2s x the number of retries to allow some more bucket tokens
 			//if (status == 403) debugger;
 			if (status == 403 && data.error.message.toLowerCase().indexOf('rate limit') > -1) {
+				this.$log.warn('[H153] 403 rate limit. retryConter = '+retryCounter);
 				if (--retryCounter > 0) { // number of retries set by caller
-					this.sleep(2000).then(() => {
+					this.sleep(2000*(this.RETRY_COUNT - retryCounter)).then(() => {                                      // backoff an additional 2 seconds for each retry
 						this._doHttp(configObject, def, retryCounter);
 					})
 				} else {
-					def.reject("501-0");
+					this.$log.warn('[H159] Giving up after '+this.RETRY_COUNT+' attempts failed with '+status+' '+data.error.message);
+					def.reject(status + ' ' +data.error.message);
 				}
 				return;
 			}
