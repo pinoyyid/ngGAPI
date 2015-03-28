@@ -41,6 +41,34 @@ var MaximalCtrl = (function () {
             console.log('All done');
         });
     };
+    /*
+     Each function follows the same pattern. I've commented the getFile. The rest are structured the same way.
+
+     The goal of each function is to update the UI with what it is about to do, then do it, then update the UI with part
+     of the response, finally returning the promise so the function calls can be chained together.
+     */
+    /**
+     * Get a file's metadata for a given id
+     *
+     * @param id  The file ID
+     * @returns {mng.IPromise<{data: IDriveFile}>} The promise for chaining
+     */
+    MaximalCtrl.prototype.getFile = function (id) {
+        // create a step object containing what we're about to do
+        var currentStep = { op: 'Getting a file', status: '...', data: undefined };
+        // push that step object onto the list which is displayed via an ng-repeat
+        this.steps.push(currentStep);
+        // do the get, storing its ResponseObject in ro
+        var ro = this.DriveService.files.get({ fileId: id });
+        // create a then function on ro which will execute on completion
+        ro.promise.then(function (resp) {
+            // update the display with the status and response data
+            currentStep.status = 'done';
+            currentStep.data = resp.title;
+        });
+        // return the promise for chaining
+        return ro.promise;
+    };
     /**
      * create count files with a title of 'title-n' and contents 'content for title-n'.
      * Much of the code in this function is to deal with the feature of inserting n files
@@ -75,34 +103,6 @@ var MaximalCtrl = (function () {
         }
         return def.promise;
     };
-    /*
-    Each function follows the same pattern. I've commented the first one, getFile. The rest are structured the same way.
-
-    The goal of each function is to update the UI with what it is about to do, then do it, then update the UI with part
-    of the response, finally returning the promise so the function calls can be chained together.
-     */
-    /**
-     * Get a file's metadata for a given id
-     *
-     * @param id  The file ID
-     * @returns {mng.IPromise<{data: IDriveFile}>} The promise for chaining
-     */
-    MaximalCtrl.prototype.getFile = function (id) {
-        // create a step object containing what we're about to do
-        var currentStep = { op: 'Getting a file', status: '...', data: undefined };
-        // push that step object onto the list which is displayed via an ng-repeat
-        this.steps.push(currentStep);
-        // do the get, storing its ResponseObject in ro
-        var ro = this.DriveService.files.get({ fileId: id });
-        // create a then function on ro which will execute on completion
-        ro.promise.then(function (resp) {
-            // update the display with the status and response data
-            currentStep.status = 'done';
-            currentStep.data = resp.title;
-        });
-        // return the promise for chaining
-        return ro.promise;
-    };
     MaximalCtrl.prototype.getFileContents = function (id) {
         var currentStep = { op: 'Getting a file\'s contents', status: '...', data: undefined };
         this.steps.push(currentStep);
@@ -116,7 +116,10 @@ var MaximalCtrl = (function () {
     MaximalCtrl.prototype.patchFileTitle = function (id, newTitle) {
         var currentStep = { op: 'Using Patch to update a file\'s title', status: '...', data: undefined };
         this.steps.push(currentStep);
-        var ro = this.DriveService.files.patch({ fileId: id, resource: { title: newTitle } });
+        var ro = this.DriveService.files.patch({
+            fileId: id,
+            resource: { title: newTitle }
+        });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
             currentStep.data = resp.title;
@@ -136,7 +139,10 @@ var MaximalCtrl = (function () {
     MaximalCtrl.prototype.updateFileContent = function (id, newContent) {
         var currentStep = { op: 'Using Update to update a file\'s content', status: '...', data: undefined };
         this.steps.push(currentStep);
-        var ro = this.DriveService.files.update(undefined, { fileId: id, uploadType: 'media' }, btoa(newContent));
+        var ro = this.DriveService.files.update(undefined, {
+            fileId: id,
+            uploadType: 'media'
+        }, btoa(newContent));
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
             currentStep.data = 'content length = ' + resp.fileSize;
@@ -204,7 +210,10 @@ var MaximalCtrl = (function () {
             type: 'web_hook',
             address: 'dev.clevernote.co:8888'
         };
-        var ro = this.DriveService.files.watch({ fileId: id, alt: 'media' }, watchBody);
+        var ro = this.DriveService.files.watch({
+            fileId: id,
+            alt: 'media'
+        }, watchBody);
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
             currentStep.data = resp.kind + " " + resp['resourceUri'];

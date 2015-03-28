@@ -167,7 +167,7 @@ If your project is set up on Google API Console (ie. you have a client ID), and 
 #### Show me the code
 We've created two sample apps for you to look at.
 
-The first is [minimal app](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi_lib/minimal.html) which strips it all down so all of the code lives within the HTML page.
+The first is a [minimal app](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi_lib/minimal.html) which strips it all down so all of the code lives within the HTML page.
 This example shows fetching a list of Drive files and displaying the titles. 
 
 The second is [fuller app](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi_lib/index.html) which does most of its work in
