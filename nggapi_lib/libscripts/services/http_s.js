@@ -19,6 +19,7 @@ var NgGapi;
             this.RETRY_COUNT = 10; // how many times to retry
             this.INTERVAL_NORMAL = 10;
             this.INTERVAL_THROTTLE = 2000;
+            this.isQueueMode = true; // use queue, set to false for unit testing
             this.queue = []; // q of requests
             this.testStatus = 'foo'; // this has no role in the functionality of OauthService. it's a helper property for unit tests
             //console.log('http cons');
@@ -50,8 +51,12 @@ var NgGapi;
         HttpService.prototype.doHttp = function (configObject) {
             var def = this.$q.defer();
             // replace with add2q {}
-            this.add2q(configObject, def, this.RETRY_COUNT);
-            //this._doHttp(configObject, def, this.RETRY_COUNT);
+            if (this.isQueueMode) {
+                this.add2q(configObject, def, this.RETRY_COUNT);
+            }
+            else {
+                this._doHttp(configObject, def, this.RETRY_COUNT);
+            }
             return def.promise;
         };
         /* add2q

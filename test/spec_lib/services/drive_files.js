@@ -21,10 +21,12 @@ describe('Service: DriveService', function () {
 		$q = _$q_;
 		$rootScope = _$rootScope_;
 		$timeout = _$timeout_;
-		// mock out the underlyinh getAccessToken to return a test string
+		// mock out the underlying getAccessToken to return a test string
 		DriveService.getHttpService().getOauthService().getAccessToken = function () {
 			return 'testaccesstoken'
 		};
+		// disable queue mode in the HttpService
+		DriveService.getHttpService().isQueueMode = false;
 	}));
 
 	beforeEach(function () {

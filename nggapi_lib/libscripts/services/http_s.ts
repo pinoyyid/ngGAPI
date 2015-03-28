@@ -16,6 +16,7 @@ module NgGapi {
 		INTERVAL_NORMAL = 10;
 		INTERVAL_THROTTLE = 2000;
 
+		isQueueMode = true;                                                                                               // use queue, set to false for unit testing
 		queue:Array<any> = [];                                                                                          // q of requests
 		queueInterval;                                                                                                  // frequency of dq
 		queuePromise:mng.IPromise<any>;                                                                                 // the $interval promise
@@ -59,8 +60,11 @@ module NgGapi {
 		doHttp(configObject:mng.IRequestConfig):mng.IPromise < any > {
 			var def = this.$q.defer();
 			// replace with add2q {}
-			this.add2q(configObject, def, this.RETRY_COUNT);
-			//this._doHttp(configObject, def, this.RETRY_COUNT);
+			if (this.isQueueMode) {
+				this.add2q(configObject, def, this.RETRY_COUNT);
+			} else {
+				this._doHttp(configObject, def, this.RETRY_COUNT);
+			}
 			return def.promise;
 		}
 

@@ -14,6 +14,7 @@ describe('Service: HttpService', function () {
 	var $rootScope;
 	var $q;
 	var $timeout;
+	var $interval;
 	var HttpService;
 	var $httpBackend;
 	var authRequestHandlerGet;
@@ -25,15 +26,20 @@ describe('Service: HttpService', function () {
 		$q = $injector.get('$q');
 		$rootScope = $injector.get('$rootScope');
 		$timeout = $injector.get('$timeout');
+		$interval = $injector.get('$interval');
 	}));
 
 	beforeEach(inject(function (_HttpService_) {
 		HttpService= _HttpService_;
+		HttpService.isQueueMode = false;
 	}));
-
 
 	it('should be instantiated', function () {
 		expect(!!HttpService).toBe(true);
+	});
+
+	it('should not be in queue mode', function () {
+		expect(HttpService.isQueueMode).toBe(false);
 	});
 
 	it('should have the correct sig', function () {
