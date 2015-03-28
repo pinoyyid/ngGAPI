@@ -14,9 +14,18 @@ module NgGapi {
 		sig = 'HttpService';                                                                                            // used in unit testing to confirm DI
 		RETRY_COUNT = 10;                                                                                               // how many times to retry
 		INTERVAL_NORMAL = 10;
-		INTERVAL_THROTTLE = 2000;
+		INTERVAL_THROTTLE = 500;
 
-		isQueueMode = true;                                                                                               // use queue, set to false for unit testing
+
+		/*
+
+		500 69
+		800 72
+		1000  75
+		2000 83
+		 */
+
+		isQueueMode = true;                                                                                             // use queue, set to false for unit testing
 		queue:Array<any> = [];                                                                                          // q of requests
 		queueInterval;                                                                                                  // frequency of dq
 		queuePromise:mng.IPromise<any>;                                                                                 // the $interval promise
@@ -88,6 +97,19 @@ module NgGapi {
 		set 2s interval
 		start dq interval
 		 */
+
+		throttle() {
+			if (this.queueInterval == this.INTERVAL_THROTTLE) {
+				console.log('already throttling');
+				return;
+			}
+			if (this.queuePromise) {
+				console.log('killing existing dq');
+				this.$interval.cancel(this.queuePromise);
+			}
+			this.queueInterval = this.INTERVAL_THROTTLE;
+			this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);
+		}
 
 		/*	dq
 		checks q length,
@@ -215,8 +237,10 @@ module NgGapi {
 
 				 */
 
-
-				this.$log.warn('[H153] 403 rate limit. retryConter = '+retryCounter);
+				this.$log.warn('[H153] 403 rate limit. requeuing retryConter = '+retryCounter);
+				this.throttle();
+				this.add2q(configObject, def,  retryCounter);
+/*
 				if (--retryCounter > 0) { // number of retries set by caller
 					this.sleep(2000*(this.RETRY_COUNT - retryCounter)).then(() => {                                      // backoff an additional 2 seconds for each retry
 						this._doHttp(configObject, def, retryCounter);
@@ -225,6 +249,7 @@ module NgGapi {
 					this.$log.warn('[H159] Giving up after '+this.RETRY_COUNT+' attempts failed with '+status+' '+data.error.message);
 					def.reject(status + ' ' +data.error.message);
 				}
+				*/
 				return;
 			}
 

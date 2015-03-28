@@ -30,17 +30,18 @@ class MaximalCtrl {
 	 * perform all steps using promise chaining to run them in sequence
 	 */
 	doEverything() {
+		var start = new Date().valueOf();
 		this.getCountandDelete_xxxparanoid()
 			.then(
 				() => { return this.createFolder('paranoid') })
 			.then(
-				(resp) => { console.log(resp.id); return this.insertFiles('xxxparanoid', 20, resp.id) },
+				(resp) => { console.log(resp.id); return this.insertFiles('xxxparanoid', 100, resp.id) },
 				(reason) => { console.error('incomplete insert, reason = ' + reason) })
 			.then(
 				() => { return this.getCountandDelete_xxxparanoid() },
 				(reason) => { console.error('incomplete insert, reason = ' + reason) })
 			.then(
-				()=> { console.log('All done') }
+				()=> { console.log('All done '+(new Date().valueOf() - start)/1000) }
 		);
 	}
 

@@ -18,7 +18,14 @@ var NgGapi;
             this.sig = 'HttpService'; // used in unit testing to confirm DI
             this.RETRY_COUNT = 10; // how many times to retry
             this.INTERVAL_NORMAL = 10;
-            this.INTERVAL_THROTTLE = 2000;
+            this.INTERVAL_THROTTLE = 500;
+            /*
+    
+            500 69
+            800 72
+            1000  75
+            2000 83
+             */
             this.isQueueMode = true; // use queue, set to false for unit testing
             this.queue = []; // q of requests
             this.testStatus = 'foo'; // this has no role in the functionality of OauthService. it's a helper property for unit tests
@@ -79,6 +86,21 @@ var NgGapi;
         set 2s interval
         start dq interval
          */
+        HttpService.prototype.throttle = function () {
+            var _this = this;
+            if (this.queueInterval == this.INTERVAL_THROTTLE) {
+                console.log('already throttling');
+                return;
+            }
+            if (this.queuePromise) {
+                console.log('killing existing dq');
+                this.$interval.cancel(this.queuePromise);
+            }
+            this.queueInterval = this.INTERVAL_THROTTLE;
+            this.queuePromise = this.$interval(function () {
+                _this.dq();
+            }, this.queueInterval);
+        };
         /*	dq
         checks q length,
         if 0, set interval = 10, cancel
@@ -203,16 +225,19 @@ var NgGapi;
                 add2q({}, 403)
 
                  */
-                this.$log.warn('[H153] 403 rate limit. retryConter = ' + retryCounter);
-                if (--retryCounter > 0) {
-                    this.sleep(2000 * (this.RETRY_COUNT - retryCounter)).then(function () {
-                        _this._doHttp(configObject, def, retryCounter);
-                    });
-                }
-                else {
-                    this.$log.warn('[H159] Giving up after ' + this.RETRY_COUNT + ' attempts failed with ' + status + ' ' + data.error.message);
-                    def.reject(status + ' ' + data.error.message);
-                }
+                this.$log.warn('[H153] 403 rate limit. requeuing retryConter = ' + retryCounter);
+                this.throttle();
+                this.add2q(configObject, def, retryCounter);
+                /*
+                                if (--retryCounter > 0) { // number of retries set by caller
+                                    this.sleep(2000*(this.RETRY_COUNT - retryCounter)).then(() => {                                      // backoff an additional 2 seconds for each retry
+                                        this._doHttp(configObject, def, retryCounter);
+                                    })
+                                } else {
+                                    this.$log.warn('[H159] Giving up after '+this.RETRY_COUNT+' attempts failed with '+status+' '+data.error.message);
+                                    def.reject(status + ' ' +data.error.message);
+                                }
+                                */
                 return;
             }
             // anything else is a hard error
