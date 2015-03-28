@@ -69,7 +69,7 @@ describe('Service: HttpService', function () {
 			console.log('in dohttp mock');
 			retryCount--;
 		}
-		HttpService.errorHandler(undefined, 501, undefined, undefined, undefined, def, retryCount);
+		HttpService.errorHandler({error: {message: 'error text'}}, 501, undefined, undefined, undefined, def, retryCount);
 		//def.promise.catch(function (status) {
 		//	expect(status).toBe(404);
 		//});
@@ -79,7 +79,7 @@ describe('Service: HttpService', function () {
 			function ()
 			{
 				console.error('shouldnt be here')
-				expect('promise resolved for 404!!').toBe('promise catched for 404!');
+				expect('promise resolved for 501!!').toBe('promise catched for 501!');
 			},
 			function (status) {
 				promiseError = status;
@@ -87,7 +87,7 @@ describe('Service: HttpService', function () {
 		)
 		$timeout(function () {
 			$rootScope.$digest();
-			expect(promiseError).toBe('501-0a');
+			expect(promiseError).toBe('501 error text');
 		}, 3000);
 	});
 
