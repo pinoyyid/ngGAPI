@@ -34,7 +34,7 @@ class MaximalCtrl {
 			.then(
 				() => { return this.createFolder('paranoid') })
 			.then(
-				(resp) => { console.log(resp.id); return this.insertFiles('xxxparanoid', 200, resp.id) },
+				(resp) => { console.log(resp.id); return this.insertFiles('xxxparanoid', 20, resp.id) },
 				(reason) => { console.error('incomplete insert, reason = ' + reason) })
 			.then(
 				() => { return this.getCountandDelete_xxxparanoid() },

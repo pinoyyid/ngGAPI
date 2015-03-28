@@ -8,14 +8,18 @@ var NgGapi;
      * Basically a wrapper for $http that deals with the most common GAPI error conditions and returns an application level promise in place of the low level $http promise
      */
     var HttpService = (function () {
-        function HttpService($log, $http, $timeout, $q, OauthService) {
+        function HttpService($log, $http, $timeout, $interval, $q, OauthService) {
             this.$log = $log;
             this.$http = $http;
             this.$timeout = $timeout;
+            this.$interval = $interval;
             this.$q = $q;
             this.OauthService = OauthService;
             this.sig = 'HttpService'; // used in unit testing to confirm DI
-            this.RETRY_COUNT = 15;
+            this.RETRY_COUNT = 10; // how many times to retry
+            this.INTERVAL_NORMAL = 10;
+            this.INTERVAL_THROTTLE = 2000;
+            this.queue = []; // q of requests
             this.testStatus = 'foo'; // this has no role in the functionality of OauthService. it's a helper property for unit tests
             //console.log('http cons');
         }
@@ -45,8 +49,52 @@ var NgGapi;
          */
         HttpService.prototype.doHttp = function (configObject) {
             var def = this.$q.defer();
-            this._doHttp(configObject, def, this.RETRY_COUNT);
+            // replace with add2q {}
+            this.add2q(configObject, def, this.RETRY_COUNT);
+            //this._doHttp(configObject, def, this.RETRY_COUNT);
             return def.promise;
+        };
+        /* add2q
+        pushes to q
+        if dq not running, starts dq interval
+        */
+        HttpService.prototype.add2q = function (configObject, def, retryCounter) {
+            var _this = this;
+            console.log('adding ' + configObject.method);
+            this.queue.push({ c: configObject, d: def, r: retryCounter });
+            if (!this.queuePromise) {
+                console.log('starting dq');
+                this.queuePromise = this.$interval(function () {
+                    _this.dq();
+                }, this.queueInterval);
+            }
+        };
+        /* throttle
+        if dq running, cancel
+        set 2s interval
+        start dq interval
+         */
+        /*	dq
+        checks q length,
+        if 0, set interval = 10, cancel
+        get  [0]
+        remove [0]
+        _do [0]
+         */
+        HttpService.prototype.dq = function () {
+            if (this.queue.length == 0) {
+                //debugger;
+                console.log('killing dq');
+                this.queueInterval = this.INTERVAL_NORMAL;
+                this.$interval.cancel(this.queuePromise);
+                this.queuePromise = undefined;
+                return;
+            }
+            // here with q items
+            console.log('processing item, qlen = ' + this.queue.length);
+            var obj = this.queue[0];
+            this.queue.splice(0, 1);
+            this._doHttp(obj.c, obj.d, obj.r);
         };
         /**
          * internal $http call. This is recursed for errors
@@ -57,6 +105,8 @@ var NgGapi;
          */
         HttpService.prototype._doHttp = function (configObject, def, retryCounter) {
             var _this = this;
+            console.log('in _ with conf ' + configObject.method);
+            //debugger;
             // TODO suppress $http with a warning if getAccestoken returns undefined
             if (!configObject.headers) {
                 configObject.headers = {};
@@ -66,6 +116,7 @@ var NgGapi;
                 configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken(); // add auth header
                 var httpPromise = this.$http(configObject); // run the http call and capture the promise
                 httpPromise.success(function (data, status, headers, configObject, statusText) {
+                    //debugger;
                     _this.$log.debug(status);
                     if (data.nextPageToken) {
                         def.notify(data);
@@ -143,6 +194,10 @@ var NgGapi;
             // 403 - rate limit, sleep for 2s x the number of retries to allow some more bucket tokens
             //if (status == 403) debugger;
             if (status == 403 && data.error.message.toLowerCase().indexOf('rate limit') > -1) {
+                /*
+                add2q({}, 403)
+
+                 */
                 this.$log.warn('[H153] 403 rate limit. retryConter = ' + retryCounter);
                 if (--retryCounter > 0) {
                     this.sleep(2000 * (this.RETRY_COUNT - retryCounter)).then(function () {
@@ -168,7 +223,7 @@ var NgGapi;
             }, ms);
             return def.promise;
         };
-        HttpService.$inject = ['$log', '$http', '$timeout', '$q', 'OauthService'];
+        HttpService.$inject = ['$log', '$http', '$timeout', '$interval', '$q', 'OauthService'];
         return HttpService;
     })();
     NgGapi.HttpService = HttpService;

@@ -11,15 +11,22 @@ module NgGapi {
 	 * Basically a wrapper for $http that deals with the most common GAPI error conditions and returns an application level promise in place of the low level $http promise
 	 */
 	export class HttpService implements IHttpService {
-		sig = 'HttpService';                       // used in unit testing to confirm DI
-		RETRY_COUNT = 15;
+		sig = 'HttpService';                                                                                            // used in unit testing to confirm DI
+		RETRY_COUNT = 10;                                                                                               // how many times to retry
+		INTERVAL_NORMAL = 10;
+		INTERVAL_THROTTLE = 2000;
+
+		queue:Array<any> = [];                                                                                          // q of requests
+		queueInterval;                                                                                                  // frequency of dq
+		queuePromise:mng.IPromise<any>;                                                                                 // the $interval promise
+
 
 		testStatus:string = 'foo';                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
 
-		static $inject = ['$log', '$http', '$timeout', '$q', 'OauthService'];
-
-		constructor(private $log:mng.ILogService, private $http:mng.IHttpService, private $timeout:mng.ITimeoutService, private $q:mng.IQService, private OauthService:IOauthService) {
+		static $inject = ['$log', '$http', '$timeout', '$interval', '$q', 'OauthService'];
+		constructor(private $log:mng.ILogService, private $http:mng.IHttpService, private $timeout:mng.ITimeoutService,
+		            private $interval:mng.IIntervalService, private $q:mng.IQService, private OauthService:IOauthService) {
 			//console.log('http cons');
 		}
 
@@ -51,10 +58,56 @@ module NgGapi {
 		 */
 		doHttp(configObject:mng.IRequestConfig):mng.IPromise < any > {
 			var def = this.$q.defer();
-			this._doHttp(configObject, def, this.RETRY_COUNT);
+			// replace with add2q {}
+			this.add2q(configObject, def, this.RETRY_COUNT);
+			//this._doHttp(configObject, def, this.RETRY_COUNT);
 			return def.promise;
 		}
 
+		/* add2q
+		pushes to q
+		if dq not running, starts dq interval
+		*/
+
+		add2q(configObject:mng.IRequestConfig, def:mng.IDeferred < any >, retryCounter:number) {
+			console.log('adding '+configObject.method);
+			this.queue.push({c:configObject, d:def, r:retryCounter});
+			if (!this.queuePromise) {
+				console.log('starting dq')
+				this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);
+			}
+
+		}
+
+		/* throttle
+		if dq running, cancel
+		set 2s interval
+		start dq interval
+		 */
+
+		/*	dq
+		checks q length,
+		if 0, set interval = 10, cancel
+		get  [0]
+		remove [0]
+		_do [0]
+		 */
+
+		dq() {
+			if (this.queue.length == 0) {
+				//debugger;
+				console.log('killing dq');
+				this.queueInterval = this.INTERVAL_NORMAL;
+				this.$interval.cancel(this.queuePromise);
+				this.queuePromise = undefined;
+				return;
+			}
+			// here with q items
+			console.log('processing item, qlen = '+this.queue.length);
+			var obj = this.queue[0];
+			this.queue.splice(0,1);
+			this._doHttp(obj.c, obj.d, obj.r);
+		}
 
 		/**
 		 * internal $http call. This is recursed for errors
@@ -64,6 +117,8 @@ module NgGapi {
 		 * @param retryCounter used to countdown recursions. set by outer method
 		 */
 		_doHttp(configObject:mng.IRequestConfig, def:mng.IDeferred < any >, retryCounter:number) {
+			console.log('in _ with conf '+configObject.method);
+			//debugger;
 			// TODO suppress $http with a warning if getAccestoken returns undefined
 			if (!configObject.headers) {
 				configObject.headers = {};
@@ -73,6 +128,7 @@ module NgGapi {
 				configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken();                 // add auth header
 				var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
 				httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
+					//debugger;
 					this.$log.debug(status);
 					if (data.nextPageToken) {                                                                           // if there is more data, emit a notify and recurse
 						def.notify(data);
@@ -150,6 +206,12 @@ module NgGapi {
 			// 403 - rate limit, sleep for 2s x the number of retries to allow some more bucket tokens
 			//if (status == 403) debugger;
 			if (status == 403 && data.error.message.toLowerCase().indexOf('rate limit') > -1) {
+				/*
+				add2q({}, 403)
+
+				 */
+
+
 				this.$log.warn('[H153] 403 rate limit. retryConter = '+retryCounter);
 				if (--retryCounter > 0) { // number of retries set by caller
 					this.sleep(2000*(this.RETRY_COUNT - retryCounter)).then(() => {                                      // backoff an additional 2 seconds for each retry
