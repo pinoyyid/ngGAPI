@@ -19,6 +19,7 @@ var NgGapi;
             this.RETRY_COUNT = 10; // how many times to retry
             this.INTERVAL_NORMAL = 10;
             this.INTERVAL_THROTTLE = 500;
+            this.INTERVAL_MAX = 1500;
             /*
     
             500 69
@@ -26,6 +27,7 @@ var NgGapi;
             1000  75
             2000 83
              */
+            //throttleInterval;                                                                                               // the variable delay
             this.isQueueMode = true; // use queue, set to false for unit testing
             this.queue = []; // q of requests
             this.testStatus = 'foo'; // this has no role in the functionality of OauthService. it's a helper property for unit tests
@@ -86,17 +88,43 @@ var NgGapi;
         set 2s interval
         start dq interval
          */
-        HttpService.prototype.throttle = function () {
+        HttpService.prototype.throttleDown = function () {
             var _this = this;
-            if (this.queueInterval == this.INTERVAL_THROTTLE) {
-                console.log('already throttling');
+            //console.info('throttling down');
+            if (this.queueInterval == this.INTERVAL_NORMAL) {
+                this.queueInterval = this.INTERVAL_THROTTLE;
+                console.log('starting throttling');
+            }
+            if (this.queuePromise) {
+                console.log('killing existing dq');
+                this.$interval.cancel(this.queuePromise);
+            }
+            //this.queueInterval = this.queueInterval * 1.1;                                                           // add 10%
+            this.queueInterval = this.INTERVAL_MAX;
+            if (this.queueInterval > this.INTERVAL_MAX) {
+                this.queueInterval = this.INTERVAL_MAX;
+            }
+            console.log('throttling at ' + this.queueInterval);
+            this.queuePromise = this.$interval(function () {
+                _this.dq();
+            }, this.queueInterval);
+        };
+        HttpService.prototype.throttleUp = function () {
+            var _this = this;
+            //console.info('throttling up');
+            if (this.queueInterval == this.INTERVAL_NORMAL) {
+                //console.log('not throttling');
                 return;
             }
             if (this.queuePromise) {
                 console.log('killing existing dq');
                 this.$interval.cancel(this.queuePromise);
             }
-            this.queueInterval = this.INTERVAL_THROTTLE;
+            this.queueInterval = this.queueInterval * 0.8; // subtract 10%
+            if (this.queueInterval < this.INTERVAL_NORMAL) {
+                this.queueInterval = this.INTERVAL_NORMAL;
+            }
+            console.log('throttling at ' + this.queueInterval);
             this.queuePromise = this.$interval(function () {
                 _this.dq();
             }, this.queueInterval);
@@ -143,6 +171,7 @@ var NgGapi;
                 configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken(); // add auth header
                 var httpPromise = this.$http(configObject); // run the http call and capture the promise
                 httpPromise.success(function (data, status, headers, configObject, statusText) {
+                    _this.throttleUp();
                     //debugger;
                     _this.$log.debug(status);
                     if (data.nextPageToken) {
@@ -226,7 +255,7 @@ var NgGapi;
 
                  */
                 this.$log.warn('[H153] 403 rate limit. requeuing retryConter = ' + retryCounter);
-                this.throttle();
+                this.throttleDown();
                 this.add2q(configObject, def, retryCounter);
                 /*
                                 if (--retryCounter > 0) { // number of retries set by caller

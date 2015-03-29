@@ -15,6 +15,7 @@ module NgGapi {
 		RETRY_COUNT = 10;                                                                                               // how many times to retry
 		INTERVAL_NORMAL = 10;
 		INTERVAL_THROTTLE = 500;
+		INTERVAL_MAX = 1500;
 
 
 		/*
@@ -25,6 +26,7 @@ module NgGapi {
 		2000 83
 		 */
 
+		//throttleInterval;                                                                                               // the variable delay
 		isQueueMode = true;                                                                                             // use queue, set to false for unit testing
 		queue:Array<any> = [];                                                                                          // q of requests
 		queueInterval;                                                                                                  // frequency of dq
@@ -98,16 +100,41 @@ module NgGapi {
 		start dq interval
 		 */
 
-		throttle() {
-			if (this.queueInterval == this.INTERVAL_THROTTLE) {
-				console.log('already throttling');
+		throttleDown() {
+			//console.info('throttling down');
+			if (this.queueInterval == this.INTERVAL_NORMAL) {
+				this.queueInterval = this.INTERVAL_THROTTLE;
+				console.log('starting throttling');
+			}
+			if (this.queuePromise) {
+				console.log('killing existing dq');
+				this.$interval.cancel(this.queuePromise);
+			}
+			//this.queueInterval = this.queueInterval * 1.1;                                                           // add 10%
+			this.queueInterval = this.INTERVAL_MAX;
+			if (this.queueInterval > this.INTERVAL_MAX) {
+				this.queueInterval = this.INTERVAL_MAX;
+			}
+			console.log('throttling at '+this.queueInterval);
+			this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);
+		}
+
+
+		throttleUp() {
+			//console.info('throttling up');
+			if (this.queueInterval == this.INTERVAL_NORMAL) {
+				//console.log('not throttling');
 				return;
 			}
 			if (this.queuePromise) {
 				console.log('killing existing dq');
 				this.$interval.cancel(this.queuePromise);
 			}
-			this.queueInterval = this.INTERVAL_THROTTLE;
+			this.queueInterval = this.queueInterval * 0.8;                                                           // subtract 10%
+			if (this.queueInterval < this.INTERVAL_NORMAL) {
+				this.queueInterval = this.INTERVAL_NORMAL;
+			}
+			console.log('throttling at '+this.queueInterval);
 			this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);
 		}
 
@@ -154,6 +181,7 @@ module NgGapi {
 				configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken();                 // add auth header
 				var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
 				httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
+					this.throttleUp();
 					//debugger;
 					this.$log.debug(status);
 					if (data.nextPageToken) {                                                                           // if there is more data, emit a notify and recurse
@@ -238,7 +266,7 @@ module NgGapi {
 				 */
 
 				this.$log.warn('[H153] 403 rate limit. requeuing retryConter = '+retryCounter);
-				this.throttle();
+				this.throttleDown();
 				this.add2q(configObject, def,  retryCounter);
 /*
 				if (--retryCounter > 0) { // number of retries set by caller
