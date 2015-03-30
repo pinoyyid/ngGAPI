@@ -170,11 +170,12 @@ module NgGapi {
         url: url,
         params:
         {
-            client_id:this.clientId,
+            client_id:encodeURI(this.clientId),
             //client_secret:'Y_vhMLV9wkr88APsQWXPUrhq',
-            client_secret:secret,
+            client_secret:encodeURI(secret),
             refresh_token:rt,
-            grant_type:'refresh_token'
+            grant_type:'refresh_token',
+            foo:'bar'
         },
         headers: {'Content-Type': 'application/x-www-form-urlencoded'}
       }).
@@ -185,9 +186,10 @@ module NgGapi {
             // this callback will be called asynchronously
             // when the response is available
           }).
-          error(function(data, status, headers, config) {
+          error((data, status, headers, config) => {
             // called asynchronously if an error occurs
             // or server returns response with an error status.
+            this.$log.error('[O191] problem refreshing test refresh token '+status+' '+data.error+' '+data.error_description);
           });
     }
 
