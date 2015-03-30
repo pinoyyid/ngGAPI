@@ -11,14 +11,34 @@ module NgGapi {
 	 * Basically a wrapper for $http that deals with the most common GAPI error conditions and returns an application level promise in place of the low level $http promise
 	 */
 	export class HttpService implements IHttpService {
-		sig = 'HttpService';                // used in unit testing to confirm DI
+		sig = 'HttpService';                                                                                            // used in unit testing to confirm DI
+		RETRY_COUNT = 10;                                                                                               // how many times to retry
+		INTERVAL_NORMAL = 10;
+		INTERVAL_THROTTLE = 500;
+		INTERVAL_MAX = 1500;
+
+
+		/*
+
+		500 69
+		800 72
+		1000  75
+		2000 83
+		 */
+
+		//throttleInterval;                                                                                               // the variable delay
+		isQueueMode = true;                                                                                             // use queue, set to false for unit testing
+		queue:Array<any> = [];                                                                                          // q of requests
+		queueInterval;                                                                                                  // frequency of dq
+		queuePromise:mng.IPromise<any>;                                                                                 // the $interval promise
+
 
 		testStatus:string = 'foo';                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
 
-		static $inject = ['$log', '$http', '$timeout', '$q', 'OauthService'];
-
-		constructor(private $log:mng.ILogService, private $http:mng.IHttpService, private $timeout:mng.ITimeoutService, private $q:mng.IQService, private OauthService:IOauthService) {
+		static $inject = ['$log', '$http', '$timeout', '$interval', '$q', 'OauthService'];
+		constructor(private $log:mng.ILogService, private $http:mng.IHttpService, private $timeout:mng.ITimeoutService,
+		            private $interval:mng.IIntervalService, private $q:mng.IQService, private OauthService:IOauthService) {
 			//console.log('http cons');
 		}
 
@@ -50,10 +70,97 @@ module NgGapi {
 		 */
 		doHttp(configObject:mng.IRequestConfig):mng.IPromise < any > {
 			var def = this.$q.defer();
-			this._doHttp(configObject, def, 10);
+			// replace with add2q {}
+			if (this.isQueueMode) {
+				this.add2q(configObject, def, this.RETRY_COUNT);
+			} else {
+				this._doHttp(configObject, def, this.RETRY_COUNT);
+			}
 			return def.promise;
 		}
 
+		/* add2q
+		pushes to q
+		if dq not running, starts dq interval
+		*/
+
+		add2q(configObject:mng.IRequestConfig, def:mng.IDeferred < any >, retryCounter:number) {
+			console.log('adding '+configObject.method);
+			this.queue.push({c:configObject, d:def, r:retryCounter});
+			if (!this.queuePromise) {
+				console.log('starting dq')
+				this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);
+			}
+
+		}
+
+		/* throttle
+		if dq running, cancel
+		set 2s interval
+		start dq interval
+		 */
+
+		throttleDown() {
+			//console.info('throttling down');
+			if (this.queueInterval == this.INTERVAL_NORMAL) {
+				this.queueInterval = this.INTERVAL_THROTTLE;
+				console.log('starting throttling');
+			}
+			if (this.queuePromise) {
+				console.log('killing existing dq');
+				this.$interval.cancel(this.queuePromise);
+			}
+			//this.queueInterval = this.queueInterval * 1.1;                                                           // add 10%
+			this.queueInterval = this.INTERVAL_MAX;
+			if (this.queueInterval > this.INTERVAL_MAX) {
+				this.queueInterval = this.INTERVAL_MAX;
+			}
+			console.log('throttling at '+this.queueInterval);
+			this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);
+		}
+
+
+		throttleUp() {
+			//console.info('throttling up');
+			if (this.queueInterval == this.INTERVAL_NORMAL) {
+				//console.log('not throttling');
+				return;
+			}
+			if (this.queuePromise) {
+				console.log('killing existing dq');
+				this.$interval.cancel(this.queuePromise);
+			}
+			this.queueInterval = this.queueInterval * 0.8;                                                           // subtract 10%
+			if (this.queueInterval < this.INTERVAL_NORMAL) {
+				this.queueInterval = this.INTERVAL_NORMAL;
+			}
+			console.log('throttling at '+this.queueInterval);
+			this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);
+		}
+
+		/*	dq
+		checks q length,
+		if 0, set interval = 10, cancel
+		get  [0]
+		remove [0]
+		_do [0]
+		 */
+
+		dq() {
+			if (this.queue.length == 0) {
+				//debugger;
+				console.log('killing dq');
+				this.queueInterval = this.INTERVAL_NORMAL;
+				this.$interval.cancel(this.queuePromise);
+				this.queuePromise = undefined;
+				return;
+			}
+			// here with q items
+			console.log('processing item, qlen = '+this.queue.length);
+			var obj = this.queue[0];
+			this.queue.splice(0,1);
+			this._doHttp(obj.c, obj.d, obj.r);
+		}
 
 		/**
 		 * internal $http call. This is recursed for errors
@@ -63,6 +170,8 @@ module NgGapi {
 		 * @param retryCounter used to countdown recursions. set by outer method
 		 */
 		_doHttp(configObject:mng.IRequestConfig, def:mng.IDeferred < any >, retryCounter:number) {
+			console.log('in _ with conf '+configObject.method);
+			//debugger;
 			// TODO suppress $http with a warning if getAccestoken returns undefined
 			if (!configObject.headers) {
 				configObject.headers = {};
@@ -72,6 +181,9 @@ module NgGapi {
 				configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken();                 // add auth header
 				var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
 				httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
+					this.throttleUp();
+					//debugger;
+					this.$log.debug(status);
 					if (data.nextPageToken) {                                                                           // if there is more data, emit a notify and recurse
 						def.notify(data);
 						configObject.params.pageToken = data.nextPageToken;
@@ -125,7 +237,7 @@ module NgGapi {
 						this._doHttp(configObject, def, retryCounter);
 					})
 				} else {
-					def.reject("401-0");
+					def.reject(status + ' ' +data.error.message);
 				}
 				return;
 			}
@@ -140,21 +252,32 @@ module NgGapi {
 						this._doHttp(configObject, def, retryCounter);
 					})
 				} else {
-					def.reject("501-0");
+					def.reject(status + ' ' +data.error.message);
 				}
 				return;
 			}
 
-			// 403 - rate limit, sleep for 2s to allow some more bucket tokens
+			// 403 - rate limit, sleep for 2s x the number of retries to allow some more bucket tokens
 			//if (status == 403) debugger;
 			if (status == 403 && data.error.message.toLowerCase().indexOf('rate limit') > -1) {
+				/*
+				add2q({}, 403)
+
+				 */
+
+				this.$log.warn('[H153] 403 rate limit. requeuing retryConter = '+retryCounter);
+				this.throttleDown();
+				this.add2q(configObject, def,  retryCounter);
+/*
 				if (--retryCounter > 0) { // number of retries set by caller
-					this.sleep(2000).then(() => {
+					this.sleep(2000*(this.RETRY_COUNT - retryCounter)).then(() => {                                      // backoff an additional 2 seconds for each retry
 						this._doHttp(configObject, def, retryCounter);
 					})
 				} else {
-					def.reject("501-0");
+					this.$log.warn('[H159] Giving up after '+this.RETRY_COUNT+' attempts failed with '+status+' '+data.error.message);
+					def.reject(status + ' ' +data.error.message);
 				}
+				*/
 				return;
 			}
 
