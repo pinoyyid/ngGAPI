@@ -40,8 +40,9 @@ var NgGapi;
          * @param $log
          * @param $window
          * @param $http
+         * @param $timeout
          */
-        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, immediateMode, ownGetAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http) {
+        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, immediateMode, ownGetAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http, $timeout) {
             //console.log("OAuth instantiated with " + scopes);
             //$log.log("scopes", this.scopes);
             //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
@@ -57,9 +58,11 @@ var NgGapi;
             this.$log = $log;
             this.$window = $window;
             this.$http = $http;
+            this.$timeout = $timeout;
             this.sig = 'OauthService'; // used in unit testing to confirm DI
             this.isAuthInProgress = false; // true if there is an outstanding auth (ie. refresh token) in progress to prevent multiples
             this.isAuthedYet = false; // first time flag, used to set immediate mode
+            this.GAPI_RETRY_MS = 200; // how long to wait for gapi load before retrying a refresh
             // if dev has requested to override the default getAccessToken function
             if (ownGetAccessTokenFunction) {
                 this.getAccessToken = ownGetAccessTokenFunction;
@@ -116,8 +119,11 @@ var NgGapi;
                 return;
             }
             if (!this.isGapiLoaded()) {
-                this.$log.warn('[O81] gapi not yet loaded');
+                this.$log.warn('[O81] gapi not yet loaded, retrying...');
                 this.testStatus = 'O81';
+                this.$timeout(function () {
+                    _this.refreshAccessToken();
+                }, this.GAPI_RETRY_MS);
                 return;
             }
             this.isAuthInProgress = true;
@@ -247,7 +253,8 @@ NgGapi['Config'] = function () {
             var $log = myInjector.get("$log");
             var $window = myInjector.get("$window");
             var $http = myInjector.get("$http");
-            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, immediateMode, getAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http);
+            var $timeout = myInjector.get("$timeout");
+            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, immediateMode, getAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http, $timeout);
         }
     };
 };
