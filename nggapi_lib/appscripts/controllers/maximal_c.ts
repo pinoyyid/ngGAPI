@@ -113,7 +113,7 @@ class MaximalCtrl {
 			this.DriveService.files.insert({
 				title: title + '-' + i,
 				mimeType: 'text/plain'
-			}, {uploadType: 'multipart'}, btoa(contentBase + title + '-' + i)).promise.then(
+			}, {uploadType: 'multipart'}, contentBase + title + '-' + i).promise.then(
 				(resp:NgGapi.IDriveFile) => {
 					currentStep.status = '' + ++doneCount;
 					currentStep.data = resp.id + ' , content length = ' + resp.fileSize;
@@ -171,7 +171,7 @@ class MaximalCtrl {
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.update(undefined, {
 			fileId: id,
 			uploadType: 'media'
-		}, btoa(newContent));
+		}, newContent);
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
 			currentStep.data = 'content length = ' + resp.fileSize;

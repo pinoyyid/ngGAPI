@@ -90,7 +90,7 @@ var MaximalCtrl = (function () {
             this.DriveService.files.insert({
                 title: title + '-' + i,
                 mimeType: 'text/plain'
-            }, { uploadType: 'multipart' }, btoa(contentBase + title + '-' + i)).promise.then(function (resp) {
+            }, { uploadType: 'multipart' }, contentBase + title + '-' + i).promise.then(function (resp) {
                 currentStep.status = '' + ++doneCount;
                 currentStep.data = resp.id + ' , content length = ' + resp.fileSize;
                 _this.currentFile = resp;
@@ -142,7 +142,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.update(undefined, {
             fileId: id,
             uploadType: 'media'
-        }, btoa(newContent));
+        }, newContent);
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
             currentStep.data = 'content length = ' + resp.fileSize;
