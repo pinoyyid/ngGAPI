@@ -179,7 +179,8 @@ var NgGapi;
                         configObject.params.pageToken = data.nextPageToken;
                         return _this._doHttp(configObject, def, retryCounter);
                     }
-                    def.resolve(data);
+                    // TODO may have an issue here/ Poss should resolve with {data:data, status:status} etc
+                    def.resolve({ data: data, configObject: configObject });
                 });
                 httpPromise.error(function (data, status, headers, configObject, statusText) {
                     _this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
