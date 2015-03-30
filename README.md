@@ -129,7 +129,12 @@ angular.module('ngm.NgGapi')
 			//    ms=0: The request will fail and return an error to the application to deal with
 			//    ms>0: The request will be retried 10 times with a delay of ms milliseconds. The default is ms=500
 		OauthServiceProvider.setNoAccessTokenPolicy(1000);                 
-		
+	
+			// Set immediate mode.This should normally be left to its default of false. Only set it to true if you can ensure that
+			// your app has already been authorized and that the user is logged in to Google.
+			// Default is false
+            	OauthServiceProvider.setImmediateMode(false)
+            		
 			// provide your own function to return an access token. myFunction should return a string which will be set into the Authorization Bearer header 
 		OauthServiceProvider.setGetAccessTokenFunction: function (myFunction) {
 	});

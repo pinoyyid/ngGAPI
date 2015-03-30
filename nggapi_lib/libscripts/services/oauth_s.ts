@@ -46,6 +46,7 @@ module NgGapi {
      * @param clientId. The Google client ID
      * @param tokenRefreshPolicy  One of the TokenRefreshPolicy Enum values
      * @param noAccessTokenPolicy (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
+     * @param immediateMode  set to true to suppress the initial auth,
      * @param ownGetAccessTokenFunction (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
      * @param testingRefreshToken - if set, this is used to fetch access tokens instead of gapi
      * @param testingClientSecret - if set, this is used to fetch access tokens instead of gapi
@@ -54,7 +55,7 @@ module NgGapi {
      * @param $http
      */
     constructor(private scopes:string, private clientId:string, private tokenRefreshPolicy,
-                private noAccesTokenPolicy:number, private ownGetAccessTokenFunction,
+                private noAccesTokenPolicy:number, private immediateMode:boolean, private ownGetAccessTokenFunction,
                 private testingRefreshToken, private testingClientSecret,
                 private $log:mng.ILogService, private $window:mng.IWindowService, private $http:mng.IHttpService) {
       //console.log("OAuth instantiated with " + scopes);
@@ -65,6 +66,10 @@ module NgGapi {
       // if dev has requested to override the default getAccessToken function
       if (ownGetAccessTokenFunction) {
         this.getAccessToken = ownGetAccessTokenFunction;
+      };
+
+      if (this.immediateMode) {                                                                                         // did user override immediate mode
+          this.isAuthedYet = true;
       }
     }
 
@@ -233,6 +238,7 @@ NgGapi['Config'] = function () {
 	var tokenRefreshPolicy = NgGapi.TokenRefreshPolicy.ON_DEMAND;               // default is on demand
     var noAccessTokenPolicy = 500;                                              // default is to retry after 1/2 sec
     var getAccessTokenFunction = undefined;
+    var immediateMode = false;;
     var testingRefreshToken = undefined;
     var testingClientSecret = undefined;
 	return {
@@ -247,6 +253,9 @@ NgGapi['Config'] = function () {
         },
         setNoAccessTokenPolicy: function (_policy) {
           noAccessTokenPolicy = _policy;
+        },
+        setImmediateMode: function (_mode) {
+          immediateMode = _mode;
         },
 		setGetAccessTokenFunction: function (_function) {
 			getAccessTokenFunction = _function;
@@ -263,7 +272,7 @@ NgGapi['Config'] = function () {
 			var $log = myInjector.get("$log");
 			var $window = myInjector.get("$window");
             var $http = myInjector.get("$http");
-			return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, getAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http);
+			return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, immediateMode, getAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http);
 		}
 	}
 };
