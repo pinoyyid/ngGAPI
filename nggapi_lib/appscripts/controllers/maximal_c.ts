@@ -82,10 +82,10 @@ class MaximalCtrl {
 		// do the get, storing its ResponseObject in ro
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.get({fileId: id});
 		// create a then function on ro which will execute on completion
-		ro.promise.then((resp:NgGapi.IDriveFile) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg) => {
 			// update the display with the status and response data
 			currentStep.status = 'done';
-			currentStep.data = resp.title;
+			currentStep.data = resp.data.title;
 		});
 		// return the promise for chaining
 		return ro.promise;
@@ -114,10 +114,10 @@ class MaximalCtrl {
 				title: title + '-' + i,
 				mimeType: 'text/plain'
 			}, {uploadType: 'multipart'}, contentBase + title + '-' + i).promise.then(
-				(resp:NgGapi.IDriveFile) => {
+				(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 					currentStep.status = '' + ++doneCount;
-					currentStep.data = resp.id + ' , content length = ' + resp.fileSize;
-					this.currentFile = resp;
+					currentStep.data = resp.data.id + ' , content length = ' + resp.data.fileSize;
+					this.currentFile = resp.data;
 					if (doneCount == count) {
 						currentStep.status = 'done';
 						def.resolve();
@@ -133,9 +133,9 @@ class MaximalCtrl {
 		var currentStep = {op: 'Getting a file\'s contents', status: '...', data: undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<any> = this.DriveService.files.get({fileId: id, alt: 'media'});
-		ro.promise.then((resp:any) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<any>) => {
 			currentStep.status = 'done';
-			currentStep.data = resp;
+			currentStep.data = resp.data;
 		});
 		return ro.promise;
 	}
@@ -147,9 +147,9 @@ class MaximalCtrl {
 			fileId: id,
 			resource: {title: newTitle}
 		});
-		ro.promise.then((resp:NgGapi.IDriveFile) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 			currentStep.status = 'done';
-			currentStep.data = resp.title;
+			currentStep.data = resp.data.title;
 		});
 		return ro.promise;
 	}
@@ -158,9 +158,9 @@ class MaximalCtrl {
 		var currentStep = {op: 'Using Update to update a file\'s title', status: '...', data: undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.update({title: newTitle}, {fileId: id});
-		ro.promise.then((resp:NgGapi.IDriveFile) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 			currentStep.status = 'done';
-			currentStep.data = resp.title;
+			currentStep.data = resp.data.title;
 		});
 		return ro.promise;
 	}
@@ -172,9 +172,9 @@ class MaximalCtrl {
 			fileId: id,
 			uploadType: 'media'
 		}, newContent);
-		ro.promise.then((resp:NgGapi.IDriveFile) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 			currentStep.status = 'done';
-			currentStep.data = 'content length = ' + resp.fileSize;
+			currentStep.data = 'content length = ' + resp.data.fileSize;
 		});
 		return ro.promise;
 	}
@@ -185,7 +185,7 @@ class MaximalCtrl {
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.touch({fileId: id});
 		ro.promise.then((resp:NgGapi.IDriveFile) => {
 			currentStep.status = 'done';
-			currentStep.data = resp.modifiedDate;
+			currentStep.data = resp.data.modifiedDate;
 		});
 		return ro.promise;
 	}
@@ -194,9 +194,9 @@ class MaximalCtrl {
 		var currentStep = {op: 'Trash a file', status: '...', data: undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.trash({fileId: id});
-		ro.promise.then((resp:NgGapi.IDriveFile) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 			currentStep.status = 'done';
-			currentStep.data = 'trashed=' + resp.labels.trashed;
+			currentStep.data = 'trashed=' + resp.data.labels.trashed;
 		});
 		return ro.promise;
 	}
@@ -205,9 +205,9 @@ class MaximalCtrl {
 		var currentStep = {op: 'Untrash a file', status: '...', data: undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.untrash({fileId: id});
-		ro.promise.then((resp:NgGapi.IDriveFile) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 			currentStep.status = 'done';
-			currentStep.data = 'trashed=' + resp.labels.trashed;
+			currentStep.data = 'trashed=' + resp.data.labels.trashed;
 		});
 		return ro.promise;
 	}
@@ -216,9 +216,9 @@ class MaximalCtrl {
 		var currentStep = {op: 'Delete a file', status: '...', data: undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.del({fileId: id});
-		ro.promise.then((resp:NgGapi.IDriveFile) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 			currentStep.status = 'done';
-			currentStep.data = resp;
+			currentStep.data = resp.data;
 		});
 		return ro.promise;
 	}
@@ -228,13 +228,13 @@ class MaximalCtrl {
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.emptyTrash();
 		ro.promise.then(
-			(resp:NgGapi.IDriveFile) => {
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 				currentStep.status = 'done';
-				currentStep.data = resp;
+				currentStep.data = resp.data;
 			},
 			(resp:any) => {
 				currentStep.status = 'failed';
-				currentStep.data = resp;
+				currentStep.data = resp.data;
 			});
 		return ro.promise;
 	}
@@ -252,9 +252,9 @@ class MaximalCtrl {
 			alt: 'media'
 		}, watchBody);
 		ro.promise.then(
-			(resp:NgGapi.IDriveFile) => {
+			(resp:ng.IHttpPromiseCallbackArg<any>) => {
 				currentStep.status = 'done';
-				currentStep.data = resp.kind + " " + resp['resourceUri'];
+				currentStep.data = resp.data.kind + " " + resp['resourceUri'];
 			});
 		return ro.promise;
 	}

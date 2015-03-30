@@ -64,7 +64,7 @@ var MaximalCtrl = (function () {
         ro.promise.then(function (resp) {
             // update the display with the status and response data
             currentStep.status = 'done';
-            currentStep.data = resp.title;
+            currentStep.data = resp.data.title;
         });
         // return the promise for chaining
         return ro.promise;
@@ -92,8 +92,8 @@ var MaximalCtrl = (function () {
                 mimeType: 'text/plain'
             }, { uploadType: 'multipart' }, contentBase + title + '-' + i).promise.then(function (resp) {
                 currentStep.status = '' + ++doneCount;
-                currentStep.data = resp.id + ' , content length = ' + resp.fileSize;
-                _this.currentFile = resp;
+                currentStep.data = resp.data.id + ' , content length = ' + resp.data.fileSize;
+                _this.currentFile = resp.data;
                 if (doneCount == count) {
                     currentStep.status = 'done';
                     def.resolve();
@@ -109,7 +109,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.get({ fileId: id, alt: 'media' });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp;
+            currentStep.data = resp.data;
         });
         return ro.promise;
     };
@@ -122,7 +122,7 @@ var MaximalCtrl = (function () {
         });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.title;
+            currentStep.data = resp.data.title;
         });
         return ro.promise;
     };
@@ -132,7 +132,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.update({ title: newTitle }, { fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.title;
+            currentStep.data = resp.data.title;
         });
         return ro.promise;
     };
@@ -145,7 +145,7 @@ var MaximalCtrl = (function () {
         }, newContent);
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = 'content length = ' + resp.fileSize;
+            currentStep.data = 'content length = ' + resp.data.fileSize;
         });
         return ro.promise;
     };
@@ -155,7 +155,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.touch({ fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.modifiedDate;
+            currentStep.data = resp.data.modifiedDate;
         });
         return ro.promise;
     };
@@ -165,7 +165,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.trash({ fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = 'trashed=' + resp.labels.trashed;
+            currentStep.data = 'trashed=' + resp.data.labels.trashed;
         });
         return ro.promise;
     };
@@ -175,7 +175,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.untrash({ fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = 'trashed=' + resp.labels.trashed;
+            currentStep.data = 'trashed=' + resp.data.labels.trashed;
         });
         return ro.promise;
     };
@@ -185,7 +185,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.del({ fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp;
+            currentStep.data = resp.data;
         });
         return ro.promise;
     };
@@ -195,10 +195,10 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.emptyTrash();
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp;
+            currentStep.data = resp.data;
         }, function (resp) {
             currentStep.status = 'failed';
-            currentStep.data = resp;
+            currentStep.data = resp.data;
         });
         return ro.promise;
     };
@@ -216,7 +216,7 @@ var MaximalCtrl = (function () {
         }, watchBody);
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.kind + " " + resp['resourceUri'];
+            currentStep.data = resp.data.kind + " " + resp['resourceUri'];
         });
         return ro.promise;
     };
