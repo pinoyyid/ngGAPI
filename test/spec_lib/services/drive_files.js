@@ -117,11 +117,11 @@ describe('Service: DriveService', function () {
 			function (reason) {expect(reason).toMatch('D136')}
 		);
 
-		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'media'}, 'not b64');
-		ro.promise.then(
-			function () {expect('should have failed D142 base 64').toBe('false')},
-			function (reason) {expect(reason).toMatch('D142')}
-		);
+		//var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'media'}, 'not b64');
+		//ro.promise.then(
+		//	function () {expect('should have failed D142 base 64').toBe('false')},
+		//	function (reason) {expect(reason).toMatch('D142')}
+		//);
 
 		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'multipart'}, 'Zm9v');
 		ro.promise.then(
