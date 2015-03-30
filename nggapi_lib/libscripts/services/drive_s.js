@@ -70,11 +70,11 @@ var NgGapi;
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 if (params.alt == 'media') {
-                    responseObject.data['media'] = resp; // if media, assign to media property
+                    responseObject.data['media'] = resp.data; // if media, assign to media property
                 }
                 else {
-                    _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                    _this.self.lastFile = resp;
+                    _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                    _this.self.lastFile = resp.data;
                 }
             });
             return responseObject;
@@ -112,14 +112,14 @@ var NgGapi;
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = { promise: promise, data: [], headers: undefined };
             promise.then(function (resp) {
-                var l = resp.items.length;
+                var l = resp.data.items.length;
                 for (var i = 0; i < l; i++) {
-                    responseObject.data.push(resp.items[i]); // push each new file
+                    responseObject.data.push(resp.data.items[i]); // push each new file
                 }
             }, undefined, function (resp) {
-                var l = resp.items.length;
+                var l = resp.data.items.length;
                 for (var i = 0; i < l; i++) {
-                    responseObject.data.push(resp.items[i]); // push each new file
+                    responseObject.data.push(resp.data.items[i]); // push each new file
                 }
             });
             return responseObject;
@@ -155,8 +155,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
-                _this.self.transcribeProperties(resp, responseObject);
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -205,8 +205,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
-                _this.self.transcribeProperties(resp, responseObject);
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -231,8 +231,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -256,8 +256,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -281,8 +281,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -333,8 +333,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: undefined, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -358,8 +358,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
