@@ -203,6 +203,7 @@ module NgGapi {
 				var ms = at?at.replace('!RETRY=', ''):500;
 				//console.log('sleeping for ms='+ms);
 				this.sleep(+ms).then(() => {
+					//console.log('retrying');
 					this._doHttp(configObject, def, retryCounter);
 				})
 			}

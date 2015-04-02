@@ -194,6 +194,7 @@ var NgGapi;
                 var ms = at ? at.replace('!RETRY=', '') : 500;
                 //console.log('sleeping for ms='+ms);
                 this.sleep(+ms).then(function () {
+                    //console.log('retrying');
                     _this._doHttp(configObject, def, retryCounter);
                 });
             }

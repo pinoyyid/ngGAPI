@@ -189,7 +189,7 @@ var NgGapi;
             }
             var configObject;
             if (!params || !params.uploadType) {
-                configObject = { method: 'PUT', url: this.self.filesUrl.replace(':id', params.fileId), data: file }; // no params is a simple metadata insert
+                configObject = { method: 'PUT', url: this.self.filesUrl.replace(':id', id), data: file }; // no params is a simple metadata insert
             }
             else {
                 try {

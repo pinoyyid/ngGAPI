@@ -68,7 +68,7 @@ var NgGapi;
                 this.getAccessToken = ownGetAccessTokenFunction;
             }
             ;
-            if (this.immediateMode) {
+            if (immediateMode) {
                 this.isAuthedYet = true;
             }
         }

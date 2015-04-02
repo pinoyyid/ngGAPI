@@ -196,7 +196,7 @@ module NgGapi {
 			}
 			var configObject:mng.IRequestConfig;
 			if (!params || !params.uploadType) {
-				configObject = {method: 'PUT', url: this.self.filesUrl.replace(':id', params.fileId), data: file};      // no params is a simple metadata insert
+				configObject = {method: 'PUT', url: this.self.filesUrl.replace(':id', id), data: file};      // no params is a simple metadata insert
 			} else {
 				try {
 					configObject = this.self.buildUploadConfigObject(file, params, content, false);                     // build a config object from params

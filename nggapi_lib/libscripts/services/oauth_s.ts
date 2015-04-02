@@ -71,7 +71,7 @@ module NgGapi {
         this.getAccessToken = ownGetAccessTokenFunction;
       };
 
-      if (this.immediateMode) {                                                                                         // did user override immediate mode
+      if (immediateMode) {                                                                                         // did user override immediate mode
           this.isAuthedYet = true;
       }
     }
