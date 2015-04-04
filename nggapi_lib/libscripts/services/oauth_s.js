@@ -186,6 +186,9 @@ var NgGapi;
                 this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user? ');
                 return;
             }
+            if (token.access_token && token.access_token != null) {
+                this.testingAccessToken = undefined; // lose any testing token
+            }
             // if app has requested auto-refresh, set up the timeout to refresh
             if (this.tokenRefreshPolicy == 1 /* PRIOR_TO_EXPIRY */) {
                 var expiry = token.expires_in;

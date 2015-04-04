@@ -210,6 +210,10 @@ module NgGapi {
         return;
       }
 
+       if (token.access_token && token.access_token != null) {                                                          // if there is an access token
+           this.testingAccessToken = undefined;                                                                         // lose any testing token
+       }
+
       // if app has requested auto-refresh, set up the timeout to refresh
       if (this.tokenRefreshPolicy == TokenRefreshPolicy.PRIOR_TO_EXPIRY) {
         var expiry:number = token.expires_in;
