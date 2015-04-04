@@ -308,7 +308,8 @@ declare module NgGapi{
    * Failure is total failure, i.e. after any retries
    */
   export interface IDriveResponseObject<P,D> {
-    promise:mng.IPromise<{data:mng.IHttpPromiseCallbackArg<P>}>;
+    //promise:mng.IPromise<{data:mng.IHttpPromiseCallbackArg<P>}>;
+    promise:mng.IPromise<mng.IHttpPromiseCallbackArg<P>>;
     data:D
     //data:IDriveFile | Array<IDriveFile> | {media: string};
     headers:(name:string)=>string

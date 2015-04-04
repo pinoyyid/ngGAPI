@@ -147,9 +147,11 @@ var NgGapi;
                 headers: undefined
             };
             promise.then(function (resp) {
-                var l = resp.data.items.length;
-                for (var i = 0; i < l; i++) {
-                    responseObject.data.push(resp.data.items[i]); // push each new file
+                if (!!resp.data && !!resp.data.items) {
+                    var l = resp.data.items.length;
+                    for (var i = 0; i < l; i++) {
+                        responseObject.data.push(resp.data.items[i]); // push each new file
+                    }
                 }
             }, undefined, function (resp) {
                 var l = resp.data.items.length;
@@ -256,9 +258,11 @@ var NgGapi;
                 headers: undefined
             };
             promise.then(function (resp) {
-                var l = resp.data.items.length;
-                for (var i = 0; i < l; i++) {
-                    responseObject.data.push(resp.data.items[i]); // push each new file
+                if (!!resp.data && !!resp.data.items) {
+                    var l = resp.data.items.length;
+                    for (var i = 0; i < l; i++) {
+                        responseObject.data.push(resp.data.items[i]); // push each new file
+                    }
                 }
             }, undefined, function (resp) {
                 var l = resp.data.items.length;

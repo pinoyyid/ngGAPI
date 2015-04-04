@@ -158,13 +158,15 @@ module NgGapi {
 				data: [],
 				headers: undefined
 			};
-			promise.then((resp:{data:IDriveChangeList})=> {                                                      // on complete
+			promise.then((resp:{data:IDriveChangeList})=> {                                                             // on complete
+				if (!!resp.data && !! resp.data.items) {
 					var l = resp.data.items.length;
 					for (var i = 0; i < l; i++) {
 						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
 					}   // Nb can't use concat as that creates a new array
+				}
 				}, undefined,
-				(resp:{data:IDriveChangeList})=> {                                                               // on notify, ie a single page of results
+				(resp:{data:IDriveChangeList})=> {                                                                      // on notify, ie a single page of results
 					var l = resp.data.items.length;
 					for (var i = 0; i < l; i++) {
 						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
@@ -258,7 +260,7 @@ module NgGapi {
 			}
 			if (excludeTrashed) {                                                                                       // if wants to exclude trashed
 				var trashed = 'trashed = false';
-				params.q = params.q ? params.q + ' and ' + trashed : trashed;                                                   // set or append to q
+				params.q = params.q ? params.q + ' and ' + trashed : trashed;                                           // set or append to q
 				;
 			}
 			var co:mng.IRequestConfig = {                                                                               // build request config
@@ -272,16 +274,18 @@ module NgGapi {
 				data: [],
 				headers: undefined
 			};
-			promise.then((resp:{data:IDriveFileList})=> {                                                                   // on complete
-					var l = resp.data.items.length;
-					for (var i = 0; i < l; i++) {
-						responseObject.data.push(resp.data.items[i]);                                                            // push each new file
-					}   // Nb can't use concat as that creates a new array
+			promise.then((resp:{data:IDriveFileList})=> {    			                                                // on complete
+					if (!!resp.data && !! resp.data.items) {
+						var l = resp.data.items.length;
+						for (var i = 0; i < l; i++) {
+							responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+						}   // Nb can't use concat as that creates a new array
+					}
 				}, undefined,
-				(resp:{data:IDriveFileList})=> {                                                                            // on notify, ie a single page of results
+				(resp:{data:IDriveFileList})=> {                                                                        // on notify, ie a single page of results
 					var l = resp.data.items.length;
 					for (var i = 0; i < l; i++) {
-						responseObject.data.push(resp.data.items[i]);                                                            // push each new file
+						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
 					}   // Nb can't use concat as that creates a new array
 				});
 			return responseObject;
