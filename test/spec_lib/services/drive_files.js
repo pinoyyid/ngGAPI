@@ -21,10 +21,12 @@ describe('Service: DriveService', function () {
 		$q = _$q_;
 		$rootScope = _$rootScope_;
 		$timeout = _$timeout_;
-		// mock out the underlyinh getAccessToken to return a test string
+		// mock out the underlying getAccessToken to return a test string
 		DriveService.getHttpService().getOauthService().getAccessToken = function () {
 			return 'testaccesstoken'
 		};
+		// disable queue mode in the HttpService
+		DriveService.getHttpService().isQueueMode = false;
 	}));
 
 	beforeEach(function () {
@@ -115,11 +117,11 @@ describe('Service: DriveService', function () {
 			function (reason) {expect(reason).toMatch('D136')}
 		);
 
-		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'media'}, 'not b64');
-		ro.promise.then(
-			function () {expect('should have failed D142 base 64').toBe('false')},
-			function (reason) {expect(reason).toMatch('D142')}
-		);
+		//var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'media'}, 'not b64');
+		//ro.promise.then(
+		//	function () {expect('should have failed D142 base 64').toBe('false')},
+		//	function (reason) {expect(reason).toMatch('D142')}
+		//);
 
 		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'multipart'}, 'Zm9v');
 		ro.promise.then(

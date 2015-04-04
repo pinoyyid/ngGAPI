@@ -64,7 +64,7 @@ var MaximalCtrl = (function () {
         ro.promise.then(function (resp) {
             // update the display with the status and response data
             currentStep.status = 'done';
-            currentStep.data = resp.data.title;
+            currentStep.data = resp.title;
         });
         // return the promise for chaining
         return ro.promise;
@@ -89,11 +89,16 @@ var MaximalCtrl = (function () {
         for (var i = 0; i < count; i++) {
             this.DriveService.files.insert({
                 title: title + '-' + i,
-                mimeType: 'text/plain'
-            }, { uploadType: 'multipart' }, contentBase + title + '-' + i).promise.then(function (resp) {
+                mimeType: 'application/vnd.google-apps.document'
+            }).promise.then(function (resp) {
                 currentStep.status = '' + ++doneCount;
-                currentStep.data = resp.data.id + ' , content length = ' + resp.data.fileSize;
-                _this.currentFile = resp.data;
+                currentStep.data = resp.id + ' , content length = ' + resp.fileSize;
+                var params = {};
+                params.convert = true;
+                params.uploadType = 'media';
+                params.fileId = resp.id;
+                _this.DriveService.files.update(resp, params, 'some content');
+                _this.currentFile = resp;
                 if (doneCount == count) {
                     currentStep.status = 'done';
                     def.resolve();
@@ -109,7 +114,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.get({ fileId: id, alt: 'media' });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.data;
+            currentStep.data = resp;
         });
         return ro.promise;
     };
@@ -122,7 +127,7 @@ var MaximalCtrl = (function () {
         });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.data.title;
+            currentStep.data = resp.title;
         });
         return ro.promise;
     };
@@ -132,7 +137,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.update({ title: newTitle }, { fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.data.title;
+            currentStep.data = resp.title;
         });
         return ro.promise;
     };
@@ -142,10 +147,10 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.update(undefined, {
             fileId: id,
             uploadType: 'media'
-        }, newContent);
+        }, btoa(newContent));
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = 'content length = ' + resp.data.fileSize;
+            currentStep.data = 'content length = ' + resp.fileSize;
         });
         return ro.promise;
     };
@@ -155,7 +160,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.touch({ fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.data.modifiedDate;
+            currentStep.data = resp.modifiedDate;
         });
         return ro.promise;
     };
@@ -165,7 +170,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.trash({ fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = 'trashed=' + resp.data.labels.trashed;
+            currentStep.data = 'trashed=' + resp.labels.trashed;
         });
         return ro.promise;
     };
@@ -175,7 +180,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.untrash({ fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = 'trashed=' + resp.data.labels.trashed;
+            currentStep.data = 'trashed=' + resp.labels.trashed;
         });
         return ro.promise;
     };
@@ -185,7 +190,7 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.del({ fileId: id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.data;
+            currentStep.data = resp;
         });
         return ro.promise;
     };
@@ -195,10 +200,10 @@ var MaximalCtrl = (function () {
         var ro = this.DriveService.files.emptyTrash();
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.data;
+            currentStep.data = resp;
         }, function (resp) {
             currentStep.status = 'failed';
-            currentStep.data = resp.data;
+            currentStep.data = resp;
         });
         return ro.promise;
     };
@@ -216,7 +221,7 @@ var MaximalCtrl = (function () {
         }, watchBody);
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
-            currentStep.data = resp.data.kind + " " + resp['resourceUri'];
+            currentStep.data = resp.kind + " " + resp['resourceUri'];
         });
         return ro.promise;
     };
@@ -231,4 +236,4 @@ var MaximalCtrl = (function () {
 //    $scope.sig = 'MainCtrl';
 //  });
 angular.module('MyApp').controller('MaximalCtrl', MaximalCtrl);
-//# sourceMappingURL=maximal_c.js.map
+//# sourceMappingURL=maximal_gdoc_c.js.map

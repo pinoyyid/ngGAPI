@@ -33,14 +33,16 @@ var NgGapi;
          * @param clientId. The Google client ID
          * @param tokenRefreshPolicy  One of the TokenRefreshPolicy Enum values
          * @param noAccessTokenPolicy (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
+         * @param immediateMode  set to true to suppress the initial auth,
          * @param ownGetAccessTokenFunction (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
          * @param testingRefreshToken - if set, this is used to fetch access tokens instead of gapi
          * @param testingClientSecret - if set, this is used to fetch access tokens instead of gapi
          * @param $log
          * @param $window
          * @param $http
+         * @param $timeout
          */
-        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, ownGetAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http) {
+        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, immediateMode, ownGetAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http, $timeout) {
             //console.log("OAuth instantiated with " + scopes);
             //$log.log("scopes", this.scopes);
             //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
@@ -49,18 +51,25 @@ var NgGapi;
             this.clientId = clientId;
             this.tokenRefreshPolicy = tokenRefreshPolicy;
             this.noAccesTokenPolicy = noAccesTokenPolicy;
+            this.immediateMode = immediateMode;
             this.ownGetAccessTokenFunction = ownGetAccessTokenFunction;
             this.testingRefreshToken = testingRefreshToken;
             this.testingClientSecret = testingClientSecret;
             this.$log = $log;
             this.$window = $window;
             this.$http = $http;
+            this.$timeout = $timeout;
             this.sig = 'OauthService'; // used in unit testing to confirm DI
             this.isAuthInProgress = false; // true if there is an outstanding auth (ie. refresh token) in progress to prevent multiples
             this.isAuthedYet = false; // first time flag, used to set immediate mode
+            this.GAPI_RETRY_MS = 200; // how long to wait for gapi load before retrying a refresh
             // if dev has requested to override the default getAccessToken function
             if (ownGetAccessTokenFunction) {
                 this.getAccessToken = ownGetAccessTokenFunction;
+            }
+            ;
+            if (immediateMode) {
+                this.isAuthedYet = true;
             }
         }
         /**
@@ -110,8 +119,11 @@ var NgGapi;
                 return;
             }
             if (!this.isGapiLoaded()) {
-                this.$log.warn('[O81] gapi not yet loaded');
+                this.$log.warn('[O81] gapi not yet loaded, retrying...');
                 this.testStatus = 'O81';
+                this.$timeout(function () {
+                    _this.refreshAccessToken();
+                }, this.GAPI_RETRY_MS);
                 return;
             }
             this.isAuthInProgress = true;
@@ -139,11 +151,12 @@ var NgGapi;
                 method: 'POST',
                 url: url,
                 params: {
-                    client_id: this.clientId,
+                    client_id: encodeURI(this.clientId),
                     //client_secret:'Y_vhMLV9wkr88APsQWXPUrhq',
-                    client_secret: secret,
+                    client_secret: encodeURI(secret),
                     refresh_token: rt,
-                    grant_type: 'refresh_token'
+                    grant_type: 'refresh_token',
+                    foo: 'bar'
                 },
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }).success(function (data, status, headers, config) {
@@ -155,6 +168,7 @@ var NgGapi;
             }).error(function (data, status, headers, config) {
                 // called asynchronously if an error occurs
                 // or server returns response with an error status.
+                _this.$log.error('[O191] problem refreshing test refresh token ' + status + ' ' + data.error + ' ' + data.error_description);
             });
         };
         /**
@@ -171,6 +185,9 @@ var NgGapi;
             if (!token) {
                 this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user? ');
                 return;
+            }
+            if (token.access_token && token.access_token != null) {
+                this.testingAccessToken = undefined; // lose any testing token
             }
             // if app has requested auto-refresh, set up the timeout to refresh
             if (this.tokenRefreshPolicy == 1 /* PRIOR_TO_EXPIRY */) {
@@ -206,6 +223,8 @@ NgGapi['Config'] = function () {
     var tokenRefreshPolicy = 0 /* ON_DEMAND */; // default is on demand
     var noAccessTokenPolicy = 500; // default is to retry after 1/2 sec
     var getAccessTokenFunction = undefined;
+    var immediateMode = false;
+    ;
     var testingRefreshToken = undefined;
     var testingClientSecret = undefined;
     return {
@@ -220,6 +239,9 @@ NgGapi['Config'] = function () {
         },
         setNoAccessTokenPolicy: function (_policy) {
             noAccessTokenPolicy = _policy;
+        },
+        setImmediateMode: function (_mode) {
+            immediateMode = _mode;
         },
         setGetAccessTokenFunction: function (_function) {
             getAccessTokenFunction = _function;
@@ -236,7 +258,8 @@ NgGapi['Config'] = function () {
             var $log = myInjector.get("$log");
             var $window = myInjector.get("$window");
             var $http = myInjector.get("$http");
-            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, getAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http);
+            var $timeout = myInjector.get("$timeout");
+            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, immediateMode, getAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http, $timeout);
         }
     };
 };

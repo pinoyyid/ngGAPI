@@ -77,10 +77,10 @@ module NgGapi {
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
 				if (params.alt == 'media') {                                                                            // figure out if the response is a file or media
-					responseObject.data['media'] = resp;                                                                // if media, assign to media property
+					responseObject.data['media'] = resp.data;                                                                // if media, assign to media property
 				} else {
-					this.self.transcribeProperties(resp, responseObject);                                               // if file, transcribe properties
-					this.self.lastFile = resp;
+					this.self.transcribeProperties(resp.data, responseObject);                                               // if file, transcribe properties
+					this.self.lastFile = resp.data;
 				}
 			});
 			return responseObject;
@@ -118,16 +118,16 @@ module NgGapi {
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile[]> = {promise: promise, data: [], headers: undefined};
-			promise.then((resp:NgGapi.IDriveList)=> {                                                                   // on complete
-				var l = resp.items.length;
+			promise.then((resp:{data:NgGapi.IDriveList})=> {                                                                   // on complete
+				var l = resp.data.items.length;
 				for (var i=0; i< l; i++) {
-					responseObject.data.push(resp.items[i]);                                                            // push each new file
+					responseObject.data.push(resp.data.items[i]);                                                            // push each new file
 				}   // Nb can't use concat as that creates a new array
 			},undefined,
-				(resp:NgGapi.IDriveList)=> {                                                                            // on notify, ie a single page of results
-				var l = resp.items.length;
+				(resp:{data:NgGapi.IDriveList})=> {                                                                            // on notify, ie a single page of results
+				var l = resp.data.items.length;
 				for (var i=0; i< l; i++) {
-					responseObject.data.push(resp.items[i]);                                                            // push each new file
+					responseObject.data.push(resp.data.items[i]);                                                            // push each new file
 				}   // Nb can't use concat as that creates a new array
 			});
 			return responseObject;
@@ -141,16 +141,16 @@ module NgGapi {
 		 *
 		 * @param file  Files resource with at least a mime type
 		 * @param params see Google docs
-		 * @param base64EncodedContent
+		 * @param content
 		 * @returns IDriveResponseObject
 		 */
-		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, base64EncodedContent?:string):IDriveResponseObject<NgGapi.IDriveFile> {
+		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, content?:string):IDriveResponseObject<NgGapi.IDriveFile> {
 			var configObject:mng.IRequestConfig;
 			if (!params || !params.uploadType) {
 				configObject = {method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file};                // no params is a simple metadata insert
 			} else {
 				try {
-					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, true);         // build a config object from params
+					configObject = this.self.buildUploadConfigObject(file, params, content, true);                      // build a config object from params
 					configObject.method = 'POST';
 					configObject.url = this.self.filesUploadUrl;                                                        // nb non-standard URL
 				} catch (ex) {                                                                                          // any validation errors throw an exception
@@ -163,8 +163,8 @@ module NgGapi {
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers
-				this.self.transcribeProperties(resp, responseObject);
-				this.self.lastFile = resp;
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
 			});
 			return responseObject;
 		}
@@ -178,10 +178,10 @@ module NgGapi {
 		 *
 		 * @param file  Files resource
 		 * @param params see Google docs
-		 * @param base64EncodedContent
+		 * @param content
 		 * @returns IDriveResponseObject
 		 */
-		filesUpdate(file:IDriveFile, params?:IDriveUpdateParameters, base64EncodedContent?:string):IDriveResponseObject<NgGapi.IDriveFile> {
+		filesUpdate(file:IDriveFile, params?:IDriveUpdateParameters, content?:string):IDriveResponseObject<NgGapi.IDriveFile> {
 			// validate there is an id somewhere, either in the passed file, or in params.fileId
 			var id;
 			if (params && params.fileId) {                                                                              // if in params.fileID
@@ -196,10 +196,10 @@ module NgGapi {
 			}
 			var configObject:mng.IRequestConfig;
 			if (!params || !params.uploadType) {
-				configObject = {method: 'PUT', url: this.self.filesUrl.replace(':id', params.fileId), data: file};      // no params is a simple metadata insert
+				configObject = {method: 'PUT', url: this.self.filesUrl.replace(':id', id), data: file};      // no params is a simple metadata insert
 			} else {
 				try {
-					configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, false);        // build a config object from params
+					configObject = this.self.buildUploadConfigObject(file, params, content, false);                     // build a config object from params
 					configObject.method = 'PUT';
 					configObject.url = this.self.filesUploadUrl+'/'+params.fileId;                                      // nb non-standard URL
 				} catch (ex) {                                                                                          // any validation errors throw an exception
@@ -211,8 +211,8 @@ module NgGapi {
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers
-				this.self.transcribeProperties(resp, responseObject);
-				this.self.lastFile = resp;
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
 			});
 			return responseObject;
 		}
@@ -239,8 +239,8 @@ module NgGapi {
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-				this.self.transcribeProperties(resp, responseObject);                                                   // if file, transcribe properties
-				this.self.lastFile = resp;
+				this.self.transcribeProperties(resp.data, responseObject);                                                   // if file, transcribe properties
+				this.self.lastFile = resp.data;
 			});
 			return responseObject;
 		}
@@ -265,8 +265,8 @@ module NgGapi {
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-				this.self.transcribeProperties(resp, responseObject);                                                   // if file, transcribe properties
-				this.self.lastFile = resp;
+				this.self.transcribeProperties(resp.data, responseObject);                                                   // if file, transcribe properties
+				this.self.lastFile = resp.data;
 			});
 			return responseObject;
 		}
@@ -291,8 +291,8 @@ module NgGapi {
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-				this.self.transcribeProperties(resp, responseObject);                                                   // if file, transcribe properties
-				this.self.lastFile = resp;
+				this.self.transcribeProperties(resp.data, responseObject);                                                   // if file, transcribe properties
+				this.self.lastFile = resp.data;
 			});
 			return responseObject;
 		}
@@ -347,8 +347,8 @@ module NgGapi {
 			var responseObject:IDriveResponseObject<IApiChannel> = {promise: promise, data: undefined, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<IApiChannel>)=> {                                            // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-				this.self.transcribeProperties(resp, responseObject);                                                   // if file, transcribe properties
-				this.self.lastFile = resp;
+				this.self.transcribeProperties(resp.data, responseObject);                                                   // if file, transcribe properties
+				this.self.lastFile = resp.data;
 			});
 			return responseObject;
 		}
@@ -373,8 +373,8 @@ module NgGapi {
 			var responseObject:IDriveResponseObject<NgGapi.IDriveFile> = {promise: promise, data: {}, headers: undefined};
 			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveFile|string>)=> {                               // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-				this.self.transcribeProperties(resp, responseObject);                                                   // if file, transcribe properties
-				this.self.lastFile = resp;
+				this.self.transcribeProperties(resp.data, responseObject);                                                   // if file, transcribe properties
+				this.self.lastFile = resp.data;
 			});
 			return responseObject;
 		}
@@ -421,24 +421,23 @@ module NgGapi {
 		 *
 		 * @param file
 		 * @param params
-		 * @param base64EncodedContent
+		 * @param content
 		 * @param isInsert true for insert, false/undefined for Update
 		 * @returns {undefined}
 		 *
 		 * @throws D115 resumables not supported
-		 * @throws D119 safety check that the media is base64 encoded
 		 * @throws D125 safety check there is a mime type
 		 */
-		buildUploadConfigObject(file:IDriveFile, params:IDriveInsertParameters|IDriveUpdateParameters, base64EncodedContent:string, isInsert:boolean):mng.IRequestConfig {
+		buildUploadConfigObject(file:IDriveFile, params:IDriveInsertParameters|IDriveUpdateParameters, content:string, isInsert:boolean):mng.IRequestConfig {
 			// check for a resumable upload and reject coz we don't support them yet
 			if (params.uploadType == 'resumable') {
 				throw "[D136] resumable uploads are not currently supported";
 			}
 
-			// check the media is base64 encoded
-			if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
-				throw ("[D142] content does not appear to be base64 encoded.");
-			}
+			//// check the media is base64 encoded
+			//if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
+			//	throw ("[D142] content does not appear to be base64 encoded.");
+			//}
 
 			// check the dev provided a mime type for media or multipart
 			if ((params.uploadType == 'multipart' || params.uploadType == 'media')
@@ -463,9 +462,8 @@ module NgGapi {
 					JSON.stringify(file) +
 					delimiter +
 					mimeHeader +
-					'Content-Transfer-Encoding: base64\r\n' +
 					'\r\n' +
-					base64EncodedContent +
+					content +
 					close_delim;
 				//params['alt'] = 'json';
 				var headers = {};
@@ -473,12 +471,12 @@ module NgGapi {
 			}
 
 			if (params.uploadType == 'media') {
-				body = base64EncodedContent;
+				body = content;
 				var headers = {};
 				if (isInsert) {
 					headers['Content-Type'] = file.mimeType;
 				}
-				headers['Content-Transfer-Encoding'] = 'base64';
+				//headers['Content-Transfer-Encoding'] = 'BASE64';
 			}
 
 			// return the finished config object

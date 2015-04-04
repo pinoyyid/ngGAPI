@@ -70,11 +70,11 @@ var NgGapi;
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 if (params.alt == 'media') {
-                    responseObject.data['media'] = resp; // if media, assign to media property
+                    responseObject.data['media'] = resp.data; // if media, assign to media property
                 }
                 else {
-                    _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                    _this.self.lastFile = resp;
+                    _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                    _this.self.lastFile = resp.data;
                 }
             });
             return responseObject;
@@ -112,14 +112,14 @@ var NgGapi;
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = { promise: promise, data: [], headers: undefined };
             promise.then(function (resp) {
-                var l = resp.items.length;
+                var l = resp.data.items.length;
                 for (var i = 0; i < l; i++) {
-                    responseObject.data.push(resp.items[i]); // push each new file
+                    responseObject.data.push(resp.data.items[i]); // push each new file
                 }
             }, undefined, function (resp) {
-                var l = resp.items.length;
+                var l = resp.data.items.length;
                 for (var i = 0; i < l; i++) {
-                    responseObject.data.push(resp.items[i]); // push each new file
+                    responseObject.data.push(resp.data.items[i]); // push each new file
                 }
             });
             return responseObject;
@@ -132,10 +132,10 @@ var NgGapi;
          *
          * @param file  Files resource with at least a mime type
          * @param params see Google docs
-         * @param base64EncodedContent
+         * @param content
          * @returns IDriveResponseObject
          */
-        DriveService.prototype.filesInsert = function (file, params, base64EncodedContent) {
+        DriveService.prototype.filesInsert = function (file, params, content) {
             var _this = this;
             var configObject;
             if (!params || !params.uploadType) {
@@ -143,7 +143,7 @@ var NgGapi;
             }
             else {
                 try {
-                    configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, true); // build a config object from params
+                    configObject = this.self.buildUploadConfigObject(file, params, content, true); // build a config object from params
                     configObject.method = 'POST';
                     configObject.url = this.self.filesUploadUrl; // nb non-standard URL
                 }
@@ -155,8 +155,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
-                _this.self.transcribeProperties(resp, responseObject);
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -168,10 +168,10 @@ var NgGapi;
          *
          * @param file  Files resource
          * @param params see Google docs
-         * @param base64EncodedContent
+         * @param content
          * @returns IDriveResponseObject
          */
-        DriveService.prototype.filesUpdate = function (file, params, base64EncodedContent) {
+        DriveService.prototype.filesUpdate = function (file, params, content) {
             var _this = this;
             // validate there is an id somewhere, either in the passed file, or in params.fileId
             var id;
@@ -189,11 +189,11 @@ var NgGapi;
             }
             var configObject;
             if (!params || !params.uploadType) {
-                configObject = { method: 'PUT', url: this.self.filesUrl.replace(':id', params.fileId), data: file }; // no params is a simple metadata insert
+                configObject = { method: 'PUT', url: this.self.filesUrl.replace(':id', id), data: file }; // no params is a simple metadata insert
             }
             else {
                 try {
-                    configObject = this.self.buildUploadConfigObject(file, params, base64EncodedContent, false); // build a config object from params
+                    configObject = this.self.buildUploadConfigObject(file, params, content, false); // build a config object from params
                     configObject.method = 'PUT';
                     configObject.url = this.self.filesUploadUrl + '/' + params.fileId; // nb non-standard URL
                 }
@@ -205,8 +205,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
-                _this.self.transcribeProperties(resp, responseObject);
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -231,8 +231,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -256,8 +256,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -281,8 +281,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -333,8 +333,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: undefined, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -358,8 +358,8 @@ var NgGapi;
             var responseObject = { promise: promise, data: {}, headers: undefined };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
-                _this.self.transcribeProperties(resp, responseObject); // if file, transcribe properties
-                _this.self.lastFile = resp;
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
@@ -400,23 +400,22 @@ var NgGapi;
          *
          * @param file
          * @param params
-         * @param base64EncodedContent
+         * @param content
          * @param isInsert true for insert, false/undefined for Update
          * @returns {undefined}
          *
          * @throws D115 resumables not supported
-         * @throws D119 safety check that the media is base64 encoded
          * @throws D125 safety check there is a mime type
          */
-        DriveService.prototype.buildUploadConfigObject = function (file, params, base64EncodedContent, isInsert) {
+        DriveService.prototype.buildUploadConfigObject = function (file, params, content, isInsert) {
             // check for a resumable upload and reject coz we don't support them yet
             if (params.uploadType == 'resumable') {
                 throw "[D136] resumable uploads are not currently supported";
             }
-            // check the media is base64 encoded
-            if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
-                throw ("[D142] content does not appear to be base64 encoded.");
-            }
+            //// check the media is base64 encoded
+            //if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
+            //	throw ("[D142] content does not appear to be base64 encoded.");
+            //}
             // check the dev provided a mime type for media or multipart
             if ((params.uploadType == 'multipart' || params.uploadType == 'media') && (isInsert && (!file || !file.mimeType))) {
                 throw ("[D148] file metadata is missing mandatory mime type");
@@ -431,18 +430,17 @@ var NgGapi;
                     mimeHeader = 'Content-Type: ' + file.mimeType + '\r\n'; // updates uses existing file
                 }
                 var close_delim = "\r\n--" + boundary + "--";
-                body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(file) + delimiter + mimeHeader + 'Content-Transfer-Encoding: base64\r\n' + '\r\n' + base64EncodedContent + close_delim;
+                body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(file) + delimiter + mimeHeader + '\r\n' + content + close_delim;
                 //params['alt'] = 'json';
                 var headers = {};
                 headers['Content-Type'] = 'multipart/mixed; boundary="-------3141592ff65358979323846"';
             }
             if (params.uploadType == 'media') {
-                body = base64EncodedContent;
+                body = content;
                 var headers = {};
                 if (isInsert) {
                     headers['Content-Type'] = file.mimeType;
                 }
-                headers['Content-Transfer-Encoding'] = 'base64';
             }
             // return the finished config object
             return { method: undefined, url: undefined, params: params, data: body, headers: headers };

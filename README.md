@@ -52,7 +52,7 @@ function getFile(fileId) {
     'fileId': fileId
   });
   request.execute(function(resp) {
-    console.log('Title: ' + resp.title);
+    console.log('Title: ' + resp.data.title);
   });
 }
 ```
@@ -62,7 +62,7 @@ function getFile(fileId) {
 function getFile(fileId) {
  DriveService.files.get({
     'fileId': fileId
-   }).promise.then((resp)=>{console.log('Title: ' + resp.title)});
+   }).promise.then((resp)=>{console.log('Title: ' + resp.data.title)});
 }
 ```
 
@@ -96,6 +96,19 @@ Here are the TypeScript definitions (from drive_interfaces.d.ts) for the DriveSe
 Remember the parameters mimic the [Google API docs](https://developers.google.com/drive/v2/reference/files#methods), 
 so refer to the appropriate page for details. There are two exceptions for media content Insert and media content Update. 
 The Google library leaves it as an exercise for the developer to construct the multipart mime body, whereas ngGAPI does this for you.
+
+If you use the returned promise with a then(resp), the resp will be a ...
+ ```
+ interface IHttpPromiseCallbackArg<T> {
+         data?: T;
+         status?: number;
+         headers?: (headerName: string) => string;
+         config?: IRequestConfig;
+         statusText?: string;
+     }
+ ```
+ ...where `data` contains the raw http response data, which will usually be an instance of a Resource type (eg. a File object)
+ 
  
 ### OAuth2
 In order to access any Google API, your application needs an access token. 
@@ -129,7 +142,12 @@ angular.module('ngm.NgGapi')
 			//    ms=0: The request will fail and return an error to the application to deal with
 			//    ms>0: The request will be retried 10 times with a delay of ms milliseconds. The default is ms=500
 		OauthServiceProvider.setNoAccessTokenPolicy(1000);                 
-		
+	
+			// Set immediate mode.This should normally be left to its default of false. Only set it to true if you can ensure that
+			// your app has already been authorized and that the user is logged in to Google.
+			// Default is false
+            	OauthServiceProvider.setImmediateMode(false)
+            		
 			// provide your own function to return an access token. myFunction should return a string which will be set into the Authorization Bearer header 
 		OauthServiceProvider.setGetAccessTokenFunction: function (myFunction) {
 	});
