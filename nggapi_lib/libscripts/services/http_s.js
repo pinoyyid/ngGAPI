@@ -84,7 +84,7 @@ var NgGapi;
             //console.log('adding '+configObject.method);
             this.queue.push({ c: configObject, d: def, r: retryCounter });
             if (!this.queuePromise) {
-                console.log('starting dq');
+                //console.log('starting dq')
                 this.queuePromise = this.$interval(function () {
                     _this.dq();
                 }, this.queueInterval);
@@ -185,7 +185,7 @@ var NgGapi;
                     //debugger;
                     _this.$log.debug(status);
                     if (data.nextPageToken) {
-                        def.notify(data);
+                        def.notify({ data: data, configObject: configObject, headers: headers, status: status, statusText: statusText });
                         if (!configObject.params) {
                             configObject.params = {}; // just in case the original call had no params
                         }

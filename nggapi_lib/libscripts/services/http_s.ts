@@ -95,7 +95,7 @@ module NgGapi {
 			//console.log('adding '+configObject.method);
 			this.queue.push({c:configObject, d:def, r:retryCounter});
 			if (!this.queuePromise) {
-				console.log('starting dq')
+				//console.log('starting dq')
 				this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);
 			}
 
@@ -195,7 +195,7 @@ module NgGapi {
 					//debugger;
 					this.$log.debug(status);
 					if (data.nextPageToken) {                                                                           // if there is more data, emit a notify and recurse
-						def.notify(data);
+						def.notify({data:data, configObject: configObject, headers:headers, status:status, statusText: statusText});
 						if (!configObject.params) {
 							configObject.params = {};                                                                   // just in case the original call had no params
 						}

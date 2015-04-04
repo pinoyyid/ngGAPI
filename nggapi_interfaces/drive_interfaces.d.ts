@@ -399,6 +399,7 @@ declare module NgGapi{
     selfLink: string;
     nextPageToken: string;
     nextLink: string;
+    largestChangeId: number;
     items: Array<IDriveChange>
   }
 
