@@ -88,6 +88,8 @@ var MaximalCtrl = (function () {
         // push that step object onto the list which is displayed via an ng-repeat
         this.steps.push(currentStep);
         // do the get, storing its ResponseObject in ro
+        var rf = this.DriveService.files.list();
+        // create a then function on ro which will execute on completion
         var ro = this.DriveService.changes.list({ startChangeId: id, maxResults: 989 });
         // create a then function on ro which will execute on completion
         ro.promise.then(function (resp) {

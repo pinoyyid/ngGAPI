@@ -269,28 +269,29 @@ declare module NgGapi{
   export interface IDriveService {
     getHttpService():NgGapi.IHttpService;
     files:{
-      get(params:IDriveFileGetParameters):IDriveResponseObject<IDriveFile>;
-      list(params:IDriveFileListParameters, excludeTrashed?):IDriveResponseObject<IDriveFile[]>;
-      insert(file:IDriveFile, params?:IDriveFileInsertParameters, content?:string):IDriveResponseObject<IDriveFile>;
-      update(file:IDriveFile, params?:IDriveFileUpdateParameters, content?:string):IDriveResponseObject<IDriveFile>;
-      patch(params:{fileId:string; resource:IDriveFile}):IDriveResponseObject<IDriveFile>;
-      trash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
-      untrash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
-      del(params:{fileId:string}):IDriveResponseObject<any>;
-      touch(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
-      watch(params:{fileId:string;alt?:string; revisionId?:string}, resource:IWatchBody):IDriveResponseObject<IApiChannel>;
-      emptyTrash():IDriveResponseObject<any>;
+      get(params:IDriveFileGetParameters):IDriveResponseObject<IDriveFile,IDriveFile>;
+      list(params?:IDriveFileListParameters, excludeTrashed?):IDriveResponseObject<IDriveFileList, IDriveFile[]>;
+      insert(file:IDriveFile, params?:IDriveFileInsertParameters, content?:string):IDriveResponseObject<IDriveFile,IDriveFile>;
+      update(file:IDriveFile, params?:IDriveFileUpdateParameters, content?:string):IDriveResponseObject<IDriveFile,IDriveFile>;
+      patch(params:{fileId:string; resource:IDriveFile}):IDriveResponseObject<IDriveFile,IDriveFile>;
+      trash(params:{fileId:string}):IDriveResponseObject<IDriveFile,IDriveFile>;
+      untrash(params:{fileId:string}):IDriveResponseObject<IDriveFile,IDriveFile>;
+      del(params:{fileId:string}):IDriveResponseObject<any,any>;
+      touch(params:{fileId:string}):IDriveResponseObject<IDriveFile,IDriveFile>;
+      watch(params:{fileId:string;alt?:string; revisionId?:string}, resource:IWatchBody):IDriveResponseObject<IApiChannel,IApiChannel>;
+      emptyTrash():IDriveResponseObject<any,any>;
       //list(params:IDriveListParameters):IDriveresponseObject;
     }
     about:{
-      get(params?:IDriveAboutGetParameters):IDriveResponseObject<IDriveAbout>;
+      get(params?:IDriveAboutGetParameters):IDriveResponseObject<IDriveAbout,IDriveAbout>;
     }
     changes:{
-      get(params:{changeId: number}):IDriveResponseObject<IDriveChange>;
-      list(params?:IDriveChangeListParameters):IDriveResponseObject<IDriveChangeList>;
-      watch(resource:IWatchBody):IDriveResponseObject<IApiChannel>;
+      get(params:{changeId: number}):IDriveResponseObject<IDriveChange,IDriveChange>;
+      list(params?:IDriveChangeListParameters):IDriveResponseObject<IDriveChangeList,IDriveChange[]>;
+      watch(resource:IWatchBody):IDriveResponseObject<IApiChannel,IApiChannel>;
     }
   }
+
 
   /*
    ---------- Interfaces of the various objects and data structures -----------
@@ -306,9 +307,9 @@ declare module NgGapi{
    * For lists, the promise will notify after each page
    * Failure is total failure, i.e. after any retries
    */
-  export interface IDriveResponseObject<T> {
-    promise:mng.IPromise<{data:mng.IHttpPromiseCallbackArg<any>}>;
-    data:T
+  export interface IDriveResponseObject<P,D> {
+    promise:mng.IPromise<{data:mng.IHttpPromiseCallbackArg<P>}>;
+    data:D
     //data:IDriveFile | Array<IDriveFile> | {media: string};
     headers:(name:string)=>string
   }
