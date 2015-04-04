@@ -72,9 +72,16 @@ var NgGapi;
         pushes to q
         if dq not running, starts dq interval
         */
+        /**
+         * adds a new config object to the http queue
+         *
+         * @param configObject
+         * @param def
+         * @param retryCounter
+         */
         HttpService.prototype.add2q = function (configObject, def, retryCounter) {
             var _this = this;
-            console.log('adding ' + configObject.method);
+            //console.log('adding '+configObject.method);
             this.queue.push({ c: configObject, d: def, r: retryCounter });
             if (!this.queuePromise) {
                 console.log('starting dq');
@@ -83,51 +90,52 @@ var NgGapi;
                 }, this.queueInterval);
             }
         };
-        /* throttle
-        if dq running, cancel
-        set 2s interval
-        start dq interval
+        /**
+         * slows down http submission
          */
         HttpService.prototype.throttleDown = function () {
             var _this = this;
             //console.info('throttling down');
             if (this.queueInterval == this.INTERVAL_NORMAL) {
                 this.queueInterval = this.INTERVAL_THROTTLE;
-                console.log('starting throttling');
             }
             if (this.queuePromise) {
-                console.log('killing existing dq');
-                this.$interval.cancel(this.queuePromise);
+                //console.log('killing existing dq');
+                this.$interval.cancel(this.queuePromise); // kill it
             }
-            //this.queueInterval = this.queueInterval * 1.1;                                                           // add 10%
-            this.queueInterval = this.INTERVAL_MAX;
-            if (this.queueInterval > this.INTERVAL_MAX) {
-                this.queueInterval = this.INTERVAL_MAX;
-            }
-            console.log('throttling at ' + this.queueInterval);
+            this.queueInterval = this.INTERVAL_MAX; // set max delay (ie. close throttle)
+            // old way was to slowly throttle back by 10%
+            //this.queueInterval = this.queueInterval * 1.1;
+            //if (this.queueInterval > this.INTERVAL_MAX) {
+            //	this.queueInterval = this.INTERVAL_MAX;
+            //}
+            //console.log('throttling at '+this.queueInterval);
             this.queuePromise = this.$interval(function () {
                 _this.dq();
-            }, this.queueInterval);
+            }, this.queueInterval); // start a new interval
         };
+        /**
+         * speeds up http submission
+         */
         HttpService.prototype.throttleUp = function () {
             var _this = this;
             //console.info('throttling up');
             if (this.queueInterval == this.INTERVAL_NORMAL) {
-                //console.log('not throttling');
+                //console.log('not throttling');                                                                        // do nothing
                 return;
             }
             if (this.queuePromise) {
-                console.log('killing existing dq');
+                //console.log('killing existing dq');
                 this.$interval.cancel(this.queuePromise);
             }
-            this.queueInterval = this.queueInterval * 0.8; // subtract 10%
+            this.queueInterval = this.queueInterval * 0.8; // subtract 20%
             if (this.queueInterval < this.INTERVAL_NORMAL) {
                 this.queueInterval = this.INTERVAL_NORMAL;
             }
-            console.log('throttling at ' + this.queueInterval);
+            //console.log('throttling at '+this.queueInterval);
             this.queuePromise = this.$interval(function () {
                 _this.dq();
-            }, this.queueInterval);
+            }, this.queueInterval); // start a new interval
         };
         /*	dq
         checks q length,
@@ -136,20 +144,22 @@ var NgGapi;
         remove [0]
         _do [0]
          */
+        /**
+         * takes an item off the queue and processes it
+         */
         HttpService.prototype.dq = function () {
             if (this.queue.length == 0) {
                 //debugger;
-                console.log('killing dq');
                 this.queueInterval = this.INTERVAL_NORMAL;
-                this.$interval.cancel(this.queuePromise);
+                this.$interval.cancel(this.queuePromise); // kill any interval
                 this.queuePromise = undefined;
                 return;
             }
             // here with q items
-            console.log('processing item, qlen = ' + this.queue.length);
-            var obj = this.queue[0];
-            this.queue.splice(0, 1);
-            this._doHttp(obj.c, obj.d, obj.r);
+            //console.log('processing item, qlen = '+this.queue.length);
+            var obj = this.queue[0]; // get the oldest item
+            this.queue.splice(0, 1); // remove from q
+            this._doHttp(obj.c, obj.d, obj.r); // process it
         };
         /**
          * internal $http call. This is recursed for errors
@@ -160,7 +170,7 @@ var NgGapi;
          */
         HttpService.prototype._doHttp = function (configObject, def, retryCounter) {
             var _this = this;
-            console.log('in _ with conf ' + configObject.method);
+            //console.log('in _ with conf '+configObject.method);
             //debugger;
             // TODO suppress $http with a warning if getAccestoken returns undefined
             if (!configObject.headers) {
@@ -251,23 +261,9 @@ var NgGapi;
             // 403 - rate limit, sleep for 2s x the number of retries to allow some more bucket tokens
             //if (status == 403) debugger;
             if (status == 403 && data.error.message.toLowerCase().indexOf('rate limit') > -1) {
-                /*
-                add2q({}, 403)
-
-                 */
                 this.$log.warn('[H153] 403 rate limit. requeuing retryConter = ' + retryCounter);
-                this.throttleDown();
-                this.add2q(configObject, def, retryCounter);
-                /*
-                                if (--retryCounter > 0) { // number of retries set by caller
-                                    this.sleep(2000*(this.RETRY_COUNT - retryCounter)).then(() => {                                      // backoff an additional 2 seconds for each retry
-                                        this._doHttp(configObject, def, retryCounter);
-                                    })
-                                } else {
-                                    this.$log.warn('[H159] Giving up after '+this.RETRY_COUNT+' attempts failed with '+status+' '+data.error.message);
-                                    def.reject(status + ' ' +data.error.message);
-                                }
-                                */
+                this.throttleDown(); // slow down submission
+                this.add2q(configObject, def, retryCounter); // and resubmit
                 return;
             }
             // anything else is a hard error

@@ -42,7 +42,8 @@ The API that ngGAPI presents to your app is modelled on the Google gapi client. 
 ---| ------------- | ------------- 
 call | gapi.client.drive.files.patch  | DriveService.files.patch <br>//(where "DriveService" is the injected service name)
 return | A callback function  | A `ResponseObject` containing a promise and the response data ({promise:ng.IPromise, data:NgGapi.IDriveFile})   
-validation | None. Whatever you submit is sent to Google | Some. We detect some common errors (eg. a missing fileId for a GET and throw an exception)
+validation | None. Whatever you submit is sent to Google | Some. We detect some common errors (eg. a missing fileId for a GET and throw an exception).
+error handling | None. The app must deal with any errors | Most. 501's are retried, 403 Rate Limit errors are automatically throttled back and retried. This frees your app from a lot of tedious error handling.
 
 Example: Here is the Get method being used to retrieve a file in both Google gapi and ngGAPI
 ```
@@ -146,7 +147,7 @@ angular.module('ngm.NgGapi')
 			// Set immediate mode.This should normally be left to its default of false. Only set it to true if you can ensure that
 			// your app has already been authorized and that the user is logged in to Google.
 			// Default is false
-            	OauthServiceProvider.setImmediateMode(false)
+        OauthServiceProvider.setImmediateMode(false)
             		
 			// provide your own function to return an access token. myFunction should return a string which will be set into the Authorization Bearer header 
 		OauthServiceProvider.setGetAccessTokenFunction: function (myFunction) {
@@ -181,6 +182,16 @@ We've patterned our API on gapi to make it easier to migrate existing projects a
 #### I still don't get how to do OAuth?
 You're not alone. Luckily, we think we've done a pretty good job of removing the need to know too much. 
 If your project is set up on Google API Console (ie. you have a client ID), and you've set the client ID and scopes as described above, it will Just Work&trade;
+
+#### How do I handle errors?
+The library tried to do a level of error handling for you. Specifically:-
+
+1. Any 501 errors are retried 10 times before being escalated to your app
+1. Any 403 Rate Limit errors are retried with an adaptive delay to get the best throughput with the minimum number of retries. 403 Rate Limit errors are **never** escalated 
+to your app.
+1. Any 401 Auth errors are dealt with by ngGAPI which will request a new access token and retry automatically. If after 10 retries, there is still no valid access token, the 401 will be
+escalated to your app.
+
 
 #### Show me the code
 We've created two sample apps for you to look at.
