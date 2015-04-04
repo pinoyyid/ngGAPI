@@ -25,13 +25,12 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'bower_components/angular-1.4.0-beta.5/angular.js',
+      'bower_components/angular/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
       'bower_components/angular-sanitize/angular-sanitize.js',
       'nggapi_lib/libscripts/services/oauth_s.js',
       'nggapi_lib/appscripts/**/*.js',
       'nggapi_lib/libscripts/**/*.js',
-      'test/mock/**/*.js',
       'test/spec_lib/**/*.js',
       //'test/spec-lib/services/drive_files.js'
     ],
