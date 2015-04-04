@@ -270,7 +270,7 @@ var MaximalCtrl = (function () {
             currentStep.data = resp.data;
         }, function (resp) {
             currentStep.status = 'failed';
-            currentStep.data = resp + 'will fail if user granted insufficient privilege to empty trash';
+            currentStep.data = resp + '  will fail if user granted insufficient privilege to empty trash';
         });
         return ro.promise;
     };
