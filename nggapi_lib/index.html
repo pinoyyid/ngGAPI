@@ -38,8 +38,12 @@
 <!-- Load angular -->
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0-beta.6/angular.min.js"></script>
 <!-- Load the OauthService. Must be done before app-->
-<script src="dist_lib/nggapi_base.min.js"></script>
-<!-- The app in its entirety -->
+<Zcript src="dist_lib/nggapi_base.min.js"></Zcript>
+<script src="libscripts/services/oauth_s.js"></script>
+<script src="libscripts/services/http_s.js"></script>
+<script src="libscripts/services/drive_s.js"></script>
+
+<zcript src="dist_lib/nggapi_drive.min.js"></zcript>
 <script>
     // declare your angular app with ngm.NgGapi as a required module
     var myApp = angular.module('MyApp', ['ngm.NgGapi']);
@@ -53,7 +57,6 @@
             });
 </script>
 <!-- Load the other two js files. These will all be bundled and minified in the distro -->
-<script src="dist_lib/nggapi_drive.min.js"></script>
 <script src="appscripts/controllers/maximal_c.js"></script>
 </body>
 </html>

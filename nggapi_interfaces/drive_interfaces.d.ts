@@ -149,11 +149,11 @@ declare module NgGapi{
    https://developers.google.com/drive/v2/reference/about
    */
   export interface IDriveAbout {
-    "kind": string;
-    "etag": string;
-    "selfLink": string;
-    "name": string;
-    "user": {
+    "kind"?: string;
+    "etag"?: string;
+    "selfLink"?: string;
+    "name"?: string;
+    "user"?: {
       "kind": string;
       "displayName": string;
       "picture": {
@@ -163,23 +163,31 @@ declare module NgGapi{
       "permissionId": string;
       "emailAddress": string
     };
-    "quotaBytesTotal": number;
-    "quotaBytesUsed": number;
-    "quotaBytesUsedAggregate": number;
-    "quotaBytesUsedInTrash": number;
-    "quotaType": string;
-    "quotaBytesByService": [
+    "quotaBytesTotal"?: number;
+    "quotaBytesUsed"?: number;
+    "quotaBytesUsedAggregate"?: number;
+    "quotaBytesUsedInTrash"?: number;
+    "quotaType"?: string;
+    "quotaBytesByService"?: [
         {
           "serviceName": string;
           "bytesUsed": number
         }
         ];
-    "largestChangeId": number;
-    "remainingChangeIds": number;
-    "rootFolderId": string;
-    "domainSharingPolicy": string;
-    "permissionId": string;
-    "importFormats": [
+    "largestChangeId"?: number;
+    "remainingChangeIds"?: number;
+    "rootFolderId"?: string;
+    "domainSharingPolicy"?: string;
+    "permissionId"?: string;
+    "importFormats"?: [
+        {
+          "source"?: string;
+          "targets": [
+              string
+              ]
+        }
+        ];
+    "exportFormats"?: [
         {
           "source": string;
           "targets": [
@@ -187,15 +195,7 @@ declare module NgGapi{
               ]
         }
         ];
-    "exportFormats": [
-        {
-          "source": string;
-          "targets": [
-              string
-              ]
-        }
-        ];
-    "additionalRoleInfo": [
+    "additionalRoleInfo"?: [
         {
           "type": string;
           "roleSets": [
@@ -208,21 +208,21 @@ declare module NgGapi{
               ]
         }
         ];
-    "features": [
+    "features"?: [
         {
           "featureName": string;
           "featureRate": number
         }
         ];
-    "maxUploadSizes": [
+    "maxUploadSizes"?: [
         {
           "type": string;
           "size": number
         }
         ];
-    "isCurrentAppInstalled": boolean;
-    "languageCode": string;
-    "folderColorPalette": [
+    "isCurrentAppInstalled"?: boolean;
+    "languageCode"?: string;
+    "folderColorPalette"?: [
         string
         ]
   }
@@ -232,13 +232,13 @@ declare module NgGapi{
    * https://developers.google.com/drive/v2/reference/changes
    */
   export interface IDriveChange {
-    "kind": string;
-    "id": number;
-    "fileId": string;
-    "selfLink": string;
-    "deleted": boolean;
-    "modificationDate": string;
-    "file": IDriveFile
+    "kind"?: string;
+    "id"?: number;
+    "fileId"?: string;
+    "selfLink"?: string;
+    "deleted"?: boolean;
+    "modificationDate"?: string;
+    "file"?: IDriveFile
   }
 
 
@@ -283,12 +283,12 @@ declare module NgGapi{
       //list(params:IDriveListParameters):IDriveresponseObject;
     }
     about:{
-      get():IDriveResponseObject<IDriveAbout>;
+      get(params?:IDriveAboutGetParameters):IDriveResponseObject<IDriveAbout>;
     }
-    chnages:{
+    changes:{
       get(params:{changeId: number}):IDriveResponseObject<IDriveChange>;
-      list(params:IDriveFileListParameters, excludeTrashed?):IDriveResponseObject<IDriveFile[]>;
-      watch(params:{fileId:string;alt?:string; revisionId?:string}, resource:IWatchBody):IDriveResponseObject<IApiChannel>;
+      list(params?:IDriveChangeListParameters):IDriveResponseObject<IDriveChangeList>;
+      watch(resource:IWatchBody):IDriveResponseObject<IApiChannel>;
     }
   }
 
@@ -307,7 +307,7 @@ declare module NgGapi{
    * Failure is total failure, i.e. after any retries
    */
   export interface IDriveResponseObject<T> {
-    promise:mng.IPromise<{data:mng.IHttpPromiseCallbackArg<IDriveFile>}>;
+    promise:mng.IPromise<{data:mng.IHttpPromiseCallbackArg<any>}>;
     data:T
     //data:IDriveFile | Array<IDriveFile> | {media: string};
     headers:(name:string)=>string
@@ -387,12 +387,32 @@ declare module NgGapi{
     token: string;
     expiration: number;
   }
+
+  /**
+   * Definition of the list object returned by a Changes.List method
+   */
+  export interface IDriveChangeList {
+    kind: string;
+    etag: string;
+    selfLink: string;
+    nextPageToken: string;
+    nextLink: string;
+    items: Array<IDriveChange>
+  }
+
   export interface IDriveChangeListParameters {
     includeDeleted?:boolean	;           // Whether to include deleted items. (Default: true)
     includeSubscribed?:boolean;         // Whether to include public files the user has opened and shared files. When set to false, the list only includes owned files plus any shared or public files the user has explicitly added to a folder they own. (Default: true)
     startChangeId?:number;              // Change ID to start listing changes from.
     maxResults?:number;                 // Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
     pageToken?:string;	                // Page token for files.
+    fields?:string;                     // this isn't documented, but I think applies to all list methods
+  }
+
+  export interface IDriveAboutGetParameters {
+    includeSubscribed?:boolean;          // When calculating the number of remaining change IDs, whether to include public files the user has opened and shared files. When set to false, this counts only change IDs for owned files and any shared or public files that the user has explicitly added to a folder they own. (Default: true)
+    maxChangeIdCount?:number;            // Maximum number of remaining change IDs to count
+    startChangeId?:number;               // Change ID to start counting from when calculating number of remaining change IDs
   }
 }
 

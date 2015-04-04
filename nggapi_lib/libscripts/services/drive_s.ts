@@ -24,10 +24,25 @@ module NgGapi {
 			touch: this.filesTouch,
 			emptyTrash: this.filesEmptyTrash
 		};
+		about = {
+			self: this,
+			get: this.aboutGet
+		};
+		changes = {
+			self: this,
+			get: this.changesGet,
+			list: this.changesList,
+			watch: this.changesWatch
+		};
+
 		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
-		filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
+		resourceToken = 'reSource';
+		urlBase =  'https://www.googleapis.com/drive/v2/'+this.resourceToken+'/:id';
+		filesUrl = this.urlBase.replace(this.resourceToken, 'files');
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
+		changesUrl = this.urlBase.replace(this.resourceToken, 'changes');
+		aboutUrl = this.urlBase.replace(this.resourceToken, 'about');
 		urlTrashSuffix = '/trash';
 		urlUntrashSuffix = '/untrash';
 		urlWatchSuffix = '/watch';
@@ -43,7 +58,7 @@ module NgGapi {
 		}
 
 		/**
-		 * getter for underlying HttpService, often used to in turn get OauthService
+		 * getter for underlying HttpService, often used to in turn get OauthService or the $http service
 		 *
 		 * @returns {IHttpService}
 		 */
@@ -58,6 +73,136 @@ module NgGapi {
 		 NB. To support the DriveService.files.insert form of calling, references to "this" must always be "this.self"
 
 		 */
+
+
+		/**
+		 * Implements Get for the About resource
+		 * See https://developers.google.com/drive/v2/reference/about/get
+		 *
+		 * @params includeSubscribed etc
+		 * @returns {IDriveResponseObject}
+		 */
+		aboutGet(params:IDriveAboutGetParameters):IDriveResponseObject<NgGapi.IDriveAbout> {
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.aboutUrl.replace(':id', ''),
+				params: params
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<NgGapi.IDriveAbout> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveAbout>)=> {                                     // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				this.self.transcribeProperties(resp.data, responseObject);                                              // if file, transcribe properties
+			});
+			return responseObject;
+		}
+
+
+
+		/**
+		 * Implements Get for the changes resource
+		 * See https://developers.google.com/drive/v2/reference/changes/get
+		 *
+		 * @param params object containing a changeId
+		 * @returns {IDriveResponseObject}
+		 */
+		changesGet(params:{changeId:number}):IDriveResponseObject<NgGapi.IDriveChange> {
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.changesUrl.replace(':id', ''+params.changeId)
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<NgGapi.IDriveChange> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<NgGapi.IDriveChange>)=> {                                    // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				this.self.transcribeProperties(resp.data, responseObject);                                              // if file, transcribe properties
+			});
+			return responseObject;
+		}
+
+		/**
+		 * Implements changes.List
+		 * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+		 * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+		 * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+		 * and omitting the pageToken.
+		 *
+		 * responseObject.data contains an array of all results across all pages
+		 *
+		 * The promise will fire its notify for each page with data containing the raw http response object
+		 * with an embedded items array. The final page will fire the resolve.
+		 *
+		 * @param params see https://developers.google.com/drive/v2/reference/changes/list
+		 * @returns IDriveResponseObject
+		 */
+		changesList(params:NgGapi.IDriveChangeListParameters):IDriveResponseObject<NgGapi.IDriveChange[]> {
+			if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
+				this.self.$log.warn('[D145] You have tried to list changes with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
+			}
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.changesUrl.replace(':id', ''),
+				params: params
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<NgGapi.IDriveChange[]> = {
+				promise: promise,
+				data: [],
+				headers: undefined
+			};
+			promise.then((resp:{data:NgGapi.IDriveChangeList})=> {                                                      // on complete
+					var l = resp.data.items.length;
+					for (var i = 0; i < l; i++) {
+						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+					}   // Nb can't use concat as that creates a new array
+				}, undefined,
+				(resp:{data:NgGapi.IDriveChangeList})=> {                                                               // on notify, ie a single page of results
+					var l = resp.data.items.length;
+					for (var i = 0; i < l; i++) {
+						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+					}   // Nb can't use concat as that creates a new array
+				});
+			return responseObject;
+		}
+
+
+		/**
+		 * Implements drive.Watch
+		 * NB This is not available as CORS endpoint for browser clients
+		 *
+		 * @param resource
+		 * @returns IDriveResponseObject
+		 */
+		changesWatch(resource:IWatchBody) {
+			this.self.$log.warn('[D137] NB files.watch is not available as a CORS endpoint for browser clients.');
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'POST',
+				url: this.self.changesUrl.replace(':id', '') + this.self.urlWatchSuffix,
+				data: resource
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IApiChannel> = {
+				promise: promise,
+				data: undefined,
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IApiChannel>)=> {                                            // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				this.self.transcribeProperties(resp.data, responseObject);                                                   // if file, transcribe properties
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
 
 		/**
 		 * Implements Get both for getting a file object and the newer alt=media to get a file's media content

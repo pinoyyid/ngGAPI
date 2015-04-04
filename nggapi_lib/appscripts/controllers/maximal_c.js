@@ -9,6 +9,7 @@ var MaximalCtrl = (function () {
         this.sig = 'MaximalCtrl';
         // an array of steps to display
         this.steps = [];
+        this.largestChangeId = 0;
         $scope.vm = this;
         this.doEverything();
     }
@@ -17,7 +18,9 @@ var MaximalCtrl = (function () {
      */
     MaximalCtrl.prototype.doEverything = function () {
         var _this = this;
-        this.insertFiles('delmexxx', 2).then(function () {
+        this.getAbout().then(function () {
+            return _this.insertFiles('delmezzz', 2);
+        }).then(function () {
             return _this.getFile(_this.currentFile.id);
         }).then(function () {
             return _this.getFileContents(_this.currentFile.id);
@@ -36,6 +39,10 @@ var MaximalCtrl = (function () {
         }).then(function () {
             return _this.deleteFile(_this.currentFile.id);
         }).then(function () {
+            return _this.listChanges(_this.largestChangeId);
+        }).then(function () {
+            return _this.getChange(_this.largestChangeId);
+        }).then(function () {
             return _this.emptyTrash();
         }).then(function () {
             console.log('All done');
@@ -47,6 +54,71 @@ var MaximalCtrl = (function () {
      The goal of each function is to update the UI with what it is about to do, then do it, then update the UI with part
      of the response, finally returning the promise so the function calls can be chained together.
      */
+    /**
+     * Get the About object for this user
+     *
+     * @returns {mng.IPromise<{data: IDriveAbout}>} The promise for chaining
+     */
+    MaximalCtrl.prototype.getAbout = function () {
+        var _this = this;
+        // create a step object containing what we're about to do
+        var currentStep = { op: 'Getting about', status: '...', data: undefined };
+        // push that step object onto the list which is displayed via an ng-repeat
+        this.steps.push(currentStep);
+        // do the get, storing its ResponseObject in ro
+        var ro = this.DriveService.about.get({ includeSubscribed: true });
+        // create a then function on ro which will execute on completion
+        ro.promise.then(function (resp) {
+            // update the display with the status and response data
+            currentStep.status = 'done';
+            currentStep.data = resp.data.user + ' change id=' + resp.data.largestChangeId;
+            _this.largestChangeId = resp.data.largestChangeId;
+        });
+        // return the promise for chaining
+        return ro.promise;
+    };
+    /**
+     * Get a change
+     *
+     * @returns {mng.IPromise<{data: IDriveAbout}>} The promise for chaining
+     */
+    MaximalCtrl.prototype.listChanges = function (id) {
+        // create a step object containing what we're about to do
+        var currentStep = { op: 'Listing changes ', status: '...', data: undefined };
+        // push that step object onto the list which is displayed via an ng-repeat
+        this.steps.push(currentStep);
+        // do the get, storing its ResponseObject in ro
+        var ro = this.DriveService.changes.list({ startChangeId: id, maxResults: 989 });
+        // create a then function on ro which will execute on completion
+        ro.promise.then(function (resp) {
+            // update the display with the status and response data
+            currentStep.status = 'done';
+            currentStep.data = ' change count=' + resp.data.items.length;
+        });
+        // return the promise for chaining
+        return ro.promise;
+    };
+    /**
+     * Get a change
+     *
+     * @returns {mng.IPromise<{data: IDriveAbout}>} The promise for chaining
+     */
+    MaximalCtrl.prototype.getChange = function (id) {
+        // create a step object containing what we're about to do
+        var currentStep = { op: 'Getting change ' + id, status: '...', data: undefined };
+        // push that step object onto the list which is displayed via an ng-repeat
+        this.steps.push(currentStep);
+        // do the get, storing its ResponseObject in ro
+        var ro = this.DriveService.changes.get({ changeId: id });
+        // create a then function on ro which will execute on completion
+        ro.promise.then(function (resp) {
+            // update the display with the status and response data
+            currentStep.status = 'done';
+            currentStep.data = ' change id=' + resp.data.id;
+        });
+        // return the promise for chaining
+        return ro.promise;
+    };
     /**
      * Get a file's metadata for a given id
      *

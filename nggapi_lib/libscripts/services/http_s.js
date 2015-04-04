@@ -186,7 +186,10 @@ var NgGapi;
                     _this.$log.debug(status);
                     if (data.nextPageToken) {
                         def.notify(data);
-                        configObject.params.pageToken = data.nextPageToken;
+                        if (!configObject.params) {
+                            configObject.params = {}; // just in case the original call had no params
+                        }
+                        configObject.params.pageToken = data.nextPageToken; // store the token into the params for the next call
                         return _this._doHttp(configObject, def, retryCounter);
                     }
                     def.resolve({ data: data, configObject: configObject, headers: headers, status: status, statusText: statusText });

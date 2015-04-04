@@ -9,6 +9,7 @@ class MaximalCtrl {
 
 	// a current file (the last inserted) that most functions will operate on
 	currentFile:NgGapi.IDriveFile;
+	largestChangeId = 0;
 
 	static $inject = ['$scope', '$log', '$q', 'DriveService'];
 
@@ -23,7 +24,10 @@ class MaximalCtrl {
 	 * perform all steps using promise chaining to run them in sequence
 	 */
 	doEverything() {
-		this.insertFiles('delmexxx', 2)
+		this.getAbout()
+		.then(() => {
+			return this.insertFiles('delmezzz', 2)
+		})
 			.then(() => {
 			return this.getFile(this.currentFile.id)
 		})
@@ -48,8 +52,14 @@ class MaximalCtrl {
 			.then(() => {
 			return this.untrashFile(this.currentFile.id)
 		})
-			.then(() => {
+		.then(() => {
 			return this.deleteFile(this.currentFile.id)
+		})
+		.then(() => {
+			return this.listChanges(this.largestChangeId);
+		})
+		.then(() => {
+			return this.getChange(this.largestChangeId);
 		})
 			.then(() => {
 			return this.emptyTrash()
@@ -67,6 +77,76 @@ class MaximalCtrl {
 	 The goal of each function is to update the UI with what it is about to do, then do it, then update the UI with part
 	 of the response, finally returning the promise so the function calls can be chained together.
 	 */
+
+
+	/**
+	 * Get the About object for this user
+	 *
+	 * @returns {mng.IPromise<{data: IDriveAbout}>} The promise for chaining
+	 */
+	getAbout():ng.IPromise<NgGapi.IDriveAbout> {
+		// create a step object containing what we're about to do
+		var currentStep = {op: 'Getting about', status: '...', data: undefined};
+		// push that step object onto the list which is displayed via an ng-repeat
+		this.steps.push(currentStep);
+		// do the get, storing its ResponseObject in ro
+		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveAbout> = this.DriveService.about.get({includeSubscribed: true});
+		// create a then function on ro which will execute on completion
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveAbout>) => {
+			// update the display with the status and response data
+			currentStep.status = 'done';
+			currentStep.data = resp.data.user + ' change id=' + resp.data.largestChangeId;
+			this.largestChangeId = resp.data.largestChangeId;
+		});
+		// return the promise for chaining
+		return ro.promise;
+	}
+
+
+
+	/**
+	 * Get a change
+	 *
+	 * @returns {mng.IPromise<{data: IDriveAbout}>} The promise for chaining
+	 */
+	listChanges(id:number):ng.IPromise<NgGapi.IDriveChange> {
+		// create a step object containing what we're about to do
+		var currentStep = {op: 'Listing changes ', status: '...', data: undefined};
+		// push that step object onto the list which is displayed via an ng-repeat
+		this.steps.push(currentStep);
+		// do the get, storing its ResponseObject in ro
+		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveChange[]> = this.DriveService.changes.list({startChangeId:id, maxResults:989});
+		// create a then function on ro which will execute on completion
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveChangeList>) => {
+			// update the display with the status and response data
+			currentStep.status = 'done';
+			currentStep.data = ' change count=' + resp.data.items.length;
+		});
+		// return the promise for chaining
+		return ro.promise;
+	}
+
+	/**
+	 * Get a change
+	 *
+	 * @returns {mng.IPromise<{data: IDriveAbout}>} The promise for chaining
+	 */
+	getChange(id:number):ng.IPromise<NgGapi.IDriveChange> {
+		// create a step object containing what we're about to do
+		var currentStep = {op: 'Getting change '+id, status: '...', data: undefined};
+		// push that step object onto the list which is displayed via an ng-repeat
+		this.steps.push(currentStep);
+		// do the get, storing its ResponseObject in ro
+		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveChange> = this.DriveService.changes.get({changeId:id});
+		// create a then function on ro which will execute on completion
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveChange>) => {
+			// update the display with the status and response data
+			currentStep.status = 'done';
+			currentStep.data = ' change id=' + resp.data.id;
+		});
+		// return the promise for chaining
+		return ro.promise;
+	}
 
 	/**
 	 * Get a file's metadata for a given id
