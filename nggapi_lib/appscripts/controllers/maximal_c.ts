@@ -82,7 +82,7 @@ class MaximalCtrl {
 		// do the get, storing its ResponseObject in ro
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.get({fileId: id});
 		// create a then function on ro which will execute on completion
-		ro.promise.then((resp:ng.IHttpPromiseCallbackArg) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 			// update the display with the status and response data
 			currentStep.status = 'done';
 			currentStep.data = resp.data.title;
@@ -183,7 +183,7 @@ class MaximalCtrl {
 		var currentStep = {op: 'Using Touch to update a file\'s last modified date', status: '...', data: undefined};
 		this.steps.push(currentStep);
 		var ro:NgGapi.IDriveResponseObject<NgGapi.IDriveFile> = this.DriveService.files.touch({fileId: id});
-		ro.promise.then((resp:NgGapi.IDriveFile) => {
+		ro.promise.then((resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
 			currentStep.status = 'done';
 			currentStep.data = resp.data.modifiedDate;
 		});

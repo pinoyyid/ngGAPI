@@ -66,7 +66,7 @@ module NgGapi {
 		 * @param params
 		 * @returns {IDriveResponseObject}
 		 */
-		filesGet(params:NgGapi.IDriveGetParameters):IDriveResponseObject<NgGapi.IDriveFile|string> {
+		filesGet(params:NgGapi.IDriveFileGetParameters):IDriveResponseObject<NgGapi.IDriveFile|string> {
 			var co:mng.IRequestConfig = {                                                                               // build request config
 				method: 'GET',
 				url: this.self.filesUrl.replace(':id', params.fileId),
@@ -107,7 +107,7 @@ module NgGapi {
 		 * @param excludeTrashed
 		 * @returns IDriveResponseObject
 		 */
-		filesList(params:NgGapi.IDriveListParameters, excludeTrashed:boolean):IDriveResponseObject<NgGapi.IDriveFile[]> {
+		filesList(params:NgGapi.IDriveFileListParameters, excludeTrashed:boolean):IDriveResponseObject<NgGapi.IDriveFile[]> {
 			if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
 				this.self.$log.warn('[D82] You have tried to list files with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
 			}
@@ -127,13 +127,13 @@ module NgGapi {
 				data: [],
 				headers: undefined
 			};
-			promise.then((resp:{data:NgGapi.IDriveList})=> {                                                                   // on complete
+			promise.then((resp:{data:NgGapi.IDriveFileList})=> {                                                                   // on complete
 					var l = resp.data.items.length;
 					for (var i = 0; i < l; i++) {
 						responseObject.data.push(resp.data.items[i]);                                                            // push each new file
 					}   // Nb can't use concat as that creates a new array
 				}, undefined,
-				(resp:{data:NgGapi.IDriveList})=> {                                                                            // on notify, ie a single page of results
+				(resp:{data:NgGapi.IDriveFileList})=> {                                                                            // on notify, ie a single page of results
 					var l = resp.data.items.length;
 					for (var i = 0; i < l; i++) {
 						responseObject.data.push(resp.data.items[i]);                                                            // push each new file
@@ -153,7 +153,7 @@ module NgGapi {
 		 * @param content
 		 * @returns IDriveResponseObject
 		 */
-		filesInsert(file:IDriveFile, params?:IDriveInsertParameters, content?:string):IDriveResponseObject<NgGapi.IDriveFile> {
+		filesInsert(file:IDriveFile, params?:IDriveFileInsertParameters, content?:string):IDriveResponseObject<NgGapi.IDriveFile> {
 			var configObject:mng.IRequestConfig;
 			if (!params || !params.uploadType) {
 				configObject = {method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file};                // no params is a simple metadata insert
@@ -194,7 +194,7 @@ module NgGapi {
 		 * @param content
 		 * @returns IDriveResponseObject
 		 */
-		filesUpdate(file:IDriveFile, params?:IDriveUpdateParameters, content?:string):IDriveResponseObject<NgGapi.IDriveFile> {
+		filesUpdate(file:IDriveFile, params?:IDriveFileUpdateParameters, content?:string):IDriveResponseObject<NgGapi.IDriveFile> {
 			// validate there is an id somewhere, either in the passed file, or in params.fileId
 			var id;
 			if (params && params.fileId) {                                                                              // if in params.fileID
@@ -473,7 +473,7 @@ module NgGapi {
 		 * @throws D115 resumables not supported
 		 * @throws D125 safety check there is a mime type
 		 */
-		buildUploadConfigObject(file:IDriveFile, params:IDriveInsertParameters|IDriveUpdateParameters, content:string, isInsert:boolean):mng.IRequestConfig {
+		buildUploadConfigObject(file:IDriveFile, params:IDriveFileInsertParameters|IDriveFileUpdateParameters, content:string, isInsert:boolean):mng.IRequestConfig {
 			// check for a resumable upload and reject coz we don't support them yet
 			if (params.uploadType == 'resumable') {
 				throw "[D136] resumable uploads are not currently supported";
