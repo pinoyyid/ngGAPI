@@ -45,10 +45,10 @@ var NgGapi;
             return this.HttpService;
         };
         /*
-        Each method implements a method from https://developers.google.com/drive/v2/reference/files .
-        Generally this is done by constructing an appropriate IRequestConfig object and passing it to the HttpService.
+         Each method implements a method from https://developers.google.com/drive/v2/reference/files .
+         Generally this is done by constructing an appropriate IRequestConfig object and passing it to the HttpService.
 
-        NB. To support the DriveService.files.insert form of calling, references to "this" must always be "this.self"
+         NB. To support the DriveService.files.insert form of calling, references to "this" must always be "this.self"
 
          */
         /**
@@ -66,7 +66,11 @@ var NgGapi;
                 params: params
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 if (params.alt == 'media') {
@@ -110,7 +114,11 @@ var NgGapi;
                 params: params
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: [], headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: [],
+                headers: undefined
+            };
             promise.then(function (resp) {
                 var l = resp.data.items.length;
                 for (var i = 0; i < l; i++) {
@@ -152,7 +160,11 @@ var NgGapi;
                 }
             }
             var promise = this.self.HttpService.doHttp(configObject);
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
                 _this.self.transcribeProperties(resp.data, responseObject);
@@ -202,7 +214,11 @@ var NgGapi;
                 }
             }
             var promise = this.self.HttpService.doHttp(configObject);
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
                 _this.self.transcribeProperties(resp.data, responseObject);
@@ -228,7 +244,11 @@ var NgGapi;
                 data: params.resource
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -253,7 +273,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlTrashSuffix
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -278,7 +302,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlUntrashSuffix
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -302,7 +330,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', params.fileId)
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
             });
@@ -330,7 +362,11 @@ var NgGapi;
                 data: resource
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: undefined, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: undefined,
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -355,7 +391,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlTouchSuffix
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -374,7 +414,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', 'trash')
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
             });
