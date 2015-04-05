@@ -43,7 +43,6 @@ describe('Service: DriveService', function () {
 		//	.respond(200, {id: 'id_from_mock_httpbackend', title: 'title'});
 	});
 
-
 	afterEach(function () {
 		$httpBackend.verifyNoOutstandingExpectation();
 		$httpBackend.verifyNoOutstandingRequest();
@@ -53,7 +52,6 @@ describe('Service: DriveService', function () {
 		failure.reset();
 	});
 
-
 	it('should be instantiated', function () {
 		expect(!!DriveService).toBe(true);
 	});
@@ -61,7 +59,6 @@ describe('Service: DriveService', function () {
 	it('should have the correct sig', function () {
 		expect(DriveService.sig).toBe('DriveService');
 	});
-
 
 	// test each method by first defining what we expect it to send to $http
 	// and then call the method
@@ -85,7 +82,6 @@ describe('Service: DriveService', function () {
 		expect('b'+ro.data.id).toBe('b'+id);
 	});
 
-
 	it('get media should return some media', function () {
 		var id = 'foom';
 		var media = 'some media'
@@ -99,8 +95,6 @@ describe('Service: DriveService', function () {
 		expect(ro.data.media).toBe(media);
 	});
 
-
-
 	it('insert should return a file object', function () {
 		var id = 'fooi';
 		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
@@ -112,7 +106,6 @@ describe('Service: DriveService', function () {
 		expect(DriveService.lastFile.id).toBe(id);
 		expect(ro.data.id).toBe(id);
 	});
-
 
 	it('insert media should fail for invalid params or data', function () {
 		var id = 'fooi';
@@ -145,7 +138,6 @@ describe('Service: DriveService', function () {
 			});
 	});
 
-
 	it('list should return a file array', function () {
 		var id = 'fooi';
 		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
@@ -155,7 +147,6 @@ describe('Service: DriveService', function () {
 		$httpBackend.flush();
 		expect(ro.data.length).toBe(2);
 	});
-
 
 	it('list should fail for missing nextPageToken', function () {
 		$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
@@ -171,7 +162,6 @@ describe('Service: DriveService', function () {
 			});
 	});
 
-
 	it('update should fail for missing fileId', function () {
 		var ro = DriveService.files.update({title: 'title-'});
 		ro.promise
@@ -181,7 +171,6 @@ describe('Service: DriveService', function () {
 				expect(failure).toHaveBeenCalledWithMatch(/D193/);
 			});
 	});
-
 
 	it('update should return a file object ', function () {
 		var id = 'foot';
@@ -202,7 +191,6 @@ describe('Service: DriveService', function () {
 		expect(ro.data.id).toBe(id);
 	});
 
-
 	it('patch should fail for missing fileId', function () {
 		var ro = DriveService.files.patch({title: 'title-'});
 		ro.promise
@@ -212,7 +200,6 @@ describe('Service: DriveService', function () {
 				expect(failure).toHaveBeenCalledWithMatch(/D230/);
 			});
 	});
-
 
 	it('patch should return a file object ', function () {
 		var id = 'foot';
@@ -233,8 +220,6 @@ describe('Service: DriveService', function () {
 		expect(ro.data.id).toBe(id);
 	});
 
-
-
 	it('trash should fail for missing fileId', function () {
 		var ro = DriveService.files.trash({title: 'title-'});
 		ro.promise
@@ -244,7 +229,6 @@ describe('Service: DriveService', function () {
 				expect(failure).toHaveBeenCalledWithMatch(/D225/);
 			});
 	});
-
 
 	it('trash should return a file object with labels trashed=true', function () {
 		var id = 'foot';
@@ -266,7 +250,6 @@ describe('Service: DriveService', function () {
 		expect(ro.data.labels.trashed).toBeTruthy();
 	});
 
-
 	it('untrash should fail for missing fileId', function () {
 		var ro = DriveService.files.untrash({title: 'title-'});
 		ro.promise
@@ -276,7 +259,6 @@ describe('Service: DriveService', function () {
 				expect(failure).toHaveBeenCalledWithMatch(/D251/);
 			});
 	});
-
 
 	it('untrash should return a file object with labels trashed=false', function () {
 		var id = 'foot';
@@ -298,7 +280,6 @@ describe('Service: DriveService', function () {
 		expect(ro.data.labels.trashed).toBeFalsy();
 	});
 
-
 	it('delete should fail for missing fileId', function () {
 		var ro = DriveService.files.del({title: 'title-'});
 		ro.promise
@@ -309,8 +290,6 @@ describe('Service: DriveService', function () {
 			});
 	});
 
-
-
 	it('touch should fail for missing fileId', function () {
 		var ro = DriveService.files.touch({title: 'title-'});
 		ro.promise
@@ -320,7 +299,6 @@ describe('Service: DriveService', function () {
 				expect(failure).toHaveBeenCalledWithMatch(/D329/);
 			});
 	});
-
 
 	it('touch should return a file object', function () {
 		var id = 'foot';
@@ -341,8 +319,6 @@ describe('Service: DriveService', function () {
 		expect(ro.data.id).toBe(id);
 	});
 
-
-
 	it('watch should fail for missing fileId', function () {
 		var ro = DriveService.files.watch({title: 'title-'});
 		ro.promise
@@ -352,7 +328,6 @@ describe('Service: DriveService', function () {
 				expect(failure).toHaveBeenCalledWithMatch(/D302/);
 			});
 	});
-
 
 	//it('watch should return a file object', function () {
 	//	var id = 'foot';
