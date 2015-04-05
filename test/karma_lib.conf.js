@@ -25,9 +25,11 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'nggapi_lib/bower_components/angular/angular.js',
-      'nggapi_lib/bower_components/angular-mocks/angular-mocks.js',
-      'nggapi_lib/bower_components/angular-sanitize/angular-sanitize.js',
+      'bower_components/angular/angular.js',
+      'bower_components/angular-mocks/angular-mocks.js',
+      'bower_components/angular-sanitize/angular-sanitize.js',
+      'bower_components/sinonjs/sinon.js',
+      'bower_components/jasmine-sinon/lib/jasmine-sinon.js',
       'nggapi_lib/libscripts/services/oauth_s.js',
       'nggapi_lib/appscripts/**/*.js',
       'nggapi_lib/libscripts/**/*.js',
