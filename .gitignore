@@ -6,6 +6,6 @@ dist
 .c9
 nm
 nm22
-#bower_components
+bower_components
 nggapi_lib/appscripts/credentials.js
 .c9/state.settings
