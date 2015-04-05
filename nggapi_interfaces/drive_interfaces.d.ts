@@ -145,6 +145,101 @@ declare module NgGapi{
     }
   }
 
+  /*
+   https://developers.google.com/drive/v2/reference/about
+   */
+  export interface IDriveAbout {
+    "kind"?: string;
+    "etag"?: string;
+    "selfLink"?: string;
+    "name"?: string;
+    "user"?: {
+      "kind": string;
+      "displayName": string;
+      "picture": {
+        "url": string
+      };
+      "isAuthenticatedUser": boolean;
+      "permissionId": string;
+      "emailAddress": string
+    };
+    "quotaBytesTotal"?: number;
+    "quotaBytesUsed"?: number;
+    "quotaBytesUsedAggregate"?: number;
+    "quotaBytesUsedInTrash"?: number;
+    "quotaType"?: string;
+    "quotaBytesByService"?: [
+        {
+          "serviceName": string;
+          "bytesUsed": number
+        }
+        ];
+    "largestChangeId"?: number;
+    "remainingChangeIds"?: number;
+    "rootFolderId"?: string;
+    "domainSharingPolicy"?: string;
+    "permissionId"?: string;
+    "importFormats"?: [
+        {
+          "source"?: string;
+          "targets": [
+              string
+              ]
+        }
+        ];
+    "exportFormats"?: [
+        {
+          "source": string;
+          "targets": [
+              string
+              ]
+        }
+        ];
+    "additionalRoleInfo"?: [
+        {
+          "type": string;
+          "roleSets": [
+              {
+                "primaryRole": string;
+                "additionalRoles": [
+                    string
+                    ]
+              }
+              ]
+        }
+        ];
+    "features"?: [
+        {
+          "featureName": string;
+          "featureRate": number
+        }
+        ];
+    "maxUploadSizes"?: [
+        {
+          "type": string;
+          "size": number
+        }
+        ];
+    "isCurrentAppInstalled"?: boolean;
+    "languageCode"?: string;
+    "folderColorPalette"?: [
+        string
+        ]
+  }
+
+
+  /**
+   * https://developers.google.com/drive/v2/reference/changes
+   */
+  export interface IDriveChange {
+    "kind"?: string;
+    "id"?: number;
+    "fileId"?: string;
+    "selfLink"?: string;
+    "deleted"?: boolean;
+    "modificationDate"?: string;
+    "file"?: IDriveFile
+  }
 
 
   /*
@@ -174,20 +269,29 @@ declare module NgGapi{
   export interface IDriveService {
     getHttpService():NgGapi.IHttpService;
     files:{
-      get(params:IDriveGetParameters):IDriveResponseObject<IDriveFile>;
-      list(params:IDriveListParameters, excludeTrashed?):IDriveResponseObject<IDriveFile[]>;
-      insert(file:IDriveFile, params?:IDriveInsertParameters, content?:string):IDriveResponseObject<IDriveFile>;
-      update(file:IDriveFile, params?:IDriveUpdateParameters, content?:string):IDriveResponseObject<IDriveFile>;
-      patch(params:{fileId:string; resource:IDriveFile}):IDriveResponseObject<IDriveFile>;
-      trash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
-      untrash(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
-      del(params:{fileId:string}):IDriveResponseObject<any>;
-      touch(params:{fileId:string}):IDriveResponseObject<IDriveFile>;
-      watch(params:{fileId:string;alt?:string; revisionId?:string}, resource:IWatchBody):IDriveResponseObject<IApiChannel>;
-      emptyTrash():IDriveResponseObject<any>;
+      get(params:IDriveFileGetParameters):IDriveResponseObject<IDriveFile,IDriveFile>;
+      list(params?:IDriveFileListParameters, excludeTrashed?):IDriveResponseObject<IDriveFileList, IDriveFile[]>;
+      insert(file:IDriveFile, params?:IDriveFileInsertParameters, content?:string):IDriveResponseObject<IDriveFile,IDriveFile>;
+      update(file:IDriveFile, params?:IDriveFileUpdateParameters, content?:string):IDriveResponseObject<IDriveFile,IDriveFile>;
+      patch(params:{fileId:string; resource:IDriveFile}):IDriveResponseObject<IDriveFile,IDriveFile>;
+      trash(params:{fileId:string}):IDriveResponseObject<IDriveFile,IDriveFile>;
+      untrash(params:{fileId:string}):IDriveResponseObject<IDriveFile,IDriveFile>;
+      del(params:{fileId:string}):IDriveResponseObject<any,any>;
+      touch(params:{fileId:string}):IDriveResponseObject<IDriveFile,IDriveFile>;
+      watch(params:{fileId:string;alt?:string; revisionId?:string}, resource:IWatchBody):IDriveResponseObject<IApiChannel,IApiChannel>;
+      emptyTrash():IDriveResponseObject<any,any>;
       //list(params:IDriveListParameters):IDriveresponseObject;
     }
+    about:{
+      get(params?:IDriveAboutGetParameters):IDriveResponseObject<IDriveAbout,IDriveAbout>;
+    }
+    changes:{
+      get(params:{changeId: number}):IDriveResponseObject<IDriveChange,IDriveChange>;
+      list(params?:IDriveChangeListParameters):IDriveResponseObject<IDriveChangeList,IDriveChange[]>;
+      watch(resource:IWatchBody):IDriveResponseObject<IApiChannel,IApiChannel>;
+    }
   }
+
 
   /*
    ---------- Interfaces of the various objects and data structures -----------
@@ -203,9 +307,10 @@ declare module NgGapi{
    * For lists, the promise will notify after each page
    * Failure is total failure, i.e. after any retries
    */
-  export interface IDriveResponseObject<T> {
-    promise:mng.IPromise<{data:IDriveFile}>;
-    data:T
+  export interface IDriveResponseObject<P,D> {
+    //promise:mng.IPromise<{data:mng.IHttpPromiseCallbackArg<P>}>;
+    promise:mng.IPromise<mng.IHttpPromiseCallbackArg<P>>;
+    data:D
     //data:IDriveFile | Array<IDriveFile> | {media: string};
     headers:(name:string)=>string
   }
@@ -213,7 +318,7 @@ declare module NgGapi{
   /**
    * Definition of the list object returned by a Files.List method
    */
-  export interface IDriveList {
+  export interface IDriveFileList {
     kind: string;
     etag: string;
     selfLink: string;
@@ -222,7 +327,7 @@ declare module NgGapi{
     items: Array<IDriveFile>
   }
 
-  export interface IDriveListParameters {
+  export interface IDriveFileListParameters {
     corpus?:string;	                    //The body of items (files/documents) to which the query applies.  Acceptable values are: "DEFAULT": The items that the user has accessed. "DOMAIN": Items shared to the user's domain.
     maxResults?:number;                 // Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
     pageToken?:string;	                // Page token for files.
@@ -230,7 +335,7 @@ declare module NgGapi{
     fields?:string;                     // urlencoded list of fields to include in response
   }
 
-  export interface IDriveInsertParameters {
+  export interface IDriveFileInsertParameters {
     uploadType:string;                   // The type of upload request to the /upload URI. Acceptable values are: media - Simple upload. Upload the media only, without any metadata. multipart - Multipart upload. Upload both the media and its metadata, in a single request. resumable - Resumable upload. Upload the file in a resumable fashion, using a series of at least two requests where the first request includes the metadata.
     convert?:boolean;                    // Whether to convert this file to the corresponding Google Docs format. (Default: false)
     ocr?:boolean;                        // Whether to attempt OCR on .jpg, .png, .gif, or .pdf uploads. (Default: false)
@@ -242,7 +347,7 @@ declare module NgGapi{
     visibility?:string;                  // The visibility of the new file. This parameter is only relevant when convert=false.  Acceptable values are: "DEFAULT": The visibility of the new file is determined by the user's default visibility/sharing policies. (default) "PRIVATE": The new file will be visible to only the owner.
   }
 
-  export interface IDriveGetParameters {
+  export interface IDriveFileGetParameters {
     fileId:string;                       //	The ID for the file in question.
     acknowledgeAbuse?:boolean;           // Whether the user is acknowledging the risk of downloading known malware or other abusive files. Ignored unless alt=media is specified. (Default: false)
     alt?:string;                         // Specifies the type of resource representation to return. The default is 'json' to return file metadata. Specifying 'media' will cause the file content to be returned.
@@ -251,7 +356,7 @@ declare module NgGapi{
     updateViewedDate?:boolean;           //	Whether to update the view date after successfully retrieving the file. (Default: false)
   }
 
-  export interface IDriveUpdateParameters {
+  export interface IDriveFileUpdateParameters {
     uploadType?:string;                   // The type of upload request to the /upload URI. Acceptable values are: media - Simple upload. Upload the media only, without any metadata. multipart - Multipart upload. Upload both the media and its metadata, in a single request. resumable - Resumable upload. Upload the file in a resumable fashion, using a series of at least two requests where the first request includes the metadata.
     fileId?:string;                        // The ID of the file to update.
     addParents?:string;                   // Comma-separated list of parent IDs to add.
@@ -283,6 +388,34 @@ declare module NgGapi{
     resourceUri: string;
     token: string;
     expiration: number;
+  }
+
+  /**
+   * Definition of the list object returned by a Changes.List method
+   */
+  export interface IDriveChangeList {
+    kind: string;
+    etag: string;
+    selfLink: string;
+    nextPageToken: string;
+    nextLink: string;
+    largestChangeId: number;
+    items: Array<IDriveChange>
+  }
+
+  export interface IDriveChangeListParameters {
+    includeDeleted?:boolean	;           // Whether to include deleted items. (Default: true)
+    includeSubscribed?:boolean;         // Whether to include public files the user has opened and shared files. When set to false, the list only includes owned files plus any shared or public files the user has explicitly added to a folder they own. (Default: true)
+    startChangeId?:number;              // Change ID to start listing changes from.
+    maxResults?:number;                 // Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
+    pageToken?:string;	                // Page token for files.
+    fields?:string;                     // this isn't documented, but I think applies to all list methods
+  }
+
+  export interface IDriveAboutGetParameters {
+    includeSubscribed?:boolean;          // When calculating the number of remaining change IDs, whether to include public files the user has opened and shared files. When set to false, this counts only change IDs for owned files and any shared or public files that the user has explicitly added to a folder they own. (Default: true)
+    maxChangeIdCount?:number;            // Maximum number of remaining change IDs to count
+    startChangeId?:number;               // Change ID to start counting from when calculating number of remaining change IDs
   }
 }
 

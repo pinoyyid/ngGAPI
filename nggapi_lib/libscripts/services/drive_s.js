@@ -27,9 +27,23 @@ var NgGapi;
                 touch: this.filesTouch,
                 emptyTrash: this.filesEmptyTrash
             };
+            this.about = {
+                self: this,
+                get: this.aboutGet
+            };
+            this.changes = {
+                self: this,
+                get: this.changesGet,
+                list: this.changesList,
+                watch: this.changesWatch
+            };
             this.self = this; // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
-            this.filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
+            this.resourceToken = 'reSource';
+            this.urlBase = 'https://www.googleapis.com/drive/v2/' + this.resourceToken + '/:id';
+            this.filesUrl = this.urlBase.replace(this.resourceToken, 'files');
             this.filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
+            this.changesUrl = this.urlBase.replace(this.resourceToken, 'changes');
+            this.aboutUrl = this.urlBase.replace(this.resourceToken, 'about');
             this.urlTrashSuffix = '/trash';
             this.urlUntrashSuffix = '/untrash';
             this.urlWatchSuffix = '/watch';
@@ -37,7 +51,7 @@ var NgGapi;
             this.lastFile = { id: 'noid' }; // for testing, holds the most recent file response
         }
         /**
-         * getter for underlying HttpService, often used to in turn get OauthService
+         * getter for underlying HttpService, often used to in turn get OauthService or the $http service
          *
          * @returns {IHttpService}
          */
@@ -45,12 +59,136 @@ var NgGapi;
             return this.HttpService;
         };
         /*
-        Each method implements a method from https://developers.google.com/drive/v2/reference/files .
-        Generally this is done by constructing an appropriate IRequestConfig object and passing it to the HttpService.
+         Each method implements a method from https://developers.google.com/drive/v2/reference/files .
+         Generally this is done by constructing an appropriate IRequestConfig object and passing it to the HttpService.
 
-        NB. To support the DriveService.files.insert form of calling, references to "this" must always be "this.self"
+         NB. To support the DriveService.files.insert form of calling, references to "this" must always be "this.self"
 
          */
+        /**
+         * Implements Get for the About resource
+         * See https://developers.google.com/drive/v2/reference/about/get
+         *
+         * @params includeSubscribed etc
+         * @returns {IDriveResponseObject}
+         */
+        DriveService.prototype.aboutGet = function (params) {
+            var _this = this;
+            var co = {
+                method: 'GET',
+                url: this.self.aboutUrl.replace(':id', ''),
+                params: params
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+            });
+            return responseObject;
+        };
+        /**
+         * Implements Get for the changes resource
+         * See https://developers.google.com/drive/v2/reference/changes/get
+         *
+         * @param params object containing a changeId
+         * @returns {IDriveResponseObject}
+         */
+        DriveService.prototype.changesGet = function (params) {
+            var _this = this;
+            var co = {
+                method: 'GET',
+                url: this.self.changesUrl.replace(':id', '' + params.changeId)
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+            });
+            return responseObject;
+        };
+        /**
+         * Implements changes.List
+         * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+         * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+         * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+         * and omitting the pageToken.
+         *
+         * responseObject.data contains an array of all results across all pages
+         *
+         * The promise will fire its notify for each page with data containing the raw http response object
+         * with an embedded items array. The final page will fire the resolve.
+         *
+         * @param params see https://developers.google.com/drive/v2/reference/changes/list
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.changesList = function (params) {
+            if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
+                this.self.$log.warn('[D145] You have tried to list changes with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
+            }
+            var co = {
+                method: 'GET',
+                url: this.self.changesUrl.replace(':id', ''),
+                params: params
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: [],
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                if (!!resp.data && !!resp.data.items) {
+                    var l = resp.data.items.length;
+                    for (var i = 0; i < l; i++) {
+                        responseObject.data.push(resp.data.items[i]); // push each new file
+                    }
+                }
+            }, undefined, function (resp) {
+                var l = resp.data.items.length;
+                for (var i = 0; i < l; i++) {
+                    responseObject.data.push(resp.data.items[i]); // push each new file
+                }
+            });
+            return responseObject;
+        };
+        /**
+         * Implements drive.Watch
+         * NB This is not available as CORS endpoint for browser clients
+         *
+         * @param resource
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.changesWatch = function (resource) {
+            var _this = this;
+            this.self.$log.warn('[D137] NB files.watch is not available as a CORS endpoint for browser clients.');
+            var co = {
+                method: 'POST',
+                url: this.self.changesUrl.replace(':id', '') + this.self.urlWatchSuffix,
+                data: resource
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: undefined,
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
         /**
          * Implements Get both for getting a file object and the newer alt=media to get a file's media content
          * See https://developers.google.com/drive/v2/reference/files/get for semantics including the params object
@@ -66,7 +204,11 @@ var NgGapi;
                 params: params
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 if (params.alt == 'media') {
@@ -110,11 +252,17 @@ var NgGapi;
                 params: params
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: [], headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: [],
+                headers: undefined
+            };
             promise.then(function (resp) {
-                var l = resp.data.items.length;
-                for (var i = 0; i < l; i++) {
-                    responseObject.data.push(resp.data.items[i]); // push each new file
+                if (!!resp.data && !!resp.data.items) {
+                    var l = resp.data.items.length;
+                    for (var i = 0; i < l; i++) {
+                        responseObject.data.push(resp.data.items[i]); // push each new file
+                    }
                 }
             }, undefined, function (resp) {
                 var l = resp.data.items.length;
@@ -152,7 +300,11 @@ var NgGapi;
                 }
             }
             var promise = this.self.HttpService.doHttp(configObject);
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
                 _this.self.transcribeProperties(resp.data, responseObject);
@@ -202,7 +354,11 @@ var NgGapi;
                 }
             }
             var promise = this.self.HttpService.doHttp(configObject);
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
                 _this.self.transcribeProperties(resp.data, responseObject);
@@ -228,7 +384,11 @@ var NgGapi;
                 data: params.resource
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -253,7 +413,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlTrashSuffix
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -278,7 +442,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlUntrashSuffix
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -302,7 +470,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', params.fileId)
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
             });
@@ -330,7 +502,11 @@ var NgGapi;
                 data: resource
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: undefined, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: undefined,
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -355,7 +531,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', params.fileId) + this.self.urlTouchSuffix
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
                 _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
@@ -374,7 +554,11 @@ var NgGapi;
                 url: this.self.filesUrl.replace(':id', 'trash')
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
-            var responseObject = { promise: promise, data: {}, headers: undefined };
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
             });

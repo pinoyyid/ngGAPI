@@ -183,7 +183,7 @@ var NgGapi;
             //console.log('authed');
             var token = this.$window['gapi'].auth.getToken();
             if (!token) {
-                this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user? ');
+                this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user or invalid client id or wrong origin URL? ');
                 return;
             }
             if (token.access_token && token.access_token != null) {
