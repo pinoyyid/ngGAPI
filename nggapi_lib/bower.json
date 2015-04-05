@@ -6,6 +6,7 @@
   },
   "devDependencies": {
     "angular-scenario": "~1.4.0",
+    "angular-mocks": "~1.4.0",
     "sinon": "~1.14.1",
     "jasmine-sinon": "~0.4.0"
   },
