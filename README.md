@@ -220,12 +220,12 @@ Just doing our job ma'am.
 * ~~Once the download is finished , you will need to extract the node_modules with `cd ngGAPI ; tar zxf node_modules.tar.gz`.~~
 * Change your current working directory to your cloned repo using `cd ngGAPI`
 * Install Node dependencies using `npm install`
-* Install Bower dependencies using `bower install`
+* Install Bower dependencies using `cd nggapi_lib ; bower install`
 * Test your environment is working with `grunt test`
 * You'll need to create your own project at the [Google API Console](https://code.google.com/apis/console/b/0/) and substitute your client id at `OauthServiceProvider.setClientID('2231299-2bvf1.apps.googleusercontent.com');`
 
 ### Dev tools
-If you're writing in TypeScript, you'll need the tsc compiler vers 1.4. If you're using WebStorm, you'll need WS10.
+If you're writing in TypeScript, you'll need the tsc compiler vers 1.4. If you're using WebStorm, you'll need WS10. `nggapi_interfaces/drive_interfaces.d.ts` contains all of the type definitions for ngGAPI Drive. 
 
 ### Contributors
 The library was developed by members of the [ngManila](http://www.meetup.com/Manila-AngularJS-Group/) community, specifically Sam Ong and Roy Smith.
