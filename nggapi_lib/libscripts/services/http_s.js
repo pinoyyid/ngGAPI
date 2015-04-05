@@ -183,7 +183,7 @@ var NgGapi;
                 httpPromise.success(function (data, status, headers, configObject, statusText) {
                     _this.throttleUp();
                     //debugger;
-                    _this.$log.debug(status);
+                    //this.$log.debug(status);
                     if (data.nextPageToken) {
                         def.notify({ data: data, configObject: configObject, headers: headers, status: status, statusText: statusText });
                         if (!configObject.params) {
