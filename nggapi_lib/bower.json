@@ -1,0 +1,12 @@
+{
+  "name": "nggapi-lib",
+  "version": "0.0.0",
+  "dependencies": {
+    "angular": "^1.4.0"
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.4.0",
+    "angular-scenario": "~1.4.0"
+  },
+  "appPath": "nggapi_lib"
+}
