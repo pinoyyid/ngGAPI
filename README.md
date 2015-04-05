@@ -206,7 +206,10 @@ Just doing our job ma'am.
 
 ### Notes on cloning and hacking this repo 
 * Clone with `git clone https://github.com/pinoyyid/ngGAPI.git`
-* Once the download is finished , you will need to extract the node_modules with `cd ngGAPI ; tar zxf node_modules.tar.gz`. 
+* ~~Once the download is finished , you will need to extract the node_modules with `cd ngGAPI ; tar zxf node_modules.tar.gz`.~~
+* Change your current working directory to your cloned repo using `cd ngGAPI`
+* Install Node dependencies using `npm install`
+* Install Bower dependencies using `bower install`
 * Test your environment is working with `grunt test`
 * You'll need to create your own project at the [Google API Console](https://code.google.com/apis/console/b/0/) and substitute your client id at `OauthServiceProvider.setClientID('2231299-2bvf1.apps.googleusercontent.com');`
 
