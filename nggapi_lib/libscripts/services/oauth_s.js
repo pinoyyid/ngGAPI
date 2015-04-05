@@ -42,7 +42,7 @@ var NgGapi;
          * @param $http
          * @param $timeout
          */
-        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, immediateMode, ownGetAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http, $timeout) {
+        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, immediateMode, ownGetAccessTokenFunction, testingRefreshToken, testingAccessToken, testingClientSecret, $log, $window, $http, $timeout) {
             //console.log("OAuth instantiated with " + scopes);
             //$log.log("scopes", this.scopes);
             //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
@@ -54,6 +54,7 @@ var NgGapi;
             this.immediateMode = immediateMode;
             this.ownGetAccessTokenFunction = ownGetAccessTokenFunction;
             this.testingRefreshToken = testingRefreshToken;
+            this.testingAccessToken = testingAccessToken;
             this.testingClientSecret = testingClientSecret;
             this.$log = $log;
             this.$window = $window;
@@ -239,6 +240,7 @@ NgGapi['Config'] = function () {
     var immediateMode = false;
     ;
     var testingRefreshToken = undefined;
+    var testingAccessToken = undefined;
     var testingClientSecret = undefined;
     return {
         setScopes: function (_scopes) {
@@ -256,11 +258,15 @@ NgGapi['Config'] = function () {
         setImmediateMode: function (_mode) {
             immediateMode = _mode;
         },
+        setTestingRefreshToken: function (_rt) {
+            testingRefreshToken = _rt;
+        },
         setGetAccessTokenFunction: function (_function) {
             getAccessTokenFunction = _function;
         },
-        setTestingRefreshToken: function (_rt) {
-            testingRefreshToken = _rt;
+        // TODO add this method to README
+        setTestingAccessToken: function (_at) {
+            testingAccessToken = _at;
         },
         setTestingClientSecret: function (_secret) {
             testingClientSecret = _secret;
@@ -272,7 +278,7 @@ NgGapi['Config'] = function () {
             var $window = myInjector.get("$window");
             var $http = myInjector.get("$http");
             var $timeout = myInjector.get("$timeout");
-            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, immediateMode, getAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http, $timeout);
+            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, immediateMode, getAccessTokenFunction, testingRefreshToken, testingAccessToken, testingClientSecret, $log, $window, $http, $timeout);
         }
     };
 };

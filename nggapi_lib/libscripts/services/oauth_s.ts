@@ -37,8 +37,6 @@ module NgGapi {
 
     GAPI_RETRY_MS = 200;                // how long to wait for gapi load before retrying a refresh
 
-    testingAccessToken;                 // used for e2e testing. If set, overrides gapi
-
     testStatus:string;                  // this has no rol ein the functionality of OauthService. it's a helper property for unit tests
 
 
@@ -59,7 +57,7 @@ module NgGapi {
      */
     constructor(private scopes:string, private clientId:string, private tokenRefreshPolicy,
                 private noAccesTokenPolicy:number, private immediateMode:boolean, private ownGetAccessTokenFunction,
-                private testingRefreshToken, private testingClientSecret,
+                private testingRefreshToken, private testingAccessToken, private testingClientSecret,
                 private $log:mng.ILogService, private $window:mng.IWindowService, private $http:mng.IHttpService, private $timeout:mng.ITimeoutService) {
       //console.log("OAuth instantiated with " + scopes);
       //$log.log("scopes", this.scopes);
@@ -264,6 +262,7 @@ NgGapi['Config'] = function () {
     var getAccessTokenFunction = undefined;
     var immediateMode = false;;
     var testingRefreshToken = undefined;
+    var testingAccessToken = undefined;
     var testingClientSecret = undefined;
 	return {
 		setScopes: function (_scopes) {
@@ -281,11 +280,15 @@ NgGapi['Config'] = function () {
         setImmediateMode: function (_mode) {
           immediateMode = _mode;
         },
-		setGetAccessTokenFunction: function (_function) {
-			getAccessTokenFunction = _function;
-		},
         setTestingRefreshToken: function (_rt) {
-          testingRefreshToken = _rt;
+            testingRefreshToken = _rt;
+        },
+        setGetAccessTokenFunction: function (_function) {
+            getAccessTokenFunction = _function;
+        },
+        // TODO add this method to README
+        setTestingAccessToken: function (_at) {
+          testingAccessToken = _at;
         },
         setTestingClientSecret: function (_secret) {
           testingClientSecret = _secret;
@@ -297,7 +300,9 @@ NgGapi['Config'] = function () {
 			var $window = myInjector.get("$window");
             var $http = myInjector.get("$http");
             var $timeout = myInjector.get("$timeout");
-			return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, immediateMode, getAccessTokenFunction, testingRefreshToken, testingClientSecret, $log, $window, $http, $timeout);
+			return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy,
+                immediateMode, getAccessTokenFunction, testingRefreshToken, testingAccessToken,
+                testingClientSecret, $log, $window, $http, $timeout);
 		}
 	}
 };
