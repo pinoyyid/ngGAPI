@@ -80,6 +80,8 @@ var NgGapi;
          * @return the access token string or "!FAIL" for parent to fail 401, or "!RETRY=xxx" for parent to retry
          */
         OauthService.prototype.getAccessToken = function () {
+            console.log('o88 gAT');
+            debugger;
             if (!!this.testingAccessToken) {
                 return this.testingAccessToken; // return it
             }
@@ -127,9 +129,19 @@ var NgGapi;
                 return;
             }
             this.isAuthInProgress = true;
-            this.$window['gapi'].auth.authorize({ client_id: this.clientId, scope: this.scopes, immediate: this.isAuthedYet }, function () {
-                _this.refreshCallback();
-            }); // callback invoked when gapi refresh returns with a new token
+            try {
+                this.$window['gapi'].auth.authorize({
+                    client_id: this.clientId,
+                    scope: this.scopes,
+                    immediate: this.isAuthedYet
+                }, function () {
+                    _this.refreshCallback();
+                }); // callback invoked when gapi refresh returns with a new token
+            }
+            catch (e) {
+                this.$log.error('[O153] exception calling gapi.auth.authorize ' + e);
+                this.isAuthInProgress = false;
+            }
         };
         /**
          *
@@ -181,7 +193,7 @@ var NgGapi;
         OauthService.prototype.refreshCallback = function () {
             this.isAuthInProgress = false;
             this.isAuthedYet = true;
-            console.log('o206 authed');
+            console.log('o207 authed');
             var token = this.$window['gapi'].auth.getToken();
             if (!token) {
                 this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user or invalid client id or wrong origin URL? ');

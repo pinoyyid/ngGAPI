@@ -85,6 +85,8 @@ module NgGapi {
      * @return the access token string or "!FAIL" for parent to fail 401, or "!RETRY=xxx" for parent to retry
      */
     getAccessToken():string {
+        console.log('o88 gAT');
+        debugger;
       if (!!this.testingAccessToken) {                                                                                  // if a test token has been set
         return this.testingAccessToken;                                                                                 // return it
       }
@@ -137,11 +139,20 @@ module NgGapi {
 
       this.isAuthInProgress = true;
 
-      this.$window['gapi'].auth.authorize(
-        {client_id:  this.clientId,
-        scope:      this.scopes,
-        immediate:  this.isAuthedYet},
-        ()=>{this.refreshCallback();});                    // callback invoked when gapi refresh returns with a new token
+        try {
+            this.$window['gapi'].auth.authorize(
+                {
+                    client_id: this.clientId,
+                    scope: this.scopes,
+                    immediate: this.isAuthedYet
+                },
+                ()=> {
+                    this.refreshCallback();
+                });                    // callback invoked when gapi refresh returns with a new token
+        } catch (e) {
+            this.$log.error('[O153] exception calling gapi.auth.authorize '+e);
+            this.isAuthInProgress = false;
+        }
     }
 
 
@@ -203,7 +214,7 @@ module NgGapi {
     refreshCallback() {
       this.isAuthInProgress = false;
       this.isAuthedYet = true;
-      console.log('o206 authed');
+      console.log('o207 authed');
 
       var token:GoogleApiOAuth2TokenObject = this.$window['gapi'].auth.getToken();
       if (!token) {

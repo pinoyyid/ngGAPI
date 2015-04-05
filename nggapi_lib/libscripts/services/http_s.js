@@ -182,9 +182,9 @@ var NgGapi;
                 var httpPromise = this.$http(configObject); // run the http call and capture the promise
                 httpPromise.success(function (data, status, headers, configObject, statusText) {
                     _this.throttleUp();
-                    //debugger;
                     //this.$log.debug(status);
                     if (data.nextPageToken) {
+                        //console.log('h198 notify')
                         def.notify({ data: data, configObject: configObject, headers: headers, status: status, statusText: statusText });
                         if (!configObject.params) {
                             configObject.params = {}; // just in case the original call had no params
@@ -192,6 +192,7 @@ var NgGapi;
                         configObject.params.pageToken = data.nextPageToken; // store the token into the params for the next call
                         return _this._doHttp(configObject, def, retryCounter);
                     }
+                    //console.log('h206 resolve')
                     def.resolve({ data: data, configObject: configObject, headers: headers, status: status, statusText: statusText });
                 });
                 httpPromise.error(function (data, status, headers, configObject, statusText) {
