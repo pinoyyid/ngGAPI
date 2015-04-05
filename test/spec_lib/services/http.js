@@ -46,42 +46,45 @@ describe('Service: HttpService', function () {
 		expect(HttpService.sig).toBe('HttpService');
 	});
 
-	it('errorhandler should reject a 404', function () {
-		var def = $q.defer();
-		// stub instances
-		var success = sinon.stub();
-		var failure = sinon.stub();
+	describe('.errorHandler() method', function () {
 
-		HttpService.errorHandler({error: 'error message'}, 404, undefined, undefined, undefined, def, 0);
-		def.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWith(404);
-			});
-	});
+		it('should reject a 404', function () {
+			var def = $q.defer();
+			// stub instances
+			var success = sinon.stub();
+			var failure = sinon.stub();
 
+			HttpService.errorHandler({error: 'error message'}, 404, undefined, undefined, undefined, def, 0);
+			def.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWith(404);
+				});
+		});
 
-	// TODO the test below is false because it isn't waiting for the retry before karma exits
+		// TODO: the test below is false because it isn't waiting for the retry before karma exits
 
-	it('errorhandler should retry a 501', function () {
-		var def = $q.defer();
-		// stub instances
-		var success = sinon.stub();
-		var failure = sinon.stub();
-		// override the _doHttp function to track retries
-		var retryCount = 1;
-		HttpService._doHttp = function (c, d, retryCount) {
-			console.log('in dohttp mock');
-			retryCount--;
-		}
-		HttpService.errorHandler({error: {message: 'error text'}}, 501, undefined, undefined, undefined, def, retryCount);
-		def.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWith('501 error text');
-			});
+		it('should retry a 501', function () {
+			var def = $q.defer();
+			// stub instances
+			var success = sinon.stub();
+			var failure = sinon.stub();
+			// override the _doHttp function to track retries
+			var retryCount = 1;
+			HttpService._doHttp = function (c, d, retryCount) {
+				console.log('in dohttp mock');
+				retryCount--;
+			}
+			HttpService.errorHandler({error: {message: 'error text'}}, 501, undefined, undefined, undefined, def, retryCount);
+			def.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWith('501 error text');
+				});
+		});
+
 	});
 
 });

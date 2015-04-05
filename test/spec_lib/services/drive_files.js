@@ -69,264 +69,330 @@ describe('Service: DriveService', function () {
 	//	$httpBackend.flush();
 	//});
 
-	it('get should return a file object', function () {
-		var id = 'foo2';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files/'+id;
-		$httpBackend .whenGET("") .respond({id: id} );
+	describe('.files.get() method', function () {
 
-		var ro = DriveService.files.get({fileId: id});
+		it('should return a file object', function () {
+			var id = 'foo2';
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files/'+id;
+			$httpBackend .whenGET("") .respond({id: id} );
 
-		$httpBackend.flush();
+			var ro = DriveService.files.get({fileId: id});
 
-		expect('a'+DriveService.lastFile.id).toBe('a'+id);
-		expect('b'+ro.data.id).toBe('b'+id);
+			$httpBackend.flush();
+
+			expect('a'+DriveService.lastFile.id).toBe('a'+id);
+			expect('b'+ro.data.id).toBe('b'+id);
+		});
+
+		it('should return some media when alt="media"', function () {
+			var id = 'foom';
+			var media = 'some media'
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files/'+id;
+			$httpBackend .whenGET("") .respond(media);
+
+			var ro = DriveService.files.get({fileId: id, alt:'media'});
+
+			$httpBackend.flush();
+
+			expect(ro.data.media).toBe(media);
+		});
+
 	});
 
-	it('get media should return some media', function () {
-		var id = 'foom';
-		var media = 'some media'
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files/'+id;
-		$httpBackend .whenGET("") .respond(media);
+	// it('insert should return a file object', function () {
+	// 	var id = 'fooi';
+	// 	var filesUrl = 'https://www.googleapis.com/drive/v2/files';
+	// 	$httpBackend .whenPOST("") .respond({id: id} );
+	//
+	// 	var ro = DriveService.files.insert({title: 'title-'+id});
+	// 	$httpBackend.flush();
+	//
+	// 	expect(DriveService.lastFile.id).toBe(id);
+	// 	expect(ro.data.id).toBe(id);
+	// });
 
-		var ro = DriveService.files.get({fileId: id, alt:'media'});
-
-		$httpBackend.flush();
-
-		expect(ro.data.media).toBe(media);
-	});
-
-	it('insert should return a file object', function () {
+	describe('.files.insert() method', function () {
 		var id = 'fooi';
 		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
-		$httpBackend .whenPOST("") .respond({id: id} );
 
-		var ro = DriveService.files.insert({title: 'title-'+id});
-		$httpBackend.flush();
+		beforeEach(function () {
+			$httpBackend .whenPOST("") .respond({id: id} );
+		});
 
-		expect(DriveService.lastFile.id).toBe(id);
-		expect(ro.data.id).toBe(id);
+		it('should return a file object', function () {
+			var ro = DriveService.files.insert({title: 'title-'+id});
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(DriveService.lastFile.id).toBe(id);
+					expect(ro.data.id).toBe(id);
+				});
+		});
+
+		it('should fail when uploadType="resumable" with D136 (no resumable yet)', function () {
+			var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'resumable'}, 'notb64');
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D136/);
+				});
+		});
+
+		it('should fail when uploadType="multipart" with D148 (no mime type)', function () {
+			var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'multipart'}, 'Zm9v');
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D148/);
+				});
+		});
+
+		it('should fail when uploadType="media" with D148 (no mime type)', function () {
+			var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'media'}, 'Zm9v');
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D148/);
+				});
+		});
+
 	});
 
-	it('insert media should fail for invalid params or data', function () {
-		var id = 'fooi';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
+	describe('.files.list() method', function () {
 
-		$httpBackend .whenPOST("") .respond({id: id} );
+		it('should return a file array', function () {
+			var id = 'fooi';
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files';
+			$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
 
-		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'resumable'}, 'notb64');
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D136/);
-			});
+			var ro = DriveService.files.list();
+			$httpBackend.flush();
 
-		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'multipart'}, 'Zm9v');
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D148/);
-			});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(ro.data.length).toBe(2);
+				});
+		});
 
-		var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'media'}, 'Zm9v');
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D148/);
-			});
+		// NOTE:
+		// I assume this test is supposed to fail, but it succeded in the
+		// in the original code, so I refactored it with the same logic.
+		//
+		// TODO: Correct test for missing nextPageToken
+		it('should fail when missing nextPageToken', function () {
+			$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
+
+			var ro = DriveService.files.list({fields: 'foo'});
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+				});
+		});
+
 	});
 
-	it('list should return a file array', function () {
-		var id = 'fooi';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
-		$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
+	describe('.files.update() method', function () {
 
-		var ro = DriveService.files.list();
-		$httpBackend.flush();
-		expect(ro.data.length).toBe(2);
+		it('should return a file object ', function () {
+			var id = 'foot';
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
+			$httpBackend .whenPUT("") .respond({id: id } );
+
+			var ro = DriveService.files.update({title:'foo'}, {fileId: id});
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(DriveService.lastFile.id).toBe(id);
+					expect(ro.data.id).toBe(id);
+				});
+		});
+
+		it('should fail when missing fileId', function () {
+			var ro = DriveService.files.update({title: 'title-'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D193/);
+				});
+		});
+
 	});
 
-	it('list should fail for missing nextPageToken', function () {
-		$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
+	describe('.files.patch() method', function () {
 
-		var ro = DriveService.files.list({fields: 'foo'});
-		$httpBackend.flush();
+		it('should return a file object ', function () {
+			var id = 'foot';
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
+			$httpBackend .whenPATCH("") .respond({id: id } );
 
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).toHaveBeenCalled();
-				expect(failure).not.toHaveBeenCalled();
-			});
+			var ro = DriveService.files.patch({fileId: id});
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(DriveService.lastFile.id).toBe(id);
+					expect(ro.data.id).toBe(id);
+				});
+		});
+
+		it('should fail when missing fileId', function () {
+			var ro = DriveService.files.patch({title: 'title-'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D230/);
+				});
+		});
+
 	});
 
-	it('update should fail for missing fileId', function () {
-		var ro = DriveService.files.update({title: 'title-'});
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D193/);
-			});
+	describe('.files.trash() method', function () {
+
+		it('should return a file object with labels.trashed=true', function () {
+			var id = 'foot';
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/trash';
+			$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
+
+			var ro = DriveService.files.trash({fileId: id});
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(DriveService.lastFile.id).toBe(id);
+					expect(ro.data.id).toBe(id);
+					expect(ro.data.labels.trashed).toBeTruthy();
+				});
+		});
+
+		it('should fail when missing fileId', function () {
+			var ro = DriveService.files.trash({title: 'title-'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D225/);
+				});
+		});
+
 	});
 
-	it('update should return a file object ', function () {
-		var id = 'foot';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
-		$httpBackend .whenPUT("") .respond({id: id } );
+	describe('.files.untrash() method', function () {
 
-		var ro = DriveService.files.update({title:'foo'}, {fileId: id});
-		$httpBackend.flush();
+		it('should return a file object with labels.trashed=false', function () {
+			var id = 'foot';
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/trash';
+			$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: false}} );
 
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).toHaveBeenCalled();
-				expect(failure).not.toHaveBeenCalled();
-			});
+			var ro = DriveService.files.untrash({fileId: id});
+			$httpBackend.flush();
 
-		expect(DriveService.lastFile.id).toBe(id);
-		expect(ro.data.id).toBe(id);
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(DriveService.lastFile.id).toBe(id);
+					expect(ro.data.id).toBe(id);
+					expect(ro.data.labels.trashed).toBeFalsy();
+				});
+		});
+
+		it('should fail when missing fileId', function () {
+			var ro = DriveService.files.untrash({title: 'title-'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D251/);
+				});
+		});
+
 	});
 
-	it('patch should fail for missing fileId', function () {
-		var ro = DriveService.files.patch({title: 'title-'});
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D230/);
-			});
+	describe('.files.del() method', function () {
+
+		it('should fail when missing fileId', function () {
+			var ro = DriveService.files.del({title: 'title-'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D222/);
+				});
+		});
+
 	});
 
-	it('patch should return a file object ', function () {
-		var id = 'foot';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
-		$httpBackend .whenPATCH("") .respond({id: id } );
+	describe('.files.touch() method', function () {
 
-		var ro = DriveService.files.patch({fileId: id});
-		$httpBackend.flush();
+		it('should return a file object', function () {
+			var id = 'foot';
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/touch';
+			$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
 
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).toHaveBeenCalled();
-				expect(failure).not.toHaveBeenCalled();
-			});
+			var ro = DriveService.files.touch({fileId: id});
+			$httpBackend.flush();
 
-		expect(DriveService.lastFile.id).toBe(id);
-		expect(ro.data.id).toBe(id);
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(DriveService.lastFile.id).toBe(id);
+					expect(ro.data.id).toBe(id);
+				});
+		});
+
+		it('should fail when missing fileId', function () {
+			var ro = DriveService.files.touch({title: 'title-'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D329/);
+				});
+		});
+
 	});
 
-	it('trash should fail for missing fileId', function () {
-		var ro = DriveService.files.trash({title: 'title-'});
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D225/);
-			});
-	});
+	describe('.files.watch() method', function () {
 
-	it('trash should return a file object with labels trashed=true', function () {
-		var id = 'foot';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/trash';
-		$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
+		it('should fail when missing fileId', function () {
+			var ro = DriveService.files.watch({title: 'title-'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D302/);
+				});
+		});
 
-		var ro = DriveService.files.trash({fileId: id});
-		$httpBackend.flush();
-
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).toHaveBeenCalled();
-				expect(failure).not.toHaveBeenCalled();
-			});
-
-		expect(DriveService.lastFile.id).toBe(id);
-		expect(ro.data.id).toBe(id);
-		expect(ro.data.labels.trashed).toBeTruthy();
-	});
-
-	it('untrash should fail for missing fileId', function () {
-		var ro = DriveService.files.untrash({title: 'title-'});
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D251/);
-			});
-	});
-
-	it('untrash should return a file object with labels trashed=false', function () {
-		var id = 'foot';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/trash';
-		$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: false}} );
-
-		var ro = DriveService.files.untrash({fileId: id});
-		$httpBackend.flush();
-
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).toHaveBeenCalled();
-				expect(failure).not.toHaveBeenCalled();
-			});
-
-		expect(DriveService.lastFile.id).toBe(id);
-		expect(ro.data.id).toBe(id);
-		expect(ro.data.labels.trashed).toBeFalsy();
-	});
-
-	it('delete should fail for missing fileId', function () {
-		var ro = DriveService.files.del({title: 'title-'});
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D222/);
-			});
-	});
-
-	it('touch should fail for missing fileId', function () {
-		var ro = DriveService.files.touch({title: 'title-'});
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D329/);
-			});
-	});
-
-	it('touch should return a file object', function () {
-		var id = 'foot';
-		var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/touch';
-		$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
-
-		var ro = DriveService.files.touch({fileId: id});
-		$httpBackend.flush();
-
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).toHaveBeenCalled();
-				expect(failure).not.toHaveBeenCalled();
-			});
-
-		expect(DriveService.lastFile.id).toBe(id);
-		expect(ro.data.id).toBe(id);
-	});
-
-	it('watch should fail for missing fileId', function () {
-		var ro = DriveService.files.watch({title: 'title-'});
-		ro.promise
-			.then(success, failure)
-			.finally(function() {
-				expect(success).not.toHaveBeenCalled();
-				expect(failure).toHaveBeenCalledWithMatch(/D302/);
-			});
 	});
 
 	//it('watch should return a file object', function () {
