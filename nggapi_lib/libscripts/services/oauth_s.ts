@@ -187,6 +187,7 @@ module NgGapi {
             // when the response is available
           }).
           error((data, status, headers, config) => {
+              this.isAuthInProgress = false;
             // called asynchronously if an error occurs
             // or server returns response with an error status.
             this.$log.error('[O191] problem refreshing test refresh token '+status+' '+data.error+' '+data.error_description);
@@ -202,7 +203,7 @@ module NgGapi {
     refreshCallback() {
       this.isAuthInProgress = false;
       this.isAuthedYet = true;
-      //console.log('authed');
+      console.log('o206 authed');
 
       var token:GoogleApiOAuth2TokenObject = this.$window['gapi'].auth.getToken();
       if (!token) {

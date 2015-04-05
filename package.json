@@ -54,7 +54,7 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt testlib"
   },
   "repository": {
     "type": "git",

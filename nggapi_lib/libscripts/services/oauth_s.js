@@ -166,6 +166,7 @@ var NgGapi;
                 // this callback will be called asynchronously
                 // when the response is available
             }).error(function (data, status, headers, config) {
+                _this.isAuthInProgress = false;
                 // called asynchronously if an error occurs
                 // or server returns response with an error status.
                 _this.$log.error('[O191] problem refreshing test refresh token ' + status + ' ' + data.error + ' ' + data.error_description);
@@ -180,7 +181,7 @@ var NgGapi;
         OauthService.prototype.refreshCallback = function () {
             this.isAuthInProgress = false;
             this.isAuthedYet = true;
-            //console.log('authed');
+            console.log('o206 authed');
             var token = this.$window['gapi'].auth.getToken();
             if (!token) {
                 this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user or invalid client id or wrong origin URL? ');
