@@ -1,7 +1,7 @@
 ## ngGAPI - Google APIs for AngularJS 
 
 ### Quick Start
-* Download and unzip https://github.com/pinoyyid/ngGAPI/blob/nggapi_lib/nggapi_dist.zip?raw=true . 
+* Download and unzip https://github.com/pinoyyid/ngGAPI/blob/master/nggapi_lib/nggapi_dist.zip?raw=true. 
 This will create a folder `/nggapi_lib/dist_lib/` containing the two minified files that comprise the ngGAPI Drive library.
 * In your HTML, `nggapi-base.min.js` must be loaded before your app declaration, and `nggapi-drive.min.js` must be loaded afterwards. e.g.
 ```

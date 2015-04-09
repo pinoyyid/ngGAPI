@@ -202,7 +202,7 @@ var NgGapi;
             }
             // here with no access token
             if (at && at.indexOf('!FAIL') == 0) {
-                def.reject('401 no access token');
+                def.reject('401 no access token ' + at.substr(5)); // include any explanation, eg. auth denied
             }
             else {
                 var ms = at ? at.replace('!RETRY=', '') : 500;
