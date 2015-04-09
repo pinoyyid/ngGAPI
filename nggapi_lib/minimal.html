@@ -4,7 +4,7 @@
 </head>
 <body ng-app="MyApp">
 <div ng-controller="MainCtrl as vm">
-    This is a sample app showing how simple it is to access Drive using ngGapi. In this case it is listing all drive files containing xxx in the title.<br>
+    This is a sample app showing how simple it is to access Drive using ngGapi. In this case it is listing all drive files.<br>
     All of the code is in minimal.html. When I say "all of the code", it's only two lines!!! How cool is that.<br><br>
     <li ng-repeat="file in vm.filesArray">{{file.title}}</li>
 </div>
@@ -38,7 +38,7 @@
     var MainCtrl = (function () {
         // the controller is passed the DriveService
         function MainCtrl(DriveService) {
-            // call the DriveService to list files containing xxx. I've added fields to reduce the volume of output for performance
+            // call the DriveService to list all files . I've added fields to reduce the volume of output for performance
             this.filesArray = DriveService.files.list({
                 q: 'trashed = false',
                 maxResults: 10,
