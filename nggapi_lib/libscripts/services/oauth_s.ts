@@ -53,6 +53,7 @@ module NgGapi {
 		 * @param ownGetAccessTokenFunction (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
 		 * @param testingRefreshToken - if set, this is used to fetch access tokens instead of gapi
 		 * @param testingClientSecret - if set, this is used to fetch access tokens instead of gapi
+		 * @param popupBlockedFunction - if set, this is called in place of the default alert if we think that auth is blocked by a popup blocker (or the use closed the window)
 		 * @param $log
 		 * @param $window
 		 * @param $http
@@ -60,7 +61,7 @@ module NgGapi {
 		 */
 		constructor(private scopes:string, private clientId:string, private tokenRefreshPolicy,
 		            private noAccesTokenPolicy:number, private immediateMode:boolean, private ownGetAccessTokenFunction,
-		            private testingRefreshToken, private testingAccessToken, private testingClientSecret,
+		            private testingRefreshToken, private testingAccessToken, private testingClientSecret, private popupBlockedFunction,
 		            private $log:mng.ILogService, private $window:mng.IWindowService, private $http:mng.IHttpService, private $timeout:mng.ITimeoutService) {
 			//console.log("OAuth instantiated with " + scopes);
 			//$log.log("scopes", this.scopes);
@@ -152,12 +153,14 @@ module NgGapi {
 				if (this.POPUP_BLOCKER_ALERT_DELAY > 0) {                                                               // if popup blocker alerts are enabled
 					var toPromise = this.$timeout(()=> {                                                                // set a n second timeout on auth
 							console.log("auth timed out after " + this.POPUP_BLOCKER_ALERT_DELAY + "ms. Resetting anti-concurrent-calls flag so the next call to getAccesstoken() will trigger a fresh request");
-							if (this.POPUP_BLOCKER_ALERT_TEXT) {
-								alert(this.POPUP_BLOCKER_ALERT_TEXT);                                                   // display a default alert
+							if (this.popupBlockedFunction) {                                                            // if the app wants to handle popups blocked
+								this.popupBlockedFunction();                                                            //let it
+							} else {                                                                                    // else
+								if (this.POPUP_BLOCKER_ALERT_TEXT) {
+									alert(this.POPUP_BLOCKER_ALERT_TEXT);                                               // display a default alert
+								}
 							}
 							this.isAuthInProgress = false;
-							// alert the user about the likelihood of a popup blocker
-
 						},
 						this.POPUP_BLOCKER_ALERT_DELAY);
 				}
@@ -175,16 +178,6 @@ module NgGapi {
 				this.$log.error('[O153] exception calling gapi.auth.authorize ' + e);
 				this.isAuthInProgress = false;
 			}
-		}
-
-
-		/**
-		 * Called by a timeOut if a call to this.$window['gapi'].auth.authorize doesn't return. Possible explanations
-		 * are 1) popups blocked, 2) permission denied, 3) some post OS-suspend state that prevents auth
-		 * TODO verify explanations
-		 */
-		noGapiAuthResponse() {
-
 		}
 
 
@@ -302,9 +295,11 @@ NgGapi['Config'] = function () {
 	var getAccessTokenFunction = undefined;
 	var immediateMode = false;
 	;
-	var testingRefreshToken = undefined;
-	var testingAccessToken = undefined;
-	var testingClientSecret = undefined;
+	var testingRefreshToken;
+	var testingAccessToken;
+	var testingClientSecret;
+	var popupBlockedFunction;
+
 	return {
 		setScopes: function (_scopes) {
 			scopes = _scopes;
@@ -334,6 +329,9 @@ NgGapi['Config'] = function () {
 		setTestingClientSecret: function (_secret) {
 			testingClientSecret = _secret;
 		},
+		setPopupBlockedFunction: function (_function) {
+			popupBlockedFunction = _function;
+		},
 		// this is the function called by the Angular DI system to return the service
 		$get: function () {
 			var myInjector = angular.injector(["ng"]);
@@ -343,7 +341,7 @@ NgGapi['Config'] = function () {
 			var $timeout = myInjector.get("$timeout");
 			return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy,
 				immediateMode, getAccessTokenFunction, testingRefreshToken, testingAccessToken,
-				testingClientSecret, $log, $window, $http, $timeout);
+				testingClientSecret, popupBlockedFunction, $log, $window, $http, $timeout);
 		}
 	}
 };
