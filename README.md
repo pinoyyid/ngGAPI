@@ -240,5 +240,5 @@ Just doing our job ma'am.
 If you're writing in TypeScript, you'll need the tsc compiler vers 1.4. If you're using WebStorm, you'll need WS10. `nggapi_interfaces/drive_interfaces.d.ts` contains all of the type definitions for ngGAPI Drive.
 
 ### Contributors
-The library was developed by members of the [ngManila](http://www.meetup.com/Manila-AngularJS-Group/) community, specifically Sam Ong and Roy Smith.
+The library was developed by members of the [ngManila](http://www.meetup.com/Manila-AngularJS-Group/) community, specifically Sam Ong, Roy Smith and [Johnny Estilles](https://github.com/JohnnyEstilles) of [Agentia Systems](http://www.agentia.asia).
 Contributions and PR's welcome. Please note that we have developed this library in TypeScript, so any contributions must also be in TS.
