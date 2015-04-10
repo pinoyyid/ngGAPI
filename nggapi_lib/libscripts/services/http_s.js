@@ -226,8 +226,11 @@ var NgGapi;
          * @param retryCounter  The decrementing retry counter
          */
         HttpService.prototype.errorHandler = function (data, status, headers, configObject, statusText, def, retryCounter) {
-            var _this = this;
             // 404 - hard error
+            var _this = this;
+            if (!data || data == null) {
+                data = { error: { message: '[H242] null response. Possible network failure.' } }; // create a dummy rep data object with an appropriate message
+            }
             if (status == 404) {
                 def.reject(status + " " + data.error.message);
                 return;

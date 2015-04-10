@@ -219,7 +219,11 @@ var NgGapi;
             this.isAuthInProgress = false;
             console.log('o207 authed');
             // TODO deal with resp being null as occurs after a network failure
+            //resp=null; gapi.auth.setToken(undefined);debugger;                    uncomment to force null to test network error handling
             var token = this.$window['gapi'].auth.getToken();
+            if (resp == null) {
+                resp = { error: "[O248] null response. Possible network error." }; // so create a dummy response with an appropriate error message
+            }
             if (!token) {
                 this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user or invalid client id or wrong origin URL? Reason = ' + resp.error);
                 if (resp.error == "immediate_failed") {
@@ -231,7 +235,7 @@ var NgGapi;
                 return;
             }
             if (token.access_token && token.access_token != null) {
-                this.isAuthedYet = true;
+                this.isAuthedYet = true; // set flag that authed , ie immediate is now true
                 this.testingAccessToken = undefined; // lose any testing token
             }
             // if app has requested auto-refresh, set up the timeout to refresh

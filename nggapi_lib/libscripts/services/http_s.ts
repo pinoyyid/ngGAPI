@@ -237,6 +237,11 @@ module NgGapi {
 		 */
 		errorHandler(data:any, status:number, headers:{}, configObject:mng.IRequestConfig, statusText:string, def:mng.IDeferred<any>, retryCounter:number) {
 			// 404 - hard error
+
+			if (!data || data == null) {                                                                                // if the response data is null
+				data = {error: {message: '[H242] null response. Possible network failure.'}};                           // create a dummy rep data object with an appropriate message
+			}
+
 			if (status == 404) { // 404 is not recoverable, so reject the promise
 				def.reject(status+" "+data.error.message);
 				return;
