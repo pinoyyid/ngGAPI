@@ -44,8 +44,8 @@ var MaximalCtrl = (function () {
             return _this.getChange(_this.largestChangeId);
         }).then(function () {
             return _this.emptyTrash();
-        }).then(function () {
-            console.log('All done');
+        }).catch(function (reason) {
+            console.error('There was an error: ', reason);
         });
     };
     /*
@@ -171,6 +171,8 @@ var MaximalCtrl = (function () {
                     def.resolve();
                 }
                 // check count then resolve
+            }, function (reason) {
+                def.reject(reason);
             });
         }
         return def.promise;

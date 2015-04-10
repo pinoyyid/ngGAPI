@@ -218,7 +218,6 @@ var NgGapi;
         OauthService.prototype.refreshCallback = function (resp) {
             this.isAuthInProgress = false;
             console.log('o207 authed');
-            // TODO deal with resp being null as occurs after a network failure
             //resp=null; gapi.auth.setToken(undefined);debugger;                    uncomment to force null to test network error handling
             var token = this.$window['gapi'].auth.getToken();
             if (resp == null) {

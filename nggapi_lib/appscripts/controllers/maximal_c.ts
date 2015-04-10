@@ -64,8 +64,8 @@ class MaximalCtrl {
 			.then(() => {
 			return this.emptyTrash()
 		})
-			.then(()=> {
-				console.log('All done')
+			.catch((reason)=> {
+				console.error('There was an error: ',reason);
 			}
 		);
 	}
@@ -203,7 +203,7 @@ class MaximalCtrl {
 					}
 					// check count then resolve
 				}
-			);
+			, (reason) => {def.reject(reason)});
 		}
 		return def.promise;
 	}
