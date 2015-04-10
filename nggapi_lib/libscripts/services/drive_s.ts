@@ -14,6 +14,7 @@ module NgGapi {
 			self: this,
 			get: this.filesGet,
 			insert: this.filesInsert,
+			insertWithContent: this.filesInsertWithContent,
 			list: this.filesList,
 			update: this.filesUpdate,
 			patch: this.filesPatch,
@@ -38,7 +39,7 @@ module NgGapi {
 		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
 		resourceToken = 'reSource';
-		urlBase =  'https://www.googleapis.com/drive/v2/'+this.resourceToken+'/:id';
+		urlBase = 'https://www.googleapis.com/drive/v2/' + this.resourceToken + '/:id';
 		filesUrl = this.urlBase.replace(this.resourceToken, 'files');
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
 		changesUrl = this.urlBase.replace(this.resourceToken, 'changes');
@@ -102,7 +103,6 @@ module NgGapi {
 		}
 
 
-
 		/**
 		 * Implements Get for the changes resource
 		 * See https://developers.google.com/drive/v2/reference/changes/get
@@ -113,7 +113,7 @@ module NgGapi {
 		changesGet(params:{changeId:number}):IDriveResponseObject<IDriveChange,IDriveChange> {
 			var co:mng.IRequestConfig = {                                                                               // build request config
 				method: 'GET',
-				url: this.self.changesUrl.replace(':id', ''+params.changeId)
+				url: this.self.changesUrl.replace(':id', '' + params.changeId)
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
 			var responseObject:IDriveResponseObject<IDriveChange,IDriveChange> = {
@@ -159,12 +159,12 @@ module NgGapi {
 				headers: undefined
 			};
 			promise.then((resp:{data:IDriveChangeList})=> {                                                             // on complete
-				if (!!resp.data && !! resp.data.items) {
-					var l = resp.data.items.length;
-					for (var i = 0; i < l; i++) {
-						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
-					}   // Nb can't use concat as that creates a new array
-				}
+					if (!!resp.data && !!resp.data.items) {
+						var l = resp.data.items.length;
+						for (var i = 0; i < l; i++) {
+							responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+						}   // Nb can't use concat as that creates a new array
+					}
 				}, undefined,
 				(resp:{data:IDriveChangeList})=> {                                                                      // on notify, ie a single page of results
 					var l = resp.data.items.length;
@@ -275,7 +275,7 @@ module NgGapi {
 				headers: undefined
 			};
 			promise.then((resp:{data:IDriveFileList})=> {    			                                                // on complete
-					if (!!resp.data && !! resp.data.items) {
+					if (!!resp.data && !!resp.data.items) {
 						var l = resp.data.items.length;
 						for (var i = 0; i < l; i++) {
 							responseObject.data.push(resp.data.items[i]);                                                   // push each new file
@@ -297,23 +297,33 @@ module NgGapi {
 		 *
 		 * See https://developers.google.com/drive/v2/reference/files/insert for semantics including the params object
 		 *
+		 *
+		 * Optionally (default true) it will store the ID returned in the Drive response in the file object that was passed to it.
+		 * This is done since it is almost always what an app needs to do, and by doing it in this method, saves the developer from
+		 * writing any promise.then logic
+		 *
 		 * @param file  Files resource with at least a mime type
-		 * @param params see Google docs
+		 * @param params see Google docs, must contain at least uploadType
 		 * @param content
+		 * @param storeID stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
 		 * @returns IDriveResponseObject
 		 */
-		filesInsert(file:IDriveFile, params?:IDriveFileInsertParameters, content?:string):IDriveResponseObject<IDriveFile,IDriveFile> {
+		filesInsertWithContent(file:IDriveFile, params:IDriveFileInsertParameters, content:string, storeId?:boolean):IDriveResponseObject<IDriveFile,IDriveFile> {
 			var configObject:mng.IRequestConfig;
 			if (!params || !params.uploadType) {
-				configObject = {method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file};                // no params is a simple metadata insert
-			} else {
-				try {
-					configObject = this.self.buildUploadConfigObject(file, params, content, true);                      // build a config object from params
-					configObject.method = 'POST';
-					configObject.url = this.self.filesUploadUrl;                                                        // nb non-standard URL
-				} catch (ex) {                                                                                          // any validation errors throw an exception
-					return this.self.reject(ex);
-				}
+				var s = "[D314] Missing params (which must contain uploadType)";
+				return this.self.reject(s);
+			}
+			if (!content) {
+				var s = "[D318] Missing content";
+				return this.self.reject(s);
+			}
+			try {
+				configObject = this.self.buildUploadConfigObject(file, params, content, true);                          // build a config object from params
+				configObject.method = 'POST';
+				configObject.url = this.self.filesUploadUrl;                                                            // nb non-standard URL
+			} catch (ex) {                                                                                              // any validation errors throw an exception
+				return this.self.reject(ex);
 			}
 
 
@@ -323,8 +333,49 @@ module NgGapi {
 				data: {},
 				headers: undefined
 			};
-			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveFile|string>)=> {                                        // on complete
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveFile>)=> {                                             // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				if (storeId == undefined || storeId == true) {                                                          // if requested
+					file.id = resp.data.id;                                                                             // stgore the ID
+				}
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
+
+		/**
+		 * Implements Insert for metadata only
+		 *
+		 * See https://developers.google.com/drive/v2/reference/files/insert for semantics including the params object
+		 *
+		 * Optionally (default true) it will store the ID returned in the Drive response in the file object that was passed to it.
+		 * This is done since it is almost always what an app needs to do, and by doing it in this method, saves the developer from
+		 * writing any promise.then logic
+		 *
+		 * @param file  Files resource with at least a mime type
+		 * @param storeID stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
+		 * @returns IDriveResponseObject
+		 */
+		filesInsert(file:IDriveFile, storeId?:boolean):IDriveResponseObject<IDriveFile,IDriveFile> {
+			var configObject:mng.IRequestConfig = {
+				method: 'POST',
+				url: this.self.filesUrl.replace(':id', ''),
+				data: file
+			};
+
+			var promise = this.self.HttpService.doHttp(configObject);
+			var responseObject:IDriveResponseObject<IDriveFile,IDriveFile> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveFile>)=> {                                             // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				if (storeId == undefined || storeId == true) {                                                          // if requested
+					file.id = resp.data.id;                                                                             // stgore the ID
+				}
 				this.self.transcribeProperties(resp.data, responseObject);
 				this.self.lastFile = resp.data;
 			});

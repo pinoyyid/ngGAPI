@@ -17,6 +17,7 @@ var NgGapi;
                 self: this,
                 get: this.filesGet,
                 insert: this.filesInsert,
+                insertWithContent: this.filesInsertWithContent,
                 list: this.filesList,
                 update: this.filesUpdate,
                 patch: this.filesPatch,
@@ -278,26 +279,35 @@ var NgGapi;
          *
          * See https://developers.google.com/drive/v2/reference/files/insert for semantics including the params object
          *
+         *
+         * Optionally (default true) it will store the ID returned in the Drive response in the file object that was passed to it.
+         * This is done since it is almost always what an app needs to do, and by doing it in this method, saves the developer from
+         * writing any promise.then logic
+         *
          * @param file  Files resource with at least a mime type
-         * @param params see Google docs
+         * @param params see Google docs, must contain at least uploadType
          * @param content
+         * @param storeID stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
          * @returns IDriveResponseObject
          */
-        DriveService.prototype.filesInsert = function (file, params, content) {
+        DriveService.prototype.filesInsertWithContent = function (file, params, content, storeId) {
             var _this = this;
             var configObject;
             if (!params || !params.uploadType) {
-                configObject = { method: 'POST', url: this.self.filesUrl.replace(':id', ''), data: file }; // no params is a simple metadata insert
+                var s = "[D314] Missing params (which must contain uploadType)";
+                return this.self.reject(s);
             }
-            else {
-                try {
-                    configObject = this.self.buildUploadConfigObject(file, params, content, true); // build a config object from params
-                    configObject.method = 'POST';
-                    configObject.url = this.self.filesUploadUrl; // nb non-standard URL
-                }
-                catch (ex) {
-                    return this.self.reject(ex);
-                }
+            if (!content) {
+                var s = "[D318] Missing content";
+                return this.self.reject(s);
+            }
+            try {
+                configObject = this.self.buildUploadConfigObject(file, params, content, true); // build a config object from params
+                configObject.method = 'POST';
+                configObject.url = this.self.filesUploadUrl; // nb non-standard URL
+            }
+            catch (ex) {
+                return this.self.reject(ex);
             }
             var promise = this.self.HttpService.doHttp(configObject);
             var responseObject = {
@@ -307,6 +317,45 @@ var NgGapi;
             };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
+                if (storeId == undefined || storeId == true) {
+                    file.id = resp.data.id; // stgore the ID
+                }
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements Insert for metadata only
+         *
+         * See https://developers.google.com/drive/v2/reference/files/insert for semantics including the params object
+         *
+         * Optionally (default true) it will store the ID returned in the Drive response in the file object that was passed to it.
+         * This is done since it is almost always what an app needs to do, and by doing it in this method, saves the developer from
+         * writing any promise.then logic
+         *
+         * @param file  Files resource with at least a mime type
+         * @param storeID stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.filesInsert = function (file, storeId) {
+            var _this = this;
+            var configObject = {
+                method: 'POST',
+                url: this.self.filesUrl.replace(':id', ''),
+                data: file
+            };
+            var promise = this.self.HttpService.doHttp(configObject);
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+                if (storeId == undefined || storeId == true) {
+                    file.id = resp.data.id; // stgore the ID
+                }
                 _this.self.transcribeProperties(resp.data, responseObject);
                 _this.self.lastFile = resp.data;
             });

@@ -116,16 +116,16 @@ describe('Service: DriveService', function () {
 		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
 
 		beforeEach(function () {
-			$httpBackend .whenPOST("") .respond({id: id} );
+			$httpBackend.whenPOST("").respond({id: id});
 		});
 
 		it('should return a file object', function () {
-			var ro = DriveService.files.insert({title: 'title-'+id});
+			var ro = DriveService.files.insert({title: 'title-' + id});
 			$httpBackend.flush();
 
 			ro.promise
 				.then(success, failure)
-				.finally(function() {
+				.finally(function () {
 					expect(success).toHaveBeenCalled();
 					expect(failure).not.toHaveBeenCalled();
 					expect(DriveService.lastFile.id).toBe(id);
@@ -133,8 +133,95 @@ describe('Service: DriveService', function () {
 				});
 		});
 
+		it('should inject an id in file object when storeId=true', function () {
+			var file = {title: 'title-' + id};
+			var ro = DriveService.files.insert(file, true);
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function () {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(DriveService.lastFile.id).toBe(id);
+					expect(ro.data.id).toBe(id);
+					expect(file.id).toBe(id);
+				});
+		});
+
+		it('should not inject an id in file object when storeId=false', function () {
+			var file = {title: 'title-' + id, id: 'xxx'};
+			var ro = DriveService.files.insert(file, false);
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function () {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(DriveService.lastFile.id).toBe(id);
+					expect(ro.data.id).toBe(id);
+					expect(file.id).toBe('xxx');
+				});
+		});
+
+		it('should inject an id in file object when storeId is defaulted', function () {
+			var file = {title: 'title-' + id, id: 'xxx'};
+			var ro = DriveService.files.insert(file);
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function () {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(DriveService.lastFile.id).toBe(id);
+					expect(ro.data.id).toBe(id);
+					expect(file.id).toBe(id);
+				});
+		});
+	});
+
+	describe('.files.insertWithContent() method', function () {
+		var id = 'fooi';
+		var filesUrl = 'https://www.googleapis.com/drive/v2/files';
+
+		beforeEach(function () {
+			$httpBackend.whenPOST("").respond({id: id});
+		});
+
+		it('should fail when no params)', function () {
+			var ro = DriveService.files.insertWithContent({title: 'title-'+id});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D314/);
+				});
+		});
+
+		it('should fail when params is missing uploadType)', function () {
+			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D314/);
+				});
+		});
+
+		it('should fail when no content)', function () {
+			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {uploadType: 'multipart'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D318/);
+				});
+		});
+
 		it('should fail when uploadType="resumable" with D136 (no resumable yet)', function () {
-			var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'resumable'}, 'notb64');
+			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {uploadType:'resumable'}, 'notb64');
 			ro.promise
 				.then(success, failure)
 				.finally(function() {
@@ -144,7 +231,7 @@ describe('Service: DriveService', function () {
 		});
 
 		it('should fail when uploadType="multipart" with D148 (no mime type)', function () {
-			var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'multipart'}, 'Zm9v');
+			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {uploadType:'multipart'}, 'Zm9v');
 			ro.promise
 				.then(success, failure)
 				.finally(function() {
@@ -154,7 +241,7 @@ describe('Service: DriveService', function () {
 		});
 
 		it('should fail when uploadType="media" with D148 (no mime type)', function () {
-			var ro = DriveService.files.insert({title: 'title-'+id}, {uploadType:'media'}, 'Zm9v');
+			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {uploadType:'media'}, 'Zm9v');
 			ro.promise
 				.then(success, failure)
 				.finally(function() {

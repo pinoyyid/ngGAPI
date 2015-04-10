@@ -189,7 +189,7 @@ class MaximalCtrl {
 		var def = this.$q.defer();
 
 		for (var i = 0; i < count; i++) {
-			this.DriveService.files.insert({
+			this.DriveService.files.insertWithContent({
 				title: title + '-' + i,
 				mimeType: 'text/plain'
 			}, {uploadType: 'multipart'}, contentBase + title + '-' + i).promise.then(

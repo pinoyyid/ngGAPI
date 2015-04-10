@@ -218,6 +218,7 @@ var NgGapi;
         OauthService.prototype.refreshCallback = function (resp) {
             this.isAuthInProgress = false;
             console.log('o207 authed');
+            // TODO deal with resp being null as occurs after a network failure
             var token = this.$window['gapi'].auth.getToken();
             if (!token) {
                 this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user or invalid client id or wrong origin URL? Reason = ' + resp.error);
