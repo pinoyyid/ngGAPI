@@ -4,13 +4,16 @@
 * Download and unzip https://github.com/pinoyyid/ngGAPI/blob/master/nggapi_lib/nggapi_dist.zip?raw=true. 
 This will create a folder `/nggapi_lib/dist_lib/` containing the two minified files that comprise the ngGAPI Drive library.
 * In your HTML, `nggapi-base.min.js` must be loaded before your app declaration, and `nggapi-drive.min.js` must be loaded afterwards. e.g.
+
 ```
         <script src="nggapi-base.min.js"></script>
         <script src="app.js"></script>
         <script src="nggapi-drive.js"></script>
 ```
+
 * If you are developing in TypeScript, you'll want to reference the definition file from `nggapi-interfaces/drive_interfaces.d.ts`
 * A simple `app.js` looks something like
+
 ```
 var myApp = angular.module('MyApp', ['ngm.NgGapi']);
 
@@ -27,6 +30,7 @@ angular.module('ngm.NgGapi')
 So you'll be reading https://developers.google.com/drive/v2/reference/files#methods and then each sub page for each method, 
 and looking at the JavaScript tab. See **API details** below for more detail. 
 For example, a simple ngGAPI call to create a new, empty file looks something like :-
+
 ```
   DriveService.files.insert({title: 'file title', mimeType:'text/plain'})
   .promise.then(()=>{console.log('new file inserted')})
@@ -46,6 +50,7 @@ validation | None. Whatever you submit is sent to Google | Some. We detect some 
 error handling | None. The app must deal with any errors | Most. 501's are retried, 403 Rate Limit errors are automatically throttled back and retried. This frees your app from a lot of tedious error handling.
 
 Example: Here is the Get method being used to retrieve a file in both Google gapi and ngGAPI
+
 ```
 // Google gapi
 function getFile(fileId) {
@@ -114,6 +119,7 @@ If you use the returned promise with a then(resp), the resp will be a ...
 ### OAuth2
 In order to access any Google API, your application needs an access token. 
 With ngGAPI, this is as simple as setting your client ID and required scopes.
+
 ```
 angular.module('ngm.NgGapi')
 	.provider('OauthService', NgGapi.Config)
@@ -122,7 +128,9 @@ angular.module('ngm.NgGapi')
 		OauthServiceProvider.setClientID('2231299-2bvf1.apps.googleusercontent.com');
 	});
 ```
+
 There are other options you can set to control the behaviour of OAuth if the defaults aren't appropriate.
+
 ```
 angular.module('ngm.NgGapi')
 	.provider('OauthService', NgGapi.Config)
