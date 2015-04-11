@@ -20,10 +20,10 @@ module NgGapi {
 
 		/*
 
-		500 69
-		800 72
-		1000  75
-		2000 83
+		 500 69
+		 800 72
+		 1000  75
+		 2000 83
 		 */
 
 		//throttleInterval;                                                                                               // the variable delay
@@ -37,6 +37,7 @@ module NgGapi {
 
 
 		static $inject = ['$log', '$http', '$timeout', '$interval', '$q', 'OauthService'];
+
 		constructor(private $log:mng.ILogService, private $http:mng.IHttpService, private $timeout:mng.ITimeoutService,
 		            private $interval:mng.IIntervalService, private $q:mng.IQService, private OauthService:IOauthService) {
 			//console.log('http cons');
@@ -80,9 +81,9 @@ module NgGapi {
 		}
 
 		/* add2q
-		pushes to q
-		if dq not running, starts dq interval
-		*/
+		 pushes to q
+		 if dq not running, starts dq interval
+		 */
 
 		/**
 		 * adds a new config object to the http queue
@@ -93,10 +94,12 @@ module NgGapi {
 		 */
 		add2q(configObject:mng.IRequestConfig, def:mng.IDeferred < any >, retryCounter:number) {
 			//console.log('adding '+configObject.method);
-			this.queue.push({c:configObject, d:def, r:retryCounter});
+			this.queue.push({c: configObject, d: def, r: retryCounter});
 			if (!this.queuePromise) {
 				//console.log('starting dq')
-				this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);
+				this.queuePromise = this.$interval(()=> {
+					this.dq()
+				}, this.queueInterval);
 			}
 
 		}
@@ -121,7 +124,9 @@ module NgGapi {
 			//	this.queueInterval = this.INTERVAL_MAX;
 			//}
 			//console.log('throttling at '+this.queueInterval);
-			this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);                                    // start a new interval
+			this.queuePromise = this.$interval(()=> {
+				this.dq()
+			}, this.queueInterval);                                    // start a new interval
 		}
 
 
@@ -143,15 +148,17 @@ module NgGapi {
 				this.queueInterval = this.INTERVAL_NORMAL;
 			}
 			//console.log('throttling at '+this.queueInterval);
-			this.queuePromise = this.$interval(()=>{this.dq()}, this.queueInterval);                                    // start a new interval
+			this.queuePromise = this.$interval(()=> {
+				this.dq()
+			}, this.queueInterval);                                    // start a new interval
 		}
 
 		/*	dq
-		checks q length,
-		if 0, set interval = 10, cancel
-		get  [0]
-		remove [0]
-		_do [0]
+		 checks q length,
+		 if 0, set interval = 10, cancel
+		 get  [0]
+		 remove [0]
+		 _do [0]
 		 */
 
 		/**
@@ -168,7 +175,7 @@ module NgGapi {
 			// here with q items
 			//console.log('processing item, qlen = '+this.queue.length);
 			var obj = this.queue[0];                                                                                    // get the oldest item
-			this.queue.splice(0,1);                                                                                     // remove from q
+			this.queue.splice(0, 1);                                                                                     // remove from q
 			this._doHttp(obj.c, obj.d, obj.r);                                                                          // process it
 		}
 
@@ -182,45 +189,52 @@ module NgGapi {
 		_doHttp(configObject:mng.IRequestConfig, def:mng.IDeferred < any >, retryCounter:number) {
 			//console.log('in _ with conf '+configObject.method);
 			//debugger;
-			// TODO suppress $http with a warning if getAccestoken returns undefined
 			if (!configObject.headers) {
 				configObject.headers = {};
 			}
-			var at = this.OauthService.getAccessToken();                                                                // add auth header
-			if (at && (at.indexOf('!FAIL') != 0) && (at.indexOf('!RETRY=') != 0)) {                                     // if there is an access token
-				configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken();                 // add auth header
-				var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
-				httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
-					this.throttleUp();
-					//this.$log.debug(status);
-					if (data.nextPageToken) {                                                                           // if there is more data, emit a notify and recurse
-						//console.log('h198 notify')
-						def.notify({data:data, configObject: configObject, headers:headers, status:status, statusText: statusText});
-						if (!configObject.params) {
-							configObject.params = {};                                                                   // just in case the original call had no params
+			//var at = this.OauthService.getAccessToken();                                                              // add auth header
+
+			this.OauthService.getAccessToken().then(
+				(token) => {
+
+					configObject.headers['Authorization'] = 'Bearer ' + token.access_token;                                 // add auth header
+					var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
+					httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
+						this.throttleUp();
+						//this.$log.debug(status);
+						if (data.nextPageToken) {                                                                           // if there is more data, emit a notify and recurse
+							//console.log('h198 notify')
+							def.notify({
+								data: data,
+								configObject: configObject,
+								headers: headers,
+								status: status,
+								statusText: statusText
+							});
+							if (!configObject.params) {
+								configObject.params = {};                                                                   // just in case the original call had no params
+							}
+							configObject.params.pageToken = data.nextPageToken;                                             // store the token into the params for the next call
+							return this._doHttp(configObject, def, retryCounter);
 						}
-						configObject.params.pageToken = data.nextPageToken;                                             // store the token into the params for the next call
-						return this._doHttp(configObject, def, retryCounter);
-					}
-					//console.log('h206 resolve')
-					def.resolve({data:data, configObject: configObject, headers:headers, status:status, statusText: statusText});
-				});
-				httpPromise.error((data, status, headers, configObject, statusText) => {                                // for an error
-					this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
-				})
-				return;
-			}
-			// here with no access token
-			if (at && at.indexOf('!FAIL') == 0) {                                                                       // if we are requested to fail
-				def.reject('401 no access token '+at.substr(5));                                                        // include any explanation, eg. auth denied
-			} else {
-				var ms = at?at.replace('!RETRY=', ''):500;
-				//console.log('sleeping for ms='+ms);
-				this.sleep(+ms).then(() => {
-					//console.log('retrying');
-					this._doHttp(configObject, def, retryCounter);
-				})
-			}
+						//console.log('h206 resolve')
+						def.resolve({
+							data: data,
+							configObject: configObject,
+							headers: headers,
+							status: status,
+							statusText: statusText
+						});
+					});
+					httpPromise.error((data, status, headers, configObject, statusText) => {                                // for an error
+						this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
+					})
+					return;
+				}, (error) => {
+					// here with no access token
+					def.reject('401 no access token ' + error);                                                        // include any explanation, eg. auth denied
+				}
+			);
 		}
 
 		/**
@@ -243,7 +257,7 @@ module NgGapi {
 			}
 
 			if (status == 404) { // 404 is not recoverable, so reject the promise
-				def.reject(status+" "+data.error.message);
+				def.reject(status + " " + data.error.message);
 				return;
 			}
 
@@ -251,14 +265,22 @@ module NgGapi {
 			// retry after 0.5s
 			if (status == 401) { // 401 need to refresh the token and then retry
 				this.$log.warn("[H116] Need to acquire a new Access Token and resubmit");
-				this.OauthService.refreshAccessToken();
-				if (--retryCounter > 0) { // number of retries set by caller
-					this.sleep(2000).then(() => {
+				this.OauthService.refreshAccessToken().then(
+					()=>{
 						this._doHttp(configObject, def, retryCounter);
-					})
-				} else {
-					def.reject(status + ' ' +data.error.message);
-				}
+					},
+					(err) => {
+						def.reject(err);
+					}
+				);  // retry loop replaced by a .then Only risk is if refreshToken keeps returning valid tokens which keep getting 401'd by Google
+
+				//if (--retryCounter > 0) { // number of retries set by caller
+				//	this.sleep(2000).then(() => {
+				//		this._doHttp(configObject, def, retryCounter);
+				//	})
+				//} else {
+				//	def.reject(status + ' ' + data.error.message);
+				//}
 				return;
 			}
 
@@ -272,7 +294,7 @@ module NgGapi {
 						this._doHttp(configObject, def, retryCounter);
 					})
 				} else {
-					def.reject(status + ' ' +data.error.message);
+					def.reject(status + ' ' + data.error.message);
 				}
 				return;
 			}
@@ -280,14 +302,14 @@ module NgGapi {
 			// 403 - rate limit, sleep for 2s x the number of retries to allow some more bucket tokens
 			//if (status == 403) debugger;
 			if (status == 403 && data.error.message.toLowerCase().indexOf('rate limit') > -1) {
-				this.$log.warn('[H153] 403 rate limit. requeuing retryConter = '+retryCounter);
+				this.$log.warn('[H153] 403 rate limit. requeuing retryConter = ' + retryCounter);
 				this.throttleDown();                                                                                    // slow down submission
-				this.add2q(configObject, def,  retryCounter);                                                           // and resubmit
+				this.add2q(configObject, def, retryCounter);                                                           // and resubmit
 				return;
 			}
 
 			// anything else is a hard error
-			def.reject(status+" "+data.error.message);
+			def.reject(status + " " + data.error.message);
 		}
 
 
@@ -304,6 +326,7 @@ module NgGapi {
 	}
 }
 
-declare var angular: mng.IAngularStatic;
+declare
+var angular:mng.IAngularStatic;
 angular.module('ngm.NgGapi')
 	.service('HttpService', NgGapi.HttpService);

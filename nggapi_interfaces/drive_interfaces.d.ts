@@ -250,8 +250,8 @@ declare module NgGapi{
    * Interface definition for the OauthService. Mostly useful for a mock service
    */
   export interface IOauthService {
-    getAccessToken(): string;
-    refreshAccessToken(): void;
+    getAccessToken(): mng.IPromise<GoogleApiOAuth2TokenObject>;
+    refreshAccessToken(): mng.IPromise<GoogleApiOAuth2TokenObject>;
   }
 
   /**
@@ -417,6 +417,32 @@ declare module NgGapi{
     includeSubscribed?:boolean;          // When calculating the number of remaining change IDs, whether to include public files the user has opened and shared files. When set to false, this counts only change IDs for owned files and any shared or public files that the user has explicitly added to a folder they own. (Default: true)
     maxChangeIdCount?:number;            // Maximum number of remaining change IDs to count
     startChangeId?:number;               // Change ID to start counting from when calculating number of remaining change IDs
+  }
+
+
+
+
+
+  /**
+   * The OAuth 2.0 token object represents the OAuth 2.0 token and any associated data.
+   */
+  export interface GoogleApiOAuth2TokenObject {
+    /**
+     * The OAuth 2.0 token. Only present in successful responses
+     */
+    access_token: string;
+    /**
+     * Details about the error. Only present in error responses
+     */
+    error: string;
+    /**
+     * The duration, in seconds, the token is valid for. Only present in successful responses
+     */
+    expires_in: number;
+    /**
+     * The Google API scopes related to this token
+     */
+    state: string;
   }
 }
 

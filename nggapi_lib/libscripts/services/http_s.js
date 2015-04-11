@@ -22,10 +22,10 @@ var NgGapi;
             this.INTERVAL_MAX = 1500;
             /*
     
-            500 69
-            800 72
-            1000  75
-            2000 83
+             500 69
+             800 72
+             1000  75
+             2000 83
              */
             //throttleInterval;                                                                                               // the variable delay
             this.isQueueMode = true; // use queue, set to false for unit testing
@@ -69,9 +69,9 @@ var NgGapi;
             return def.promise;
         };
         /* add2q
-        pushes to q
-        if dq not running, starts dq interval
-        */
+         pushes to q
+         if dq not running, starts dq interval
+         */
         /**
          * adds a new config object to the http queue
          *
@@ -138,11 +138,11 @@ var NgGapi;
             }, this.queueInterval); // start a new interval
         };
         /*	dq
-        checks q length,
-        if 0, set interval = 10, cancel
-        get  [0]
-        remove [0]
-        _do [0]
+         checks q length,
+         if 0, set interval = 10, cancel
+         get  [0]
+         remove [0]
+         _do [0]
          */
         /**
          * takes an item off the queue and processes it
@@ -172,20 +172,25 @@ var NgGapi;
             var _this = this;
             //console.log('in _ with conf '+configObject.method);
             //debugger;
-            // TODO suppress $http with a warning if getAccestoken returns undefined
             if (!configObject.headers) {
                 configObject.headers = {};
             }
-            var at = this.OauthService.getAccessToken(); // add auth header
-            if (at && (at.indexOf('!FAIL') != 0) && (at.indexOf('!RETRY=') != 0)) {
-                configObject.headers['Authorization'] = 'Bearer ' + this.OauthService.getAccessToken(); // add auth header
-                var httpPromise = this.$http(configObject); // run the http call and capture the promise
+            //var at = this.OauthService.getAccessToken();                                                              // add auth header
+            this.OauthService.getAccessToken().then(function (token) {
+                configObject.headers['Authorization'] = 'Bearer ' + token.access_token; // add auth header
+                var httpPromise = _this.$http(configObject); // run the http call and capture the promise
                 httpPromise.success(function (data, status, headers, configObject, statusText) {
                     _this.throttleUp();
                     //this.$log.debug(status);
                     if (data.nextPageToken) {
                         //console.log('h198 notify')
-                        def.notify({ data: data, configObject: configObject, headers: headers, status: status, statusText: statusText });
+                        def.notify({
+                            data: data,
+                            configObject: configObject,
+                            headers: headers,
+                            status: status,
+                            statusText: statusText
+                        });
                         if (!configObject.params) {
                             configObject.params = {}; // just in case the original call had no params
                         }
@@ -193,25 +198,22 @@ var NgGapi;
                         return _this._doHttp(configObject, def, retryCounter);
                     }
                     //console.log('h206 resolve')
-                    def.resolve({ data: data, configObject: configObject, headers: headers, status: status, statusText: statusText });
+                    def.resolve({
+                        data: data,
+                        configObject: configObject,
+                        headers: headers,
+                        status: status,
+                        statusText: statusText
+                    });
                 });
                 httpPromise.error(function (data, status, headers, configObject, statusText) {
                     _this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
                 });
                 return;
-            }
-            // here with no access token
-            if (at && at.indexOf('!FAIL') == 0) {
-                def.reject('401 no access token ' + at.substr(5)); // include any explanation, eg. auth denied
-            }
-            else {
-                var ms = at ? at.replace('!RETRY=', '') : 500;
-                //console.log('sleeping for ms='+ms);
-                this.sleep(+ms).then(function () {
-                    //console.log('retrying');
-                    _this._doHttp(configObject, def, retryCounter);
-                });
-            }
+            }, function (error) {
+                // here with no access token
+                def.reject('401 no access token ' + error); // include any explanation, eg. auth denied
+            });
         };
         /**
          * Called in the event of any error.
@@ -240,15 +242,18 @@ var NgGapi;
             // retry after 0.5s
             if (status == 401) {
                 this.$log.warn("[H116] Need to acquire a new Access Token and resubmit");
-                this.OauthService.refreshAccessToken();
-                if (--retryCounter > 0) {
-                    this.sleep(2000).then(function () {
-                        _this._doHttp(configObject, def, retryCounter);
-                    });
-                }
-                else {
-                    def.reject(status + ' ' + data.error.message);
-                }
+                this.OauthService.refreshAccessToken().then(function () {
+                    _this._doHttp(configObject, def, retryCounter);
+                }, function (err) {
+                    def.reject(err);
+                }); // retry loop replaced by a .then Only risk is if refreshToken keeps returning valid tokens which keep getting 401'd by Google
+                //if (--retryCounter > 0) { // number of retries set by caller
+                //	this.sleep(2000).then(() => {
+                //		this._doHttp(configObject, def, retryCounter);
+                //	})
+                //} else {
+                //	def.reject(status + ' ' + data.error.message);
+                //}
                 return;
             }
             // 501 - might be a hard error due to a Drive bug or malformed request

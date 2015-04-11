@@ -10,11 +10,10 @@ var NgGapi;
     /**
      * an Enum to define the different refresh token behaviours
      */
-    (function (NoAccessTokenPolicy) {
-        NoAccessTokenPolicy[NoAccessTokenPolicy["RETRY"] = 0] = "RETRY";
-        NoAccessTokenPolicy[NoAccessTokenPolicy["FAIL"] = 1] = "FAIL"; // http will fail with a synthetic 401
-    })(NgGapi.NoAccessTokenPolicy || (NgGapi.NoAccessTokenPolicy = {}));
-    var NoAccessTokenPolicy = NgGapi.NoAccessTokenPolicy;
+    //export enum NoAccessTokenPolicy {
+    //	RETRY,            // http will sleep for a config number of ms then retry
+    //	FAIL              // http will fail with a synthetic 401
+    //}
     /**
      * an Enum to define the different refresh token behaviours
      */
@@ -32,7 +31,6 @@ var NgGapi;
          * @param scopes.  a space separated string of scopes
          * @param clientId. The Google client ID
          * @param tokenRefreshPolicy  One of the TokenRefreshPolicy Enum values
-         * @param noAccessTokenPolicy (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
          * @param immediateMode  set to true to suppress the initial auth,
          * @param ownGetAccessTokenFunction (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
          * @param testingRefreshToken - if set, this is used to fetch access tokens instead of gapi
@@ -42,8 +40,9 @@ var NgGapi;
          * @param $window
          * @param $http
          * @param $timeout
+         * @param $q
          */
-        function OauthService(scopes, clientId, tokenRefreshPolicy, noAccesTokenPolicy, immediateMode, ownGetAccessTokenFunction, testingRefreshToken, testingAccessToken, testingClientSecret, popupBlockedFunction, $log, $window, $http, $timeout) {
+        function OauthService(scopes, clientId, tokenRefreshPolicy, immediateMode, ownGetAccessTokenFunction, testingRefreshToken, testingAccessToken, testingClientSecret, popupBlockedFunction, $log, $window, $http, $timeout, $q) {
             //console.log("OAuth instantiated with " + scopes);
             //$log.log("scopes", this.scopes);
             //$log.log("trp", this.tokenRefreshPolicy);drivdrivee
@@ -51,7 +50,6 @@ var NgGapi;
             this.scopes = scopes;
             this.clientId = clientId;
             this.tokenRefreshPolicy = tokenRefreshPolicy;
-            this.noAccesTokenPolicy = noAccesTokenPolicy;
             this.immediateMode = immediateMode;
             this.ownGetAccessTokenFunction = ownGetAccessTokenFunction;
             this.testingRefreshToken = testingRefreshToken;
@@ -62,6 +60,7 @@ var NgGapi;
             this.$window = $window;
             this.$http = $http;
             this.$timeout = $timeout;
+            this.$q = $q;
             this.sig = 'OauthService'; // used in unit testing to confirm DI
             this.isAuthInProgress = false; // true if there is an outstanding auth (ie. refresh token) in progress to prevent multiples
             this.isAuthedYet = false; // first time flag, used to set immediate mode
@@ -81,38 +80,43 @@ var NgGapi;
          * return an access token. Normally simply calls gapi.auth.getToken(). If that returns undefined, then
          * return undefined, and starts a background refresh. The idea is that retries of the REST call witll repeatedly fail 401 until
          * such time that the refresh completes and gapi.auth.getToken returns a valid access token.
+         * @param optional deferred used when recursing
          *
-         * @return the access token string or "!FAIL" for parent to fail 401, or "!RETRY=xxx" for parent to retry
+         * @return a promise which may be resolved with a token object, or notified with O55 waiting for gapi, or O121 refreshing token
          */
-        OauthService.prototype.getAccessToken = function () {
+        OauthService.prototype.getAccessToken = function (def) {
+            var _this = this;
             console.log('o88 gAT');
+            if (!def) {
+                def = this.$q.defer();
+            }
             if (!!this.testingAccessToken) {
-                return this.testingAccessToken; // return it
+                def.resolve({ access_token: this.testingAccessToken }); // return it
             }
             if (!!this.testingRefreshToken) {
-                this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret); // use it to fetch an a_t
-                return '!RETRY=1000'; // allow 1s
+                this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def); // use it to fetch an a_t
             }
             if (!this.isGapiLoaded()) {
-                this.$log.warn('[O55] waiting for the gapi script to download');
+                var s = '[O55] waiting for the gapi script to download';
+                this.$log.warn(s);
                 this.testStatus = 'O55';
-                return undefined;
+                def.notify(s);
+                this.$timeout(function () {
+                    _this.getAccessToken(def);
+                }, 200);
+                return def.promise;
             }
-            if (!!this.refreshException) {
-                return "!FAIL " + this.refreshException; // return it
-            }
+            //if (!!this.refreshException) {                                                                              // if there is a hard error
+            //	return "!FAIL " + this.refreshException;                                                                // return it
+            //}
             if (!!this.$window['gapi'].auth.getToken() && !!this.$window['gapi'].auth.getToken()['access_token'] && (this.$window['gapi'].auth.getToken()['access_token'] != null)) {
-                return this.$window['gapi'].auth.getToken()['access_token']; // return it
+                def.resolve(this.$window['gapi'].auth.getToken()); // return it
             }
             else {
-                this.refreshAccessToken();
-                if (this.noAccesTokenPolicy == 0) {
-                    return '!FAIL'; // tell the parent
-                }
-                else {
-                    return '!RETRY=' + this.noAccesTokenPolicy; // tell the parent to retry after xxx ms
-                }
+                this.refreshAccessToken(def);
+                def.notify('[O121] refreshing token');
             }
+            return def.promise;
         };
         /**
          *  call gapi authorize.
@@ -120,21 +124,24 @@ var NgGapi;
          *
          *  If isAuthInprogress, does nothing, but emits a console warning to help debug any issues where the callback wasn't invoked.
          */
-        OauthService.prototype.refreshAccessToken = function () {
+        OauthService.prototype.refreshAccessToken = function (def) {
             var _this = this;
+            if (!def) {
+                def = this.$q.defer(); // so make a new one
+            }
             if (this.isAuthInProgress) {
                 this.$log.warn('[O75] refresh access token suppressed because there is already such a request in progress');
                 this.testStatus = 'O75';
-                return;
+                return def.promise;
             }
             this.refreshException = undefined; // clear any previous hard failures so we can try again
             if (!this.isGapiLoaded()) {
                 this.$log.warn('[O81] gapi not yet loaded, retrying...');
                 this.testStatus = 'O81';
                 this.$timeout(function () {
-                    _this.refreshAccessToken();
+                    _this.refreshAccessToken(def);
                 }, this.GAPI_RETRY_MS);
-                return;
+                return def.promise;
             }
             this.isAuthInProgress = true;
             try {
@@ -149,6 +156,7 @@ var NgGapi;
                                 alert(_this.POPUP_BLOCKER_ALERT_TEXT); // display a default alert
                             }
                         }
+                        def.reject('[O163] popup blocker timeout fired');
                         _this.isAuthInProgress = false;
                     }, this.POPUP_BLOCKER_ALERT_DELAY);
                 }
@@ -158,13 +166,14 @@ var NgGapi;
                     immediate: this.isAuthedYet
                 }, function (resp) {
                     _this.$timeout.cancel(toPromise);
-                    _this.refreshCallback(resp);
+                    _this.refreshCallback(resp, def);
                 }); // callback invoked when gapi refresh returns with a new token
             }
             catch (e) {
                 this.$log.error('[O153] exception calling gapi.auth.authorize ' + e);
                 this.isAuthInProgress = false;
             }
+            return def.promise;
         };
         /**
          *
@@ -173,12 +182,12 @@ var NgGapi;
          * @param rt the refresh token
          * @param secret the client secret
          */
-        OauthService.prototype.refreshAccessTokenUsingTestRefreshToken = function (rt, secret) {
+        OauthService.prototype.refreshAccessTokenUsingTestRefreshToken = function (rt, secret, def) {
             var _this = this;
             if (this.isAuthInProgress) {
                 this.$log.warn('[O143] refresh access token suppressed because there is already such a request in progress');
                 this.testStatus = 'O143';
-                return;
+                return def.promise;
             }
             this.isAuthInProgress = true;
             var url = 'https://www.googleapis.com/oauth2/v3/token';
@@ -198,13 +207,16 @@ var NgGapi;
                 _this.testingAccessToken = data['access_token'];
                 _this.$log.info('[O172]: test access token is ' + _this.testingAccessToken);
                 _this.isAuthInProgress = false;
+                def.resolve(data);
                 // this callback will be called asynchronously
                 // when the response is available
             }).error(function (data, status, headers, config) {
                 _this.isAuthInProgress = false;
                 // called asynchronously if an error occurs
                 // or server returns response with an error status.
-                _this.$log.error('[O191] problem refreshing test refresh token ' + status + ' ' + data.error + ' ' + data.error_description);
+                var s = '[O191] problem refreshing test refresh token ' + status + ' ' + data.error + ' ' + data.error_description;
+                _this.$log.error(s);
+                def.reject(s);
             });
         };
         /**
@@ -214,28 +226,32 @@ var NgGapi;
          * Sets up an auto refresh if required
          *
          * @param resp see https://developers.google.com/api-client-library/javascript/reference/referencedocs#OAuth20TokenObject
+         * @param def a deferred object. usually created in getAccessToken
          */
-        OauthService.prototype.refreshCallback = function (resp) {
+        OauthService.prototype.refreshCallback = function (resp, def) {
             this.isAuthInProgress = false;
             console.log('o207 authed');
             //resp=null; gapi.auth.setToken(undefined);debugger;                    uncomment to force null to test network error handling
             var token = this.$window['gapi'].auth.getToken();
             if (resp == null) {
-                resp = { error: "[O248] null response. Possible network error." }; // so create a dummy response with an appropriate error message
+                var err = "[O248] null response. Possible network error."; // so create a dummy response with an appropriate error message
+                resp = { error: err }; // so create a dummy response with an appropriate error message
+                def.reject(err);
             }
             if (!token) {
                 this.$log.error('[O196] There is a problem that authorize has returned without an access token. Poss. access denied by user or invalid client id or wrong origin URL? Reason = ' + resp.error);
                 if (resp.error == "immediate_failed") {
                     this.immediateMode = false; // clear immediate flag
-                    this.refreshAccessToken(); // and retry. This usually means a previous non-immediate failure was ignored
+                    this.refreshAccessToken(def); // and retry. This usually means a previous non-immediate failure was ignored
                 }
                 // for any other fauilure (eg. access denied) set a flag so future calls to getAccessToken fail to the caller
                 this.refreshException = resp.error;
-                return;
+                def.reject(resp.error);
             }
             if (token.access_token && token.access_token != null) {
                 this.isAuthedYet = true; // set flag that authed , ie immediate is now true
                 this.testingAccessToken = undefined; // lose any testing token
+                def.resolve(token); // resolve with the token
             }
             // if app has requested auto-refresh, set up the timeout to refresh
             if (this.tokenRefreshPolicy == 1 /* PRIOR_TO_EXPIRY */) {
@@ -272,7 +288,6 @@ NgGapi['Config'] = function () {
     var noAccessTokenPolicy = 500; // default is to retry after 1/2 sec
     var getAccessTokenFunction = undefined;
     var immediateMode = false;
-    ;
     var testingRefreshToken;
     var testingAccessToken;
     var testingClientSecret;
@@ -287,9 +302,9 @@ NgGapi['Config'] = function () {
         setTokenRefreshPolicy: function (_policy) {
             tokenRefreshPolicy = _policy;
         },
-        setNoAccessTokenPolicy: function (_policy) {
-            noAccessTokenPolicy = _policy;
-        },
+        //setNoAccessTokenPolicy: function (_policy) {
+        //	noAccessTokenPolicy = _policy;
+        //},
         setImmediateMode: function (_mode) {
             immediateMode = _mode;
         },
@@ -316,7 +331,8 @@ NgGapi['Config'] = function () {
             var $window = myInjector.get("$window");
             var $http = myInjector.get("$http");
             var $timeout = myInjector.get("$timeout");
-            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, noAccessTokenPolicy, immediateMode, getAccessTokenFunction, testingRefreshToken, testingAccessToken, testingClientSecret, popupBlockedFunction, $log, $window, $http, $timeout);
+            var $q = myInjector.get("$q");
+            return new NgGapi.OauthService(scopes, clientID, tokenRefreshPolicy, immediateMode, getAccessTokenFunction, testingRefreshToken, testingAccessToken, testingClientSecret, popupBlockedFunction, $log, $window, $http, $timeout, $q);
         }
     };
 };
