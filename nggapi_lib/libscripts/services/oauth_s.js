@@ -91,7 +91,9 @@ var NgGapi;
                 def = this.$q.defer();
             }
             if (!!this.testingAccessToken) {
-                def.resolve({ access_token: this.testingAccessToken }); // return it
+                console.log('returning ' + this.testingAccessToken.access_token);
+                def.resolve(this.testingAccessToken); // return it
+                return def.promise;
             }
             if (!!this.testingRefreshToken) {
                 this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def); // use it to fetch an a_t

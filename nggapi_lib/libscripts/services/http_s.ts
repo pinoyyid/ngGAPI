@@ -18,14 +18,6 @@ module NgGapi {
 		INTERVAL_MAX = 1500;
 
 
-		/*
-
-		 500 69
-		 800 72
-		 1000  75
-		 2000 83
-		 */
-
 		//throttleInterval;                                                                                               // the variable delay
 		isQueueMode = true;                                                                                             // use queue, set to false for unit testing
 		queue:Array<any> = [];                                                                                          // q of requests
@@ -193,11 +185,10 @@ module NgGapi {
 				configObject.headers = {};
 			}
 			//var at = this.OauthService.getAccessToken();                                                              // add auth header
-
 			this.OauthService.getAccessToken().then(
 				(token) => {
-
 					configObject.headers['Authorization'] = 'Bearer ' + token.access_token;                                 // add auth header
+					//console.log(configObject);
 					var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
 					httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
 						this.throttleUp();

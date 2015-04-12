@@ -95,12 +95,15 @@ module NgGapi {
 				def = this.$q.defer();
 			}
 			if (!!this.testingAccessToken) {                                                                            // if a test token has been set
-				def.resolve({access_token:this.testingAccessToken});                                                    // return it
+				console.log('returning '+this.testingAccessToken.access_token);
+				def.resolve(this.testingAccessToken);                                                    // return it
+				return def.promise;
 			}
 
 			if (!!this.testingRefreshToken) {                                                                           // if a test refresh token has been provided
 				this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def);  // use it to fetch an a_t
 			}
+
 			if (!this.isGapiLoaded()) {
 				var s= '[O55] waiting for the gapi script to download';
 				this.$log.warn(s);

@@ -33,8 +33,8 @@ module.exports = function(config) {
       'nggapi_lib/libscripts/services/oauth_s.js',
       'nggapi_lib/appscripts/**/*.js',
       'nggapi_lib/libscripts/**/*.js',
-      'test/spec_lib/**/*.js',
-      //'test/spec-lib/services/drive_files.js'
+      //'test/spec_lib/**/*.js',
+      'test/spec_lib/services/drive_files.js'
     ],
 
     // list of files / patterns to exclude

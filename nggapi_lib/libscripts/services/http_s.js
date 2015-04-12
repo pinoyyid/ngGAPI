@@ -20,13 +20,6 @@ var NgGapi;
             this.INTERVAL_NORMAL = 10;
             this.INTERVAL_THROTTLE = 500;
             this.INTERVAL_MAX = 1500;
-            /*
-    
-             500 69
-             800 72
-             1000  75
-             2000 83
-             */
             //throttleInterval;                                                                                               // the variable delay
             this.isQueueMode = true; // use queue, set to false for unit testing
             this.queue = []; // q of requests
@@ -178,6 +171,7 @@ var NgGapi;
             //var at = this.OauthService.getAccessToken();                                                              // add auth header
             this.OauthService.getAccessToken().then(function (token) {
                 configObject.headers['Authorization'] = 'Bearer ' + token.access_token; // add auth header
+                //console.log(configObject);
                 var httpPromise = _this.$http(configObject); // run the http call and capture the promise
                 httpPromise.success(function (data, status, headers, configObject, statusText) {
                     _this.throttleUp();

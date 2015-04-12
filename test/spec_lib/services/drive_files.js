@@ -26,9 +26,7 @@ describe('Service: DriveService', function () {
 		$rootScope = _$rootScope_;
 		$timeout = _$timeout_;
 		// mock out the underlying getAccessToken to return a test string
-		DriveService.getHttpService().getOauthService().getAccessToken = function () {
-			return 'testaccesstoken'
-		};
+		DriveService.getHttpService().getOauthService().testingAccessToken = {access_token: 'unit test access token'};
 		// disable queue mode in the HttpService
 		DriveService.getHttpService().isQueueMode = false;
 	}));
@@ -58,6 +56,14 @@ describe('Service: DriveService', function () {
 
 	it('should have the correct sig', function () {
 		expect(DriveService.sig).toBe('DriveService');
+	});
+
+	it('should have an HttpService instance', function () {
+		expect(DriveService.HttpService.sig).toBe('HttpService');
+	});
+
+	it('should have an an HttpService with an OauthService instance', function () {
+		expect(DriveService.HttpService.getOauthService().sig).toBe('OauthService');
 	});
 
 	// test each method by first defining what we expect it to send to $http
@@ -268,25 +274,6 @@ describe('Service: DriveService', function () {
 					expect(success).toHaveBeenCalled();
 					expect(failure).not.toHaveBeenCalled();
 					expect(ro.data.length).toBe(2);
-				});
-		});
-
-		// NOTE:
-		// I assume this test is supposed to fail, but it succeded in the
-		// in the original code, so I refactored it with the same logic.
-		//
-		// TODO: Correct test for missing nextPageToken
-		it('should fail when missing nextPageToken', function () {
-			$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
-
-			var ro = DriveService.files.list({fields: 'foo'});
-			$httpBackend.flush();
-
-			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
 				});
 		});
 
