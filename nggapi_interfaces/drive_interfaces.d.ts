@@ -434,15 +434,15 @@ declare module NgGapi{
     /**
      * Details about the error. Only present in error responses
      */
-    error: string;
+    error?: string;
     /**
      * The duration, in seconds, the token is valid for. Only present in successful responses
      */
-    expires_in: number;
+    expires_in?: number;
     /**
      * The Google API scopes related to this token
      */
-    state: string;
+    state?: string;
   }
 }
 

@@ -26,6 +26,7 @@ module NgGapi {
 
 
 		testStatus:string = 'foo';                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
+		skipOauthCozTesting = false;               // if true does no Oauth. Only used for unit tests
 
 
 		static $inject = ['$log', '$http', '$timeout', '$interval', '$q', 'OauthService'];
@@ -185,47 +186,55 @@ module NgGapi {
 				configObject.headers = {};
 			}
 			//var at = this.OauthService.getAccessToken();  // get an access token. this is the old method, synchronous with a loop. replaced by an internal promise
-			this.OauthService.getAccessToken().then(                                                                    // get an access token, when one is available ...
-				(token) => {
-					configObject.headers['Authorization'] = 'Bearer ' + token.access_token;                             // add auth header
-					//console.log(configObject);
-					var httpPromise = this.$http(configObject);                                                         // run the http call and capture the $http promise
-					httpPromise.success((data, status, headers, configObject, statusText) => {                          // if http success, resolve the app promise
-						this.throttleUp();
-						//this.$log.debug(status);
-						if (data.nextPageToken) {                                                                       // if there is more data, emit a notify and recurse
-							//console.log('h198 notify')
-							def.notify({
-								data: data,
-								configObject: configObject,
-								headers: headers,
-								status: status,
-								statusText: statusText
-							});
-							if (!configObject.params) {
-								configObject.params = {};                                                               // just in case the original call had no params
-							}
-							configObject.params.pageToken = data.nextPageToken;                                         // store the page token into the params for the next call
-							return this._doHttp(configObject, def, retryCounter);                                       // recurse
-						}
-						//console.log('h206 resolve')
-						def.resolve({                                                                                   // $http success so resolve the app promise
-							data: data,                                                                                 // with the data from the $http promise
-							configObject: configObject,
-							headers: headers,
-							status: status,
-							statusText: statusText
-						});
+			if (this.skipOauthCozTesting) {
+				this.do$http({access_token:'unit test access token'}, configObject, def, retryCounter);
+			} else {
+				this.OauthService.getAccessToken().then(                                                                    // get an access token, when one is available ...
+					(token) => {
+						this.do$http(token, configObject, def, retryCounter);
+						return;
+					}, (error) => {                                                                                         // this is the rejection for no access token
+						// here with no access token
+						def.reject('401 no access token ' + error);                                                         // reject the app promise include any explanation, eg. auth denied
+					}
+				);
+			}
+		}
+
+		do$http(token:GoogleApiOAuth2TokenObject, configObject:mng.IRequestConfig, def:mng.IDeferred < any >, retryCounter:number) {
+			configObject.headers['Authorization'] = 'Bearer ' + token.access_token;                             // add auth header
+			//console.log(configObject);
+			var httpPromise = this.$http(configObject);                                                         // run the http call and capture the $http promise
+			httpPromise.success((data, status, headers, configObject, statusText) => {                          // if http success, resolve the app promise
+				this.throttleUp();
+				//this.$log.debug(status);
+				if (data.nextPageToken) {                                                                       // if there is more data, emit a notify and recurse
+					//console.log('h198 notify')
+					def.notify({
+						data: data,
+						configObject: configObject,
+						headers: headers,
+						status: status,
+						statusText: statusText
 					});
-					httpPromise.error((data, status, headers, configObject, statusText) => {                            // for a $http error
-						this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);          // do error handling
-					})
-					return;
-				}, (error) => {                                                                                         // this is the rejection for no access token
-					// here with no access token
-					def.reject('401 no access token ' + error);                                                         // reject the app promise include any explanation, eg. auth denied
+					if (!configObject.params) {
+						configObject.params = {};                                                               // just in case the original call had no params
+					}
+					configObject.params.pageToken = data.nextPageToken;                                         // store the page token into the params for the next call
+					return this._doHttp(configObject, def, retryCounter);                                       // recurse
 				}
-			);
+				//console.log('h206 resolve')
+				def.resolve({                                                                                   // $http success so resolve the app promise
+					data: data,                                                                                 // with the data from the $http promise
+					configObject: configObject,
+					headers: headers,
+					status: status,
+					statusText: statusText
+				});
+			});
+			httpPromise.error((data, status, headers, configObject, statusText) => {                            // for a $http error
+				this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);          // do error handling
+			})
 		}
 
 		/**

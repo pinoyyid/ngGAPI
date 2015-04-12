@@ -29,6 +29,7 @@ describe('Service: DriveService', function () {
 		DriveService.getHttpService().getOauthService().testingAccessToken = {access_token: 'unit test access token'};
 		// disable queue mode in the HttpService
 		DriveService.getHttpService().isQueueMode = false;
+		DriveService.getHttpService().skipOauthCozTesting = true;
 	}));
 
 	beforeEach(function () {
