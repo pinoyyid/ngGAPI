@@ -184,16 +184,16 @@ module NgGapi {
 			if (!configObject.headers) {
 				configObject.headers = {};
 			}
-			//var at = this.OauthService.getAccessToken();                                                              // add auth header
-			this.OauthService.getAccessToken().then(
+			//var at = this.OauthService.getAccessToken();  // get an access token. this is the old method, synchronous with a loop. replaced by an internal promise
+			this.OauthService.getAccessToken().then(                                                                    // get an access token, when one is available ...
 				(token) => {
-					configObject.headers['Authorization'] = 'Bearer ' + token.access_token;                                 // add auth header
+					configObject.headers['Authorization'] = 'Bearer ' + token.access_token;                             // add auth header
 					//console.log(configObject);
-					var httpPromise = this.$http(configObject);                                                             // run the http call and capture the promise
-					httpPromise.success((data, status, headers, configObject, statusText) => {                              // if http success, resolve the app promise
+					var httpPromise = this.$http(configObject);                                                         // run the http call and capture the $http promise
+					httpPromise.success((data, status, headers, configObject, statusText) => {                          // if http success, resolve the app promise
 						this.throttleUp();
 						//this.$log.debug(status);
-						if (data.nextPageToken) {                                                                           // if there is more data, emit a notify and recurse
+						if (data.nextPageToken) {                                                                       // if there is more data, emit a notify and recurse
 							//console.log('h198 notify')
 							def.notify({
 								data: data,
@@ -203,27 +203,27 @@ module NgGapi {
 								statusText: statusText
 							});
 							if (!configObject.params) {
-								configObject.params = {};                                                                   // just in case the original call had no params
+								configObject.params = {};                                                               // just in case the original call had no params
 							}
-							configObject.params.pageToken = data.nextPageToken;                                             // store the token into the params for the next call
-							return this._doHttp(configObject, def, retryCounter);
+							configObject.params.pageToken = data.nextPageToken;                                         // store the page token into the params for the next call
+							return this._doHttp(configObject, def, retryCounter);                                       // recurse
 						}
 						//console.log('h206 resolve')
-						def.resolve({
-							data: data,
+						def.resolve({                                                                                   // $http success so resolve the app promise
+							data: data,                                                                                 // with the data from the $http promise
 							configObject: configObject,
 							headers: headers,
 							status: status,
 							statusText: statusText
 						});
 					});
-					httpPromise.error((data, status, headers, configObject, statusText) => {                                // for an error
-						this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
+					httpPromise.error((data, status, headers, configObject, statusText) => {                            // for a $http error
+						this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);          // do error handling
 					})
 					return;
-				}, (error) => {
+				}, (error) => {                                                                                         // this is the rejection for no access token
 					// here with no access token
-					def.reject('401 no access token ' + error);                                                        // include any explanation, eg. auth denied
+					def.reject('401 no access token ' + error);                                                         // reject the app promise include any explanation, eg. auth denied
 				}
 			);
 		}

@@ -97,15 +97,15 @@ var NgGapi;
             }
             if (!!this.testingRefreshToken) {
                 this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def); // use it to fetch an a_t
-            }
+            } // TODO should be a return here??
             if (!this.isGapiLoaded()) {
                 var s = '[O55] waiting for the gapi script to download';
                 this.$log.warn(s);
                 this.testStatus = 'O55';
-                def.notify(s);
+                def.notify(s); // emit a promise notify
                 this.$timeout(function () {
                     _this.getAccessToken(def);
-                }, 200);
+                }, 200); // and check again in 0.2s
                 return def.promise;
             }
             //if (!!this.refreshException) {                                                                              // if there is a hard error
@@ -115,8 +115,8 @@ var NgGapi;
                 def.resolve(this.$window['gapi'].auth.getToken()); // return it
             }
             else {
-                this.refreshAccessToken(def);
-                def.notify('[O121] refreshing token');
+                this.refreshAccessToken(def); // else, we need an access token so call refresh
+                def.notify('[O121] refreshing token'); // and emit a notify
             }
             return def.promise;
         };
@@ -141,7 +141,7 @@ var NgGapi;
                 this.$log.warn('[O81] gapi not yet loaded, retrying...');
                 this.testStatus = 'O81';
                 this.$timeout(function () {
-                    _this.refreshAccessToken(def);
+                    _this.refreshAccessToken(def); // try again
                 }, this.GAPI_RETRY_MS);
                 return def.promise;
             }
@@ -167,8 +167,8 @@ var NgGapi;
                     scope: this.scopes,
                     immediate: this.isAuthedYet
                 }, function (resp) {
-                    _this.$timeout.cancel(toPromise);
-                    _this.refreshCallback(resp, def);
+                    _this.$timeout.cancel(toPromise); // cancel the popup blocker checker
+                    _this.refreshCallback(resp, def); // and process the response
                 }); // callback invoked when gapi refresh returns with a new token
             }
             catch (e) {

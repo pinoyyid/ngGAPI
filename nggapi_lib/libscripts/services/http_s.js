@@ -168,11 +168,11 @@ var NgGapi;
             if (!configObject.headers) {
                 configObject.headers = {};
             }
-            //var at = this.OauthService.getAccessToken();                                                              // add auth header
+            //var at = this.OauthService.getAccessToken();  // get an access token. this is the old method, synchronous with a loop. replaced by an internal promise
             this.OauthService.getAccessToken().then(function (token) {
                 configObject.headers['Authorization'] = 'Bearer ' + token.access_token; // add auth header
                 //console.log(configObject);
-                var httpPromise = _this.$http(configObject); // run the http call and capture the promise
+                var httpPromise = _this.$http(configObject); // run the http call and capture the $http promise
                 httpPromise.success(function (data, status, headers, configObject, statusText) {
                     _this.throttleUp();
                     //this.$log.debug(status);
@@ -188,8 +188,8 @@ var NgGapi;
                         if (!configObject.params) {
                             configObject.params = {}; // just in case the original call had no params
                         }
-                        configObject.params.pageToken = data.nextPageToken; // store the token into the params for the next call
-                        return _this._doHttp(configObject, def, retryCounter);
+                        configObject.params.pageToken = data.nextPageToken; // store the page token into the params for the next call
+                        return _this._doHttp(configObject, def, retryCounter); // recurse
                     }
                     //console.log('h206 resolve')
                     def.resolve({
@@ -201,12 +201,12 @@ var NgGapi;
                     });
                 });
                 httpPromise.error(function (data, status, headers, configObject, statusText) {
-                    _this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
+                    _this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter); // do error handling
                 });
                 return;
             }, function (error) {
                 // here with no access token
-                def.reject('401 no access token ' + error); // include any explanation, eg. auth denied
+                def.reject('401 no access token ' + error); // reject the app promise include any explanation, eg. auth denied
             });
         };
         /**

@@ -91,25 +91,25 @@ module NgGapi {
 		 */
 		getAccessToken(def?:mng.IDeferred<any>):mng.IPromise<GoogleApiOAuth2TokenObject> {
 			console.log('o88 gAT');
-			if (!def) {
+			if (!def) {                                                                                                 // if not called from HttpService, make a deferred
 				def = this.$q.defer();
 			}
 			if (!!this.testingAccessToken) {                                                                            // if a test token has been set
 				console.log('returning '+this.testingAccessToken.access_token);
-				def.resolve(this.testingAccessToken);                                                    // return it
+				def.resolve(this.testingAccessToken);                                                                   // return it
 				return def.promise;
 			}
 
 			if (!!this.testingRefreshToken) {                                                                           // if a test refresh token has been provided
 				this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def);  // use it to fetch an a_t
-			}
+			} // TODO should be a return here??
 
-			if (!this.isGapiLoaded()) {
+			if (!this.isGapiLoaded()) {                                                                                 // if gapi hasn't loaded yet
 				var s= '[O55] waiting for the gapi script to download';
 				this.$log.warn(s);
 				this.testStatus = 'O55';
-				def.notify(s);
-				this.$timeout(()=>{this.getAccessToken(def)}, 200);
+				def.notify(s);                                                                                          // emit a promise notify
+				this.$timeout(()=>{this.getAccessToken(def)}, 200);                                                     // and check again in 0.2s
 				return def.promise;
 			}
 
@@ -122,8 +122,8 @@ module NgGapi {
 				&& (this.$window['gapi'].auth.getToken()['access_token'] != null)) {                                    // which isn't null
 				def.resolve(this.$window['gapi'].auth.getToken());                                                      // return it
 			} else {
-				this.refreshAccessToken(def);
-				def.notify('[O121] refreshing token');
+				this.refreshAccessToken(def);                                                                           // else, we need an access token so call refresh
+				def.notify('[O121] refreshing token');                                                                  // and emit a notify
 			}
 			return def.promise;
 		}
@@ -140,7 +140,7 @@ module NgGapi {
 				def = this.$q.defer();                                                                                  // so make a new one
 			}
 
-			if (this.isAuthInProgress) {
+			if (this.isAuthInProgress) {                                                                                // prevent multiple concurrent refresh requests
 				this.$log.warn('[O75] refresh access token suppressed because there is already such a request in progress');
 				this.testStatus = 'O75';
 				return def.promise;
@@ -148,11 +148,11 @@ module NgGapi {
 
 			this.refreshException = undefined;                                                                          // clear any previous hard failures so we can try again
 
-			if (!this.isGapiLoaded()) {
+			if (!this.isGapiLoaded()) {                                                                                 // if gapi isn;t yet loaded
 				this.$log.warn('[O81] gapi not yet loaded, retrying...');
 				this.testStatus = 'O81';
 				this.$timeout(() => {
-					this.refreshAccessToken(def);
+					this.refreshAccessToken(def);                                                                       // try again
 				}, this.GAPI_RETRY_MS);
 				return def.promise;
 			}
@@ -175,15 +175,15 @@ module NgGapi {
 						},
 						this.POPUP_BLOCKER_ALERT_DELAY);
 				}
-				this.$window['gapi'].auth.authorize(
+				this.$window['gapi'].auth.authorize(                                                                    // THIS IS THE CALL TO GAPI.AUTHORIZE
 					{
 						client_id: this.clientId,
 						scope: this.scopes,
 						immediate: this.isAuthedYet
 					},
-					(resp)=> {
-						this.$timeout.cancel(toPromise);
-						this.refreshCallback(resp, def);
+					(resp)=> {                                                                                          // when we get a response form gapi
+						this.$timeout.cancel(toPromise);                                                                // cancel the popup blocker checker
+						this.refreshCallback(resp, def);                                                                // and process the response
 					});                    // callback invoked when gapi refresh returns with a new token
 			} catch (e) {
 				this.$log.error('[O153] exception calling gapi.auth.authorize ' + e);
