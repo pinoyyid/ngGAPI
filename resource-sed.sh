@@ -5,6 +5,7 @@
 #
 #  usage resource-sed.sh < infile > outfile
 
+sed -e 's/":/"?:/' |\
 sed -e 's/,$/;/' |\
 sed -e 's/long/number/' |\
 sed -e 's/double/number/' |\
