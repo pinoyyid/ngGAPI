@@ -391,7 +391,6 @@ declare module NgGapi {
 		revisions:{
 			get(params:IDriveRevisionGetParameters):IDriveResponseObject<IDriveRevision,IDriveRevision>;
 			list(params?:IDriveRevisionListParameters, excludeTrashed?):IDriveResponseObject<IDriveRevisionList, IDriveRevision[]>;
-			insert(revision:IDriveRevision, storeId?:boolean):IDriveResponseObject<IDrivePermission,IDrivePermission>;
 			update(revision:IDriveRevision, params?:IDriveRevisionUpdateParameters):IDriveResponseObject<IDriveRevision,IDriveRevision>;
 			patch(revision:IDriveRevision, params?:IDriveRevisionUpdateParameters):IDriveResponseObject<IDriveRevision,IDriveRevision>;
 			del(params:{fileId:string; permissionId:string}):IDriveResponseObject<any,any>;

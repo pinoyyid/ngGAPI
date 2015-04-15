@@ -36,14 +36,50 @@ module NgGapi {
 			watch: this.changesWatch
 		};
 
+		children = {
+			get: this.childrenGet,
+			del: this.childrenDelete,
+			insert: this.childrenInsert,
+			list: this.childrenList
+		};
+		parents = {
+			get: this.parentsGet,
+			del: this.parentsDelete,
+			insert: this.parentsInsert,
+			list: this.parentsList
+		};
+		permissions = {
+			get: this.permissionsGet,
+			del: this.permissionsDelete,
+			insert: this.permissionsInsert,
+			update: this.permissionsUpdate,
+			patch: this.permissionsPatch,
+			list: this.permissionsList,
+			getIdForEmail: this.permissionsGetIdForEmail
+		};
+		revisions = {
+			get: this.revisionsGet,
+			del: this.revisionsDelete,
+			update: this.revisionsUpdate,
+			patch: this.revisionsPatch,
+			list: this.revisionsList
+		};
+
+
+
+
 		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
-		resourceToken = 'reSource';
-		urlBase = 'https://www.googleapis.com/drive/v2/' + this.resourceToken + '/:id';
-		filesUrl = this.urlBase.replace(this.resourceToken, 'files');
+		RESOURCE_TOKEN = 'reSource';
+		urlBase = 'https://www.googleapis.com/drive/v2/' + this.RESOURCE_TOKEN + '/:id';
+		filesUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files');
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
-		changesUrl = this.urlBase.replace(this.resourceToken, 'changes');
-		aboutUrl = this.urlBase.replace(this.resourceToken, 'about');
+		changesUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'changes');
+		aboutUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'about');
+		childrenUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'children');
+		parentsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'parents');
+		permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissions');
+		revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'revisions');
 		urlTrashSuffix = '/trash';
 		urlUntrashSuffix = '/untrash';
 		urlWatchSuffix = '/watch';

@@ -305,4 +305,3 @@ var MaximalCtrl = (function () {
 //    $scope.sig = 'MainCtrl';
 //  });
 angular.module('MyApp').controller('MaximalCtrl', MaximalCtrl);
-//# sourceMappingURL=maximal_c.js.map

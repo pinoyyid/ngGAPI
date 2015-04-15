@@ -38,13 +38,45 @@ var NgGapi;
                 list: this.changesList,
                 watch: this.changesWatch
             };
+            this.children = {
+                get: this.childrenGet,
+                del: this.childrenDelete,
+                insert: this.childrenInsert,
+                list: this.childrenList
+            };
+            this.parents = {
+                get: this.parentsGet,
+                del: this.parentsDelete,
+                insert: this.parentsInsert,
+                list: this.parentsList
+            };
+            this.permissions = {
+                get: this.permissionsGet,
+                del: this.permissionsDelete,
+                insert: this.permissionsInsert,
+                update: this.permissionsUpdate,
+                patch: this.permissionsPatch,
+                list: this.permissionsList,
+                getIdForEmail: this.permissionsGetIdForEmail
+            };
+            this.revisions = {
+                get: this.revisionsGet,
+                del: this.revisionsDelete,
+                update: this.revisionsUpdate,
+                patch: this.revisionsPatch,
+                list: this.revisionsList
+            };
             this.self = this; // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
-            this.resourceToken = 'reSource';
-            this.urlBase = 'https://www.googleapis.com/drive/v2/' + this.resourceToken + '/:id';
-            this.filesUrl = this.urlBase.replace(this.resourceToken, 'files');
+            this.RESOURCE_TOKEN = 'reSource';
+            this.urlBase = 'https://www.googleapis.com/drive/v2/' + this.RESOURCE_TOKEN + '/:id';
+            this.filesUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files');
             this.filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
-            this.changesUrl = this.urlBase.replace(this.resourceToken, 'changes');
-            this.aboutUrl = this.urlBase.replace(this.resourceToken, 'about');
+            this.changesUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'changes');
+            this.aboutUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'about');
+            this.childrenUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'children');
+            this.parentsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'parents');
+            this.permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissions');
+            this.revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'revisions');
             this.urlTrashSuffix = '/trash';
             this.urlUntrashSuffix = '/untrash';
             this.urlWatchSuffix = '/watch';
