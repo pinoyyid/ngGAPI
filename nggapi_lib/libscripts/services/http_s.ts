@@ -208,7 +208,7 @@ module NgGapi {
 			httpPromise.success((data, status, headers, configObject, statusText) => {                          // if http success, resolve the app promise
 				this.throttleUp();
 				//this.$log.debug(status);
-				if (data.nextPageToken) {                                                                       // if there is more data, emit a notify and recurse
+				if (data && data.nextPageToken) {                                                                       // if there is more data, emit a notify and recurse
 					//console.log('h198 notify')
 					def.notify({
 						data: data,
