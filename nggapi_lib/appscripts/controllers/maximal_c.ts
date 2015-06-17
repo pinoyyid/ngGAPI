@@ -9,6 +9,7 @@ class MaximalCtrl {
 
 	// a current file (the last inserted) that most functions will operate on
 	currentFile:NgGapi.IDriveFile;
+	currentFolder:NgGapi.IDriveFile;
 	largestChangeId = 0;
 
 	static $inject = ['$scope', '$log', '$q', 'DriveService'];
@@ -53,15 +54,30 @@ class MaximalCtrl {
 			return this.untrashFile(this.currentFile.id)
 		})
 		.then(() => {
-			return this.deleteFile(this.currentFile.id)
-		})
-		.then(() => {
 			return this.listChanges(this.largestChangeId);
 		})
 		.then(() => {
 			return this.getChange(this.largestChangeId);
 		})
+		.then(() => {
+			return this.insertFolder();
+		})
 			.then(() => {
+				return this.insertChild(this.currentFile);
+			})
+			.then(() => {
+				return this.listChildren();
+			})
+			.then(() => {
+				return this.getChild();
+			})
+			.then(() => {
+				return this.deleteChild();
+			})
+			.then(() => {
+				return this.deleteFile(this.currentFile.id)
+			})
+		.then(() => {
 			return this.emptyTrash()
 		})
 			.catch((reason)=> {
@@ -341,6 +357,79 @@ class MaximalCtrl {
 	displayTitle(expect:string, title:string) {
 		this.$log.info("chained title (" + expect + ")= " + title);
 	}
+
+
+	insertFolder():ng.IPromise<NgGapi.IDriveFile> {
+		var currentStep = {op: 'Making a folder', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.files.insert({
+			title: 'testfolder',
+			mimeType: 'application/vnd.google-apps.folder'
+		}, false);
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+				this.currentFolder = resp.data;
+			});
+		return ro.promise;
+	}
+
+
+	insertChild(child:NgGapi.IDriveFile):ng.IPromise<NgGapi.IDriveChild> {
+		var currentStep = {op: 'Making a child', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.children.insert({folderId: this.currentFolder.id}, child);
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+
+	getChild():ng.IPromise<NgGapi.IDriveChild> {
+		var currentStep = {op: 'Getting a child', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.children.get({folderId: this.currentFolder.id, childId: this.currentFile.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+
+	listChildren():ng.IPromise<NgGapi.IDriveChild> {
+		var currentStep = {op: 'Listing all children', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.children.list({folderId: this.currentFolder.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveChildList>) => {
+				currentStep.status = ''+resp.data.items.length;
+			});
+		return ro.promise;
+	}
+
+
+	deleteChild():ng.IPromise<NgGapi.IDriveChild> {
+		var currentStep = {op: 'deleting a child', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.children.del({folderId: this.currentFolder.id, childId: this.currentFile.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+
+
+
+
 }
 
 //angular.module('MyApp')

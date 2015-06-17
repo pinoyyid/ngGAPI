@@ -37,11 +37,21 @@ var MaximalCtrl = (function () {
         }).then(function () {
             return _this.untrashFile(_this.currentFile.id);
         }).then(function () {
-            return _this.deleteFile(_this.currentFile.id);
-        }).then(function () {
             return _this.listChanges(_this.largestChangeId);
         }).then(function () {
             return _this.getChange(_this.largestChangeId);
+        }).then(function () {
+            return _this.insertFolder();
+        }).then(function () {
+            return _this.insertChild(_this.currentFile);
+        }).then(function () {
+            return _this.listChildren();
+        }).then(function () {
+            return _this.getChild();
+        }).then(function () {
+            return _this.deleteChild();
+        }).then(function () {
+            return _this.deleteFile(_this.currentFile.id);
         }).then(function () {
             return _this.emptyTrash();
         }).catch(function (reason) {
@@ -297,6 +307,56 @@ var MaximalCtrl = (function () {
     MaximalCtrl.prototype.displayTitle = function (expect, title) {
         this.$log.info("chained title (" + expect + ")= " + title);
     };
+    MaximalCtrl.prototype.insertFolder = function () {
+        var _this = this;
+        var currentStep = { op: 'Making a folder', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.files.insert({
+            title: 'testfolder',
+            mimeType: 'application/vnd.google-apps.folder'
+        }, false);
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+            _this.currentFolder = resp.data;
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.insertChild = function (child) {
+        var currentStep = { op: 'Making a child', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.children.insert({ folderId: this.currentFolder.id }, child);
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.getChild = function () {
+        var currentStep = { op: 'Getting a child', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.children.get({ folderId: this.currentFolder.id, childId: this.currentFile.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.listChildren = function () {
+        var currentStep = { op: 'Listing all children', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.children.list({ folderId: this.currentFolder.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = '' + resp.data.items.length;
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.deleteChild = function () {
+        var currentStep = { op: 'deleting a child', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.children.del({ folderId: this.currentFolder.id, childId: this.currentFile.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
     MaximalCtrl.$inject = ['$scope', '$log', '$q', 'DriveService'];
     return MaximalCtrl;
 })();
@@ -305,3 +365,4 @@ var MaximalCtrl = (function () {
 //    $scope.sig = 'MainCtrl';
 //  });
 angular.module('MyApp').controller('MaximalCtrl', MaximalCtrl);
+//# sourceMappingURL=maximal_c.js.map

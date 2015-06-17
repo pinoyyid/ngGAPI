@@ -37,18 +37,21 @@ module NgGapi {
 		};
 
 		children = {
+			self: this,
 			get: this.childrenGet,
 			del: this.childrenDelete,
 			insert: this.childrenInsert,
 			list: this.childrenList
 		};
 		parents = {
+			self: this,
 			get: this.parentsGet,
 			del: this.parentsDelete,
 			insert: this.parentsInsert,
 			list: this.parentsList
 		};
 		permissions = {
+			self: this,
 			get: this.permissionsGet,
 			del: this.permissionsDelete,
 			insert: this.permissionsInsert,
@@ -58,6 +61,7 @@ module NgGapi {
 			getIdForEmail: this.permissionsGetIdForEmail
 		};
 		revisions = {
+			self: this,
 			get: this.revisionsGet,
 			del: this.revisionsDelete,
 			update: this.revisionsUpdate,
@@ -76,7 +80,7 @@ module NgGapi {
 		filesUploadUrl = 'https://www.googleapis.com/upload/drive/v2/files';
 		changesUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'changes');
 		aboutUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'about');
-		childrenUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'children');
+		childrenUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/children');
 		parentsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'parents');
 		permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissions');
 		revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'revisions');
@@ -655,6 +659,189 @@ module NgGapi {
 			});
 			return responseObject;
 		}
+
+
+
+		/*
+					  C H I L D R E N
+		 */
+
+
+		/**
+		 * Implements Get for getting a children object
+		 * See https://developers.google.com/drive/v2/reference/children/get for semantics including the params object
+		 *
+		 * @param params
+		 * @returns {IDriveResponseObject}
+		 */
+		childrenGet(params:IDriveChildGetParameters):IDriveResponseObject<IDriveChild|string,IDriveChild|string> {
+			if (!params || !params.folderId) {
+				var s = "[D679] Missing params.folderId";
+				return this.self.reject(s);
+			}
+			if (!params.childId) {
+				var s = "[D683] Missing childId";
+				return this.self.reject(s);
+			}
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.childrenUrl.replace(':fid', params.folderId).replace(":id", params.childId),
+				params: params
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IDriveChild|string,IDriveChild|string> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveChild|string>)=> {                                      // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				this.self.transcribeProperties(resp.data, responseObject);                                          // if file, transcribe properties
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
+
+		/**
+		 * Implements children.List
+		 * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+		 * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+		 * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+		 * and omitting the pageToken.
+		 *
+		 * responseObject.data contains an array of all results across all pages
+		 *
+		 * The promise will fire its notify for each page with data containing the raw http response object
+		 * with an embedded items array. The final page will fire the resolve.
+		 *
+		 * @param params see https://developers.google.com/drive/v2/reference/files/list
+		 * @param excludeTrashed
+		 * @returns IDriveResponseObject
+		 */
+		childrenList(params:IDriveChildListParameters, excludeTrashed:boolean):IDriveResponseObject<IDriveChildList,IDriveChild[]> {
+			if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
+				this.self.$log.warn('[D712] You have tried to list children with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
+			}
+			if (excludeTrashed) {                                                                                       // if wants to exclude trashed
+				var trashed = 'trashed = false';
+				params.q = params.q ? params.q + ' and ' + trashed : trashed;                                           // set or append to q
+				;
+			}
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.childrenUrl.replace(':fid', params.folderId).replace(":id", ""),
+				params: params
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IDriveChildList,IDriveChild[]> = {
+				promise: promise,
+				data: [],
+				headers: undefined
+			};
+			promise.then((resp:{data:IDriveChildList})=> {    			                                                // on complete
+					if (!!resp.data && !!resp.data.items) {
+						var l = resp.data.items.length;
+						for (var i = 0; i < l; i++) {
+							responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+						}   // Nb can't use concat as that creates a new array
+					}
+				}, undefined,
+				(resp:{data:IDriveChildList})=> {                                                                        // on notify, ie a single page of results
+					var l = resp.data.items.length;
+					for (var i = 0; i < l; i++) {
+						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+					}   // Nb can't use concat as that creates a new array
+				});
+			return responseObject;
+		}
+
+
+		/**
+		 * Implements Insert for children, ie. adding a file to a folder
+		 *
+		 * See https://developers.google.com/drive/v2/reference/children/insert for semantics including the params object
+		 *
+		 * Optionally (default true) it will store the ID returned in the Drive response in the file object that was passed to it.
+		 * This is done since it is almost always what an app needs to do, and by doing it in this method, saves the developer from
+		 * writing any promise.then logic
+		 *
+		 * @param folderID
+		 * @param child  Child resource with at least an ID
+		 * @returns IDriveResponseObject
+		 */
+		childrenInsert(params:{folderId:string}, child:IDriveChild):IDriveResponseObject<IDriveChild,IDriveChild> {
+			if (!params || !params.folderId) {
+				var s = "[D763] Missing params.folderId";
+				return this.self.reject(s);
+			}
+			if (!child || !child.id) {
+				var s = "[D767] Missing childId";
+				return this.self.reject(s);
+			}
+			var configObject:mng.IRequestConfig = {
+				method: 'POST',
+				url: this.self.childrenUrl.replace(':fid', params.folderId).replace(":id", ""),
+				data: child
+			};
+
+			var promise = this.self.HttpService.doHttp(configObject);
+			var responseObject:IDriveResponseObject<IDriveChild,IDriveChild> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveChild>)=> {                                             // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
+
+		/**
+		 * Implements children.delete
+		 *
+		 * @param params folderID
+		 * @returns IDriveResponseObject
+		 */
+		childrenDelete(params:{folderId:string; childId:string}) {
+			if (!params || !params.folderId) {
+				var s = "[D799] Missing fileId";
+				return this.self.reject(s);
+			}
+			if (!params || !params.childId) {
+				var s = "[D803] Missing childId";
+				return this.self.reject(s);
+			}
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'delete',
+				url: this.self.childrenUrl.replace(':fid', params.folderId).replace(":id", params.childId),
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IDriveChild,IDriveChild> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveChild|string>)=> {                               // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+			});
+			return responseObject;
+		}
+
+
+
+
+
+
+
+
+
+
 
 
 		/**

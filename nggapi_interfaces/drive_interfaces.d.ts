@@ -367,7 +367,7 @@ declare module NgGapi {
 		children:{
 			get(params:IDriveChildGetParameters):IDriveResponseObject<IDriveChild,IDriveChild>;
 			list(params?:IDriveChildListParameters, excludeTrashed?):IDriveResponseObject<IDriveChildList, IDriveChild[]>;
-			insert(child:IDriveChild, storeId?:boolean):IDriveResponseObject<IDriveChild,IDriveChild>;
+			insert(params:{folderId:string}, child:IDriveChild):IDriveResponseObject<IDriveChild,IDriveChild>;
 			del(params:{folderId:string;childId:string}):IDriveResponseObject<any,any>;
 		}
 

@@ -470,6 +470,157 @@ describe('Service: DriveService', function () {
 
 	});
 
+	describe('.children.insert() method', function () {
+		var id = 'fooi';
+
+		beforeEach(function () {
+			$httpBackend.whenPOST("").respond({id: id});
+		});
+
+		it('should return a child object', function () {
+			var ro = DriveService.children.insert({folderId: id}, {id: id});
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function () {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(ro.data.id).toBe(id);
+				});
+		});
+
+		it('should fail when missing folderId', function () {
+			var ro = DriveService.children.insert({foo: 'bar'},{id: 'id'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D763/);
+				});
+		});
+
+		it('should fail when missing childId', function () {
+			var ro = DriveService.children.insert({folderId: 'bar'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D767/);
+				});
+		});
+	});
+
+	describe('.children.list() method', function () {
+		var id = 'fooi';
+
+		beforeEach(function () {
+			$httpBackend.whenGET("").respond({items:[{id: id}]});
+		});
+
+		it('should return a child array', function () {
+			var ro = DriveService.children.list({folderId: id});
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function () {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(ro.data.items[0].id).toBe(id);
+				});
+		});
+	});
+
+	describe('.children.get() method', function () {
+		var id = 'fooi';
+
+		it('should fail when missing folderId', function () {
+			var ro = DriveService.children.get({foo: 'bar'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D679/);
+				});
+		});
+
+		it('should fail when missing childId', function () {
+			var ro = DriveService.children.get({folderId: 'bar'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D683/);
+				});
+		});
+
+		beforeEach(function () {
+			$httpBackend.whenGET("").respond({id: id});
+		});
+
+		it('should return a child object', function () {
+			var ro = DriveService.children.get({folderId: id, childId: id});
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function () {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					expect(ro.data.id).toBe(id);
+				});
+		});
+	});
+
+	describe('.children.del() method', function () {
+		var id = 'fooi';
+
+		it('should fail when missing folderId', function () {
+			var ro = DriveService.children.del({foo: 'bar'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D799/);
+				});
+		});
+
+		it('should fail when missing childId', function () {
+			var ro = DriveService.children.del({folderId: 'bar'});
+			ro.promise
+				.then(success, failure)
+				.finally(function() {
+					expect(success).not.toHaveBeenCalled();
+					expect(failure).toHaveBeenCalledWithMatch(/D803/);
+				});
+		});
+
+		beforeEach(function () {
+			$httpBackend.whenDELETE("").respond(204,undefined,{status: "204 No Content"});
+		});
+
+		it('should return status 204 no content', function () {
+			var ro = DriveService.children.del({folderId: id, childId: id});
+			$httpBackend.flush();
+
+			ro.promise
+				.then(success, failure)
+				.finally(function () {
+					expect(success).toHaveBeenCalled();
+					expect(failure).not.toHaveBeenCalled();
+					console.log("ro.headers");
+					console.log(ro.headers());
+					expect(ro.headers('status')).toBe('204 No Content');
+				});
+		});
+	});
+
+
+
+
+
+
 	//it('watch should return a file object', function () {
 	//	var id = 'foot';
 	//	var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/watch';

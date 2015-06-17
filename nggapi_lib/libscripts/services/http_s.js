@@ -191,7 +191,7 @@ var NgGapi;
             httpPromise.success(function (data, status, headers, configObject, statusText) {
                 _this.throttleUp();
                 //this.$log.debug(status);
-                if (data.nextPageToken) {
+                if (data && data.nextPageToken) {
                     //console.log('h198 notify')
                     def.notify({
                         data: data,
