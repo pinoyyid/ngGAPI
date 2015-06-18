@@ -13,6 +13,7 @@ class MaximalCtrl {
 	currentFile:NgGapi.IDriveFile;
 	currentFolder:NgGapi.IDriveFile;
 	currentPermission:NgGapi.IDrivePermission;
+	currentRevision:NgGapi.IDriveRevision;
 	largestChangeId = 0;
 
 	static $inject = ['$scope', '$log', '$q', 'DriveService'];
@@ -109,6 +110,23 @@ class MaximalCtrl {
 			})
 			.then(() => {
 				return this.deletePermission();
+			})
+
+
+			.then(() => {
+				return this.listRevisions();
+			})
+			.then(() => {
+				return this.getRevision();
+			})
+			.then(() => {
+				return this.updateRevision();
+			})
+			.then(() => {
+				return this.patchRevision();
+			})
+			.then(() => {
+				return this.deleteRevision();
 			})
 
 
@@ -623,6 +641,72 @@ class MaximalCtrl {
 			});
 		return ro.promise;
 	}
+
+	/*
+	 REVISIONS
+	 */
+
+	getRevision():ng.IPromise<NgGapi.IDriveRevision> {
+		var currentStep = {op: 'Getting a revision', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.revisions.get({fileId: this.currentFile.id, revisionId: this.currentRevision.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+	updateRevision():ng.IPromise<NgGapi.IDriveRevision> {
+		var currentStep = {op: 'Updating a revision', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.revisions.update({pinned: false}, {fileId: this.currentFile.id, revisionId: this.currentRevision.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+	patchRevision():ng.IPromise<NgGapi.IDriveRevision> {
+		var currentStep = {op: 'Patching a revision', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.revisions.patch({pinned:true}, {fileId: this.currentFile.id, revisionId: this.currentRevision.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+	listRevisions():ng.IPromise<NgGapi.IDriveRevision> {
+		var currentStep = {op: 'Listing all revisions for a file', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.revisions.list({fileId: this.currentFile.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveRevisionList>) => {
+				currentStep.status = ''+resp.data.items.length;
+				this.currentRevision = resp.data.items[0];
+			});
+		return ro.promise;
+	}
+
+	deleteRevision():ng.IPromise<NgGapi.IDriveRevision> {
+		var currentStep = {op: 'Deleting a revision', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.revisions.del({fileId: this.currentFile.id, revisionId: this.currentRevision.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
 
 }
 

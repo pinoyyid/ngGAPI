@@ -393,7 +393,7 @@ declare module NgGapi {
 			list(params?:IDriveRevisionListParameters, excludeTrashed?):IDriveResponseObject<IDriveRevisionList, IDriveRevision[]>;
 			update(revision:IDriveRevision, params?:IDriveRevisionUpdateParameters):IDriveResponseObject<IDriveRevision,IDriveRevision>;
 			patch(revision:IDriveRevision, params?:IDriveRevisionUpdateParameters):IDriveResponseObject<IDriveRevision,IDriveRevision>;
-			del(params:{fileId:string; permissionId:string}):IDriveResponseObject<any,any>;
+			del(params:{fileId:string; revisionId:string}):IDriveResponseObject<any,any>;
 		}
 	}
 

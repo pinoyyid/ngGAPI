@@ -81,7 +81,7 @@ var NgGapi;
             this.parentsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:cid/parents');
             this.permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/permissions');
             this.permissionIdsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissionIds');
-            this.revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'revisions');
+            this.revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/revisions');
             this.urlTrashSuffix = '/trash';
             this.urlUntrashSuffix = '/untrash';
             this.urlWatchSuffix = '/watch';
@@ -989,7 +989,7 @@ var NgGapi;
             }
             var co = {
                 method: 'GET',
-                url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.fileId),
+                url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.permissionId),
                 params: params
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
@@ -1221,6 +1221,201 @@ var NgGapi;
             var responseObject = {
                 promise: promise,
                 data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
+        /*
+         R E V I S I O N S
+         */
+        /**
+         * Implements Get for getting a revisions object
+         * See https://developers.google.com/drive/v2/reference/revisions/get for semantics including the params object
+         *
+         * @param params
+         * @returns {IDriveResponseObject}
+         */
+        DriveService.prototype.revisionsGet = function (params) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D1310] Missing params.fileId";
+                return this.self.reject(s);
+            }
+            if (!params.revisionId) {
+                var s = "[D1314] Missing revisionId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'GET',
+                url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(":id", params.revisionId),
+                params: params
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements revisions.List
+         * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+         * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+         * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+         * and omitting the pageToken.
+         *
+         * responseObject.data contains an array of all results across all pages
+         *
+         * The promise will fire its notify for each page with data containing the raw http response object
+         * with an embedded items array. The final page will fire the resolve.
+         *
+         * @param params see https://developers.google.com/drive/v2/reference/revisions/list
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.revisionsList = function (params) {
+            if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
+                this.self.$log.warn('[D1355] You have tried to list revisions with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
+            }
+            var co = {
+                method: 'GET',
+                url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(":id", ""),
+                params: params
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: [],
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                if (!!resp.data && !!resp.data.items) {
+                    var l = resp.data.items.length;
+                    for (var i = 0; i < l; i++) {
+                        responseObject.data.push(resp.data.items[i]); // push each new file
+                    }
+                }
+            }, undefined, function (resp) {
+                var l = resp.data.items.length;
+                for (var i = 0; i < l; i++) {
+                    responseObject.data.push(resp.data.items[i]); // push each new file
+                }
+            });
+            return responseObject;
+        };
+        /**
+         * Implements revisions.delete
+         *
+         * @param params fileID, revisionId
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.revisionsDelete = function (params) {
+            if (!params || !params.fileId) {
+                var s = "[D1393] Missing fileId";
+                return this.self.reject(s);
+            }
+            if (!params || !params.revisionId) {
+                var s = "[D1397] Missing revisionId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'delete',
+                url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(":id", params.revisionId)
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+            });
+            return responseObject;
+        };
+        /**
+         * Implements revisions Update
+         *
+         * See https://developers.google.com/drive/v2/reference/revisions/update for semantics including the params object
+         *
+         * @param revision Revision resource
+         * @param params see Google docs
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.revisionsUpdate = function (revision, params) {
+            var _this = this;
+            // validate there is an id somewhere, either in the passed file, or in params.fileId
+            var id;
+            if (params && params.revisionId) {
+                id = params.revisionId;
+            }
+            else {
+                if (revision.id) {
+                    id = revision.id;
+                }
+                else {
+                    var s = "[D1435] Missing revisionId";
+                    return this.self.reject(s);
+                }
+            }
+            var configObject;
+            configObject = { method: 'PUT', url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(':id', id), data: revision };
+            var promise = this.self.HttpService.doHttp(configObject);
+            var responseObject = {
+                promise: promise,
+                data: {},
+                params: params,
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements revisions Patch
+         *
+         * See https://developers.google.com/drive/v2/reference/revisions/patch for semantics including the params object
+         *
+         * @param revision Revision resource
+         * @param params see Google docs
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.revisionsPatch = function (revision, params) {
+            var _this = this;
+            // validate there is an id somewhere, either in the passed file, or in params.fileId
+            var id;
+            if (params && params.revisionId) {
+                id = params.revisionId;
+            }
+            else {
+                if (revision.id) {
+                    id = revision.id;
+                }
+                else {
+                    var s = "[D1475] Missing revisionId";
+                    return this.self.reject(s);
+                }
+            }
+            var configObject;
+            configObject = { method: 'PATCH', url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(':id', id), data: revision };
+            var promise = this.self.HttpService.doHttp(configObject);
+            var responseObject = {
+                promise: promise,
+                data: {},
+                params: params,
                 headers: undefined
             };
             promise.then(function (resp) {

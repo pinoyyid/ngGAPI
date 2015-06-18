@@ -74,6 +74,16 @@ var MaximalCtrl = (function () {
         }).then(function () {
             return _this.deletePermission();
         }).then(function () {
+            return _this.listRevisions();
+        }).then(function () {
+            return _this.getRevision();
+        }).then(function () {
+            return _this.updateRevision();
+        }).then(function () {
+            return _this.patchRevision();
+        }).then(function () {
+            return _this.deleteRevision();
+        }).then(function () {
             return _this.deleteFile(_this.currentFolder.id);
         }).then(function () {
             return _this.deleteFile(_this.currentFile.id);
@@ -491,6 +501,56 @@ var MaximalCtrl = (function () {
             return;
         }
         var ro = this.DriveService.permissions.getIdForEmail(email);
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    /*
+     REVISIONS
+     */
+    MaximalCtrl.prototype.getRevision = function () {
+        var currentStep = { op: 'Getting a revision', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.revisions.get({ fileId: this.currentFile.id, revisionId: this.currentRevision.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.updateRevision = function () {
+        var currentStep = { op: 'Updating a revision', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.revisions.update({ pinned: false }, { fileId: this.currentFile.id, revisionId: this.currentRevision.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.patchRevision = function () {
+        var currentStep = { op: 'Patching a revision', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.revisions.patch({ pinned: true }, { fileId: this.currentFile.id, revisionId: this.currentRevision.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.listRevisions = function () {
+        var _this = this;
+        var currentStep = { op: 'Listing all revisions for a file', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.revisions.list({ fileId: this.currentFile.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = '' + resp.data.items.length;
+            _this.currentRevision = resp.data.items[0];
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.deleteRevision = function () {
+        var currentStep = { op: 'Deleting a revision', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.revisions.del({ fileId: this.currentFile.id, revisionId: this.currentRevision.id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
         });

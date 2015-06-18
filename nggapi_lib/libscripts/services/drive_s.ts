@@ -70,8 +70,6 @@ module NgGapi {
 		};
 
 
-
-
 		self = this;                                                                                                    // this is recursive and is only required if we expose the files.get form (as opposed to filesGet)
 
 		RESOURCE_TOKEN = 'reSource';
@@ -84,13 +82,13 @@ module NgGapi {
 		parentsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:cid/parents');
 		permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/permissions');
 		permissionIdsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissionIds');
-		revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'revisions');
+		revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/revisions');
 		urlTrashSuffix = '/trash';
 		urlUntrashSuffix = '/untrash';
 		urlWatchSuffix = '/watch';
 		urlTouchSuffix = '/touch';
 
-		lastFile:IDriveFile = {id: 'noid'};                                                                       // for testing, holds the most recent file response
+		lastFile:IDriveFile = {id: 'noid'};                                                                             // for testing, holds the most recent file response
 
 		static $inject = ['$log', '$timeout', '$q', 'HttpService'];
 
@@ -141,7 +139,6 @@ module NgGapi {
 			});
 			return responseObject;
 		}
-
 
 		/**
 		 * Implements Get for the changes resource
@@ -215,7 +212,6 @@ module NgGapi {
 			return responseObject;
 		}
 
-
 		/**
 		 * Implements drive.Watch
 		 * NB This is not available as CORS endpoint for browser clients
@@ -244,7 +240,6 @@ module NgGapi {
 			});
 			return responseObject;
 		}
-
 
 		/**
 		 * Implements Get both for getting a file object and the newer alt=media to get a file's media content
@@ -276,7 +271,6 @@ module NgGapi {
 			});
 			return responseObject;
 		}
-
 
 		/**
 		 * Implements files.List
@@ -383,7 +377,6 @@ module NgGapi {
 			return responseObject;
 		}
 
-
 		/**
 		 * Implements Insert for metadata only
 		 *
@@ -420,7 +413,6 @@ module NgGapi {
 			});
 			return responseObject;
 		}
-
 
 		/**
 		 * Implements Update, both for metadata only and for multipart media content upload
@@ -472,7 +464,6 @@ module NgGapi {
 			});
 			return responseObject;
 		}
-
 
 		/**
 		 * Implements drive.patch
@@ -593,7 +584,6 @@ module NgGapi {
 			return responseObject;
 		}
 
-
 		/**
 		 * Implements drive.Watch
 		 * NB This is not available as CORS endpoint for browser clients
@@ -651,9 +641,9 @@ module NgGapi {
 				data: {},
 				headers: undefined
 			};
-			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveFile|string>)=> {                               // on complete
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveFile|string>)=> {                                      // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-				this.self.transcribeProperties(resp.data, responseObject);                                                   // if file, transcribe properties
+				this.self.transcribeProperties(resp.data, responseObject);                                              // if file, transcribe properties
 				this.self.lastFile = resp.data;
 			});
 			return responseObject;
@@ -675,12 +665,11 @@ module NgGapi {
 				data: {},
 				headers: undefined
 			};
-			promise.then((resp:mng.IHttpPromiseCallbackArg<any>)=> {                               // on complete
+			promise.then((resp:mng.IHttpPromiseCallbackArg<any>)=> {                                                    // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
 			});
 			return responseObject;
 		}
-
 
 
 		/*
@@ -716,9 +705,9 @@ module NgGapi {
 				data: {},
 				headers: undefined
 			};
-			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveChild|string>)=> {                                      // on complete
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveChild|string>)=> {                                     // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-				this.self.transcribeProperties(resp.data, responseObject);                                          // if file, transcribe properties
+				this.self.transcribeProperties(resp.data, responseObject);                                              // if file, transcribe properties
 				this.self.lastFile = resp.data;
 			});
 			return responseObject;
@@ -764,11 +753,11 @@ module NgGapi {
 					if (!!resp.data && !!resp.data.items) {
 						var l = resp.data.items.length;
 						for (var i = 0; i < l; i++) {
-							responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+							responseObject.data.push(resp.data.items[i]);                                               // push each new file
 						}   // Nb can't use concat as that creates a new array
 					}
 				}, undefined,
-				(resp:{data:IDriveChildList})=> {                                                                        // on notify, ie a single page of results
+				(resp:{data:IDriveChildList})=> {                                                                       // on notify, ie a single page of results
 					var l = resp.data.items.length;
 					for (var i = 0; i < l; i++) {
 						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
@@ -812,7 +801,7 @@ module NgGapi {
 				data: {},
 				headers: undefined
 			};
-			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveChild>)=> {                                             // on complete
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveChild>)=> {                                            // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers
 				this.self.transcribeProperties(resp.data, responseObject);
 				this.self.lastFile = resp.data;
@@ -847,7 +836,7 @@ module NgGapi {
 				data: {},
 				headers: undefined
 			};
-			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveChild|string>)=> {                               // on complete
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveChild|string>)=> {                                     // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers
 			});
 			return responseObject;
@@ -1053,7 +1042,7 @@ module NgGapi {
 
 			var co:mng.IRequestConfig = {                                                                               // build request config
 				method: 'GET',
-				url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.fileId),
+				url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.permissionId),
 				params: params
 			};
 			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
@@ -1206,7 +1195,7 @@ module NgGapi {
 		permissionsUpdate(permission:IDrivePermission, params?:IDrivePermissionUpdateParameters):IDriveResponseObject<IDrivePermission,IDrivePermission> {
 			// validate there is an id somewhere, either in the passed file, or in params.fileId
 			var id;
-			if (params && params.permissionId) {                                                                              // if in params.fileID
+			if (params && params.permissionId) {                                                                        // if in params.fileID
 				id = params.permissionId;
 			} else {                                                                                                    // else
 				if (permission.id) {                                                                                    // if in file object
@@ -1246,7 +1235,7 @@ module NgGapi {
 		permissionsPatch(permission:IDrivePermission, params?:IDrivePermissionUpdateParameters):IDriveResponseObject<IDrivePermission,IDrivePermission> {
 			// validate there is an id somewhere, either in the passed file, or in params.fileId
 			var id;
-			if (params && params.permissionId) {                                                                              // if in params.fileID
+			if (params && params.permissionId) {                                                                        // if in params.fileID
 				id = params.permissionId;
 			} else {                                                                                                    // else
 				if (permission.id) {                                                                                    // if in file object
@@ -1294,13 +1283,217 @@ module NgGapi {
 				data: {},
 				headers: undefined
 			};
-			promise.then((resp:mng.IHttpPromiseCallbackArg<{id?:string}|string>)=> {                                // on complete
+			promise.then((resp:mng.IHttpPromiseCallbackArg<{id?:string}|string>)=> {                                    // on complete
 				responseObject.headers = resp.headers;                                                                  // transcribe headers
 				this.self.transcribeProperties(resp.data, responseObject);
 				this.self.lastFile = resp.data;
 			});
 			return responseObject;
 		}
+
+
+
+		/*
+		 R E V I S I O N S
+		 */
+
+
+		/**
+		 * Implements Get for getting a revisions object
+		 * See https://developers.google.com/drive/v2/reference/revisions/get for semantics including the params object
+		 *
+		 * @param params
+		 * @returns {IDriveResponseObject}
+		 */
+		revisionsGet(params:IDriveRevisionGetParameters):IDriveResponseObject<IDriveRevision|string,IDriveRevision|string> {
+			if (!params || !params.fileId) {
+				var s = "[D1310] Missing params.fileId";
+				return this.self.reject(s);
+			}
+			if (!params.revisionId) {
+				var s = "[D1314] Missing revisionId";
+				return this.self.reject(s);
+			}
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(":id", params.revisionId),
+				params: params
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IDriveRevision|string,IDriveRevision|string> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveRevision|string>)=> {                                  // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				this.self.transcribeProperties(resp.data, responseObject);                                              // if file, transcribe properties
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
+
+		/**
+		 * Implements revisions.List
+		 * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+		 * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+		 * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+		 * and omitting the pageToken.
+		 *
+		 * responseObject.data contains an array of all results across all pages
+		 *
+		 * The promise will fire its notify for each page with data containing the raw http response object
+		 * with an embedded items array. The final page will fire the resolve.
+		 *
+		 * @param params see https://developers.google.com/drive/v2/reference/revisions/list
+		 * @returns IDriveResponseObject
+		 */
+		revisionsList(params:IDriveRevisionListParameters):IDriveResponseObject<IDriveRevisionList,IDriveRevision[]> {
+			if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
+				this.self.$log.warn('[D1355] You have tried to list revisions with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
+			}
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(":id", ""),
+				params: params
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IDriveRevisionList,IDriveRevision[]> = {
+				promise: promise,
+				data: [],
+				headers: undefined
+			};
+			promise.then((resp:{data:IDriveRevisionList})=> {    			                                            // on complete
+					if (!!resp.data && !!resp.data.items) {
+						var l = resp.data.items.length;
+						for (var i = 0; i < l; i++) {
+							responseObject.data.push(resp.data.items[i]);                                               // push each new file
+						}   // Nb can't use concat as that creates a new array
+					}
+				}, undefined,
+				(resp:{data:IDriveRevisionList})=> {                                                                    // on notify, ie a single page of results
+					var l = resp.data.items.length;
+					for (var i = 0; i < l; i++) {
+						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+					}   // Nb can't use concat as that creates a new array
+				});
+			return responseObject;
+		}
+
+		/**
+		 * Implements revisions.delete
+		 *
+		 * @param params fileID, revisionId
+		 * @returns IDriveResponseObject
+		 */
+		revisionsDelete(params:{fileId:string; revisionId:string}) {
+			if (!params || !params.fileId) {
+				var s = "[D1393] Missing fileId";
+				return this.self.reject(s);
+			}
+			if (!params || !params.revisionId) {
+				var s = "[D1397] Missing revisionId";
+				return this.self.reject(s);
+			}
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'delete',
+				url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(":id", params.revisionId),
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IDriveRevision,IDriveRevision> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveRevision|string>)=> {                                  // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+			});
+			return responseObject;
+		}
+
+		/**
+		 * Implements revisions Update
+		 *
+		 * See https://developers.google.com/drive/v2/reference/revisions/update for semantics including the params object
+		 *
+		 * @param revision Revision resource
+		 * @param params see Google docs
+		 * @returns IDriveResponseObject
+		 */
+		revisionsUpdate(revision:IDriveRevision, params?:IDriveRevisionUpdateParameters):IDriveResponseObject<IDriveRevision,IDriveRevision> {
+			// validate there is an id somewhere, either in the passed file, or in params.fileId
+			var id;
+			if (params && params.revisionId) {                                                                          // if in params.fileID
+				id = params.revisionId;
+			} else {                                                                                                    // else
+				if (revision.id) {                                                                                      // if in file object
+					id = revision.id;
+				} else {                                                                                                // if no ID
+					var s = "[D1435] Missing revisionId";
+					return this.self.reject(s);
+				}
+			}
+			var configObject:mng.IRequestConfig;
+			configObject = {method: 'PUT', url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(':id', id), data: revision};
+
+			var promise = this.self.HttpService.doHttp(configObject);
+			var responseObject:IDriveResponseObject<IDriveRevision,IDriveRevision> = {
+				promise: promise,
+				data: {},
+				params: params,
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveRevision|string>)=> {                                  // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
+		/**
+		 * Implements revisions Patch
+		 *
+		 * See https://developers.google.com/drive/v2/reference/revisions/patch for semantics including the params object
+		 *
+		 * @param revision Revision resource
+		 * @param params see Google docs
+		 * @returns IDriveResponseObject
+		 */
+		revisionsPatch(revision:IDriveRevision, params?:IDriveRevisionUpdateParameters):IDriveResponseObject<IDriveRevision,IDriveRevision> {
+			// validate there is an id somewhere, either in the passed file, or in params.fileId
+			var id;
+			if (params && params.revisionId) {                                                                          // if in params.fileID
+				id = params.revisionId;
+			} else {                                                                                                    // else
+				if (revision.id) {                                                                                      // if in file object
+					id = revision.id;
+				} else {                                                                                                // if no ID
+					var s = "[D1475] Missing revisionId";
+					return this.self.reject(s);
+				}
+			}
+			var configObject:mng.IRequestConfig;
+			configObject = {method: 'PATCH', url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(':id', id), data: revision};
+
+			var promise = this.self.HttpService.doHttp(configObject);
+			var responseObject:IDriveResponseObject<IDriveRevision,IDriveRevision> = {
+				promise: promise,
+				data: {},
+				params: params,
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveRevision|string>)=> {                                  // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
 
 
 
