@@ -75,6 +75,21 @@ class MaximalCtrl {
 				return this.deleteChild();
 			})
 			.then(() => {
+				return this.insertParent(this.currentFile);
+			})
+			.then(() => {
+				return this.listParents();
+			})
+			.then(() => {
+				return this.getParent();
+			})
+			.then(() => {
+				return this.deleteParent();
+			})
+			.then(() => {
+				return this.deleteFile(this.currentFolder.id)
+			})
+			.then(() => {
 				return this.deleteFile(this.currentFile.id)
 			})
 		.then(() => {
@@ -363,7 +378,7 @@ class MaximalCtrl {
 		var currentStep = {op: 'Making a folder', status: '...', data: undefined};
 		this.steps.push(currentStep);
 		var ro = this.DriveService.files.insert({
-			title: 'testfolder',
+			title: 'delmeZZZ testfolder',
 			mimeType: 'application/vnd.google-apps.folder'
 		}, false);
 		ro.promise.then(
@@ -374,6 +389,10 @@ class MaximalCtrl {
 		return ro.promise;
 	}
 
+
+	/*
+	   CHILDREN
+	 */
 
 	insertChild(child:NgGapi.IDriveFile):ng.IPromise<NgGapi.IDriveChild> {
 		var currentStep = {op: 'Making a child', status: '...', data: undefined};
@@ -415,7 +434,7 @@ class MaximalCtrl {
 
 
 	deleteChild():ng.IPromise<NgGapi.IDriveChild> {
-		var currentStep = {op: 'deleting a child', status: '...', data: undefined};
+		var currentStep = {op: 'Deleting a child', status: '...', data: undefined};
 		this.steps.push(currentStep);
 		var ro = this.DriveService.children.del({folderId: this.currentFolder.id, childId: this.currentFile.id});
 
@@ -425,6 +444,63 @@ class MaximalCtrl {
 			});
 		return ro.promise;
 	}
+
+
+	/*
+	 PARENTS
+	 */
+
+	insertParent(child:NgGapi.IDriveFile):ng.IPromise<NgGapi.IDriveParent> {
+		var currentStep = {op: 'Making a parent', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.parents.insert({fileId: child.id}, this.currentFolder);
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+
+	getParent():ng.IPromise<NgGapi.IDriveParent> {
+		var currentStep = {op: 'Getting a parent', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.parents.get({fileId: this.currentFile.id, parentId: this.currentFolder.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+
+	listParents():ng.IPromise<NgGapi.IDriveParent> {
+		var currentStep = {op: 'Listing all parents', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.parents.list({fileId: this.currentFile.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveParentList>) => {
+				currentStep.status = ''+resp.data.items.length;
+			});
+		return ro.promise;
+	}
+
+
+	deleteParent():ng.IPromise<NgGapi.IDriveParent> {
+		var currentStep = {op: 'Deleting a parent', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.parents.del({fileId: this.currentFile.id, parentId: this.currentFolder.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
 
 
 

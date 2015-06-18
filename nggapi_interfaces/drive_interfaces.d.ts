@@ -368,14 +368,14 @@ declare module NgGapi {
 			get(params:IDriveChildGetParameters):IDriveResponseObject<IDriveChild,IDriveChild>;
 			list(params?:IDriveChildListParameters, excludeTrashed?):IDriveResponseObject<IDriveChildList, IDriveChild[]>;
 			insert(params:{folderId:string}, child:IDriveChild):IDriveResponseObject<IDriveChild,IDriveChild>;
-			del(params:{folderId:string;childId:string}):IDriveResponseObject<any,any>;
+			del(params:IDriveChildGetParameters):IDriveResponseObject<any,any>;
 		}
 
 		parents:{
 			get(params:IDriveParentGetParameters):IDriveResponseObject<IDriveParent,IDriveParent>;
 			list(params?:IDriveParentListParameters, excludeTrashed?):IDriveResponseObject<IDriveParentList, IDriveParent[]>;
-			insert(parent:IDriveParent, storeId?:boolean):IDriveResponseObject<IDriveParent,IDriveParent>;
-			del(params:{fileId:string; parentId:string}):IDriveResponseObject<any,any>;
+			insert(params:{fileId:string}, parent:IDriveParent):IDriveResponseObject<IDriveParent,IDriveParent>;
+			del(params:IDriveParentGetParameters):IDriveResponseObject<any,any>;
 		}
 
 		permissions:{
@@ -549,6 +549,10 @@ declare module NgGapi {
 
 	export interface IDriveParentListParameters {
 		fileId:string;                      // child file id
+		maxResults?:number;                 // Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
+		pageToken?:string;	                // Page token for files.
+		fields?:string;                     // urlencoded list of fields to include in response
+		q?:string;                          // Query string for searching files. See https://developers.google.com/drive/search-parameters for more information about supported fields and operations.
 	}
 
 

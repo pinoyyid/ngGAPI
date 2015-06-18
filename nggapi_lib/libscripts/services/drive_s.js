@@ -78,7 +78,7 @@ var NgGapi;
             this.changesUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'changes');
             this.aboutUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'about');
             this.childrenUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/children');
-            this.parentsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'parents');
+            this.parentsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:cid/parents');
             this.permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissions');
             this.revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'revisions');
             this.urlTrashSuffix = '/trash';
@@ -281,7 +281,6 @@ var NgGapi;
             if (excludeTrashed) {
                 var trashed = 'trashed = false';
                 params.q = params.q ? params.q + ' and ' + trashed : trashed; // set or append to q
-                ;
             }
             var co = {
                 method: 'GET',
@@ -323,7 +322,7 @@ var NgGapi;
          * @param file  Files resource with at least a mime type
          * @param params see Google docs, must contain at least uploadType
          * @param content
-         * @param storeID stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
+         * @param storeId stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
          * @returns IDriveResponseObject
          */
         DriveService.prototype.filesInsertWithContent = function (file, params, content, storeId) {
@@ -371,7 +370,7 @@ var NgGapi;
          * writing any promise.then logic
          *
          * @param file  Files resource with at least a mime type
-         * @param storeID stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
+         * @param storeId stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
          * @returns IDriveResponseObject
          */
         DriveService.prototype.filesInsert = function (file, storeId) {
@@ -628,6 +627,27 @@ var NgGapi;
             });
             return responseObject;
         };
+        /**
+         * Implements drive.emptyTrash
+         *
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.filesEmptyTrash = function () {
+            var co = {
+                method: 'DELETE',
+                url: this.self.filesUrl.replace(':id', 'trash')
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+            });
+            return responseObject;
+        };
         /*
                       C H I L D R E N
          */
@@ -689,7 +709,6 @@ var NgGapi;
             if (excludeTrashed) {
                 var trashed = 'trashed = false';
                 params.q = params.q ? params.q + ' and ' + trashed : trashed; // set or append to q
-                ;
             }
             var co = {
                 method: 'GET',
@@ -726,7 +745,7 @@ var NgGapi;
          * This is done since it is almost always what an app needs to do, and by doing it in this method, saves the developer from
          * writing any promise.then logic
          *
-         * @param folderID
+         * @param params contains the folderId
          * @param child  Child resource with at least an ID
          * @returns IDriveResponseObject
          */
@@ -788,15 +807,30 @@ var NgGapi;
             });
             return responseObject;
         };
-        /**
-         * Implements drive.emptyTrash
-         *
-         * @returns IDriveResponseObject
+        /*
+            P A R E N T S
          */
-        DriveService.prototype.filesEmptyTrash = function () {
+        /**
+         * Implements Get for getting a parents object
+         * See https://developers.google.com/drive/v2/reference/parents/get for semantics including the params object
+         *
+         * @param params
+         * @returns {IDriveResponseObject}
+         */
+        DriveService.prototype.parentsGet = function (params) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D874] Missing params.fileId";
+                return this.self.reject(s);
+            }
+            if (!params.parentId) {
+                var s = "[D878] Missing parentId";
+                return this.self.reject(s);
+            }
             var co = {
-                method: 'DELETE',
-                url: this.self.filesUrl.replace(':id', 'trash')
+                method: 'GET',
+                url: this.self.parentsUrl.replace(':cid', params.fileId).replace(":id", params.parentId),
+                params: params
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = {
@@ -806,9 +840,135 @@ var NgGapi;
             };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers function
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };
+        /**
+         * Implements parents.List
+         * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+         * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+         * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+         * and omitting the pageToken.
+         *
+         * responseObject.data contains an array of all results across all pages
+         *
+         * The promise will fire its notify for each page with data containing the raw http response object
+         * with an embedded items array. The final page will fire the resolve.
+         *
+         * @param params see https://developers.google.com/drive/v2/reference/parents/list
+         * @param excludeTrashed
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.parentsList = function (params, excludeTrashed) {
+            if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
+                this.self.$log.warn('[D712] You have tried to list parents with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
+            }
+            if (excludeTrashed) {
+                var trashed = 'trashed = false';
+                params.q = params.q ? params.q + ' and ' + trashed : trashed; // set or append to q
+            }
+            var co = {
+                method: 'GET',
+                url: this.self.parentsUrl.replace(':cid', params.fileId).replace(":id", ""),
+                params: params
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: [],
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                if (!!resp.data && !!resp.data.items) {
+                    var l = resp.data.items.length;
+                    for (var i = 0; i < l; i++) {
+                        responseObject.data.push(resp.data.items[i]); // push each new file
+                    }
+                }
+            }, undefined, function (resp) {
+                var l = resp.data.items.length;
+                for (var i = 0; i < l; i++) {
+                    responseObject.data.push(resp.data.items[i]); // push each new file
+                }
+            });
+            return responseObject;
+        };
+        /**
+         * Implements Insert for parents, ie. adding a file to a folder
+         *
+         * See https://developers.google.com/drive/v2/reference/parents/insert for semantics including the params object
+         *
+         * Optionally (default true) it will store the ID returned in the Drive response in the file object that was passed to it.
+         * This is done since it is almost always what an app needs to do, and by doing it in this method, saves the developer from
+         * writing any promise.then logic
+         *
+         * @param params contains fileID
+         * @param parent  Parent resource with at least an ID
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.parentsInsert = function (params, parent) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D971] Missing params.fileId";
+                return this.self.reject(s);
+            }
+            if (!parent || !parent.id) {
+                var s = "[D975] Missing parentId";
+                return this.self.reject(s);
+            }
+            var configObject = {
+                method: 'POST',
+                url: this.self.parentsUrl.replace(':cid', params.fileId).replace(":id", ""),
+                data: parent
+            };
+            var promise = this.self.HttpService.doHttp(configObject);
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements parents.delete
+         *
+         * @param params folderID
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.parentsDelete = function (params) {
+            if (!params || !params.fileId) {
+                var s = "[D1007] Missing fileId";
+                return this.self.reject(s);
+            }
+            if (!params || !params.parentId) {
+                var s = "[D1010] Missing parentId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'delete',
+                url: this.self.parentsUrl.replace(':cid', params.fileId).replace(":id", params.parentId)
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+            });
+            return responseObject;
+        };
+        /*
+              C O M M O N  F U N C T I O N S
+         */
         /**
          * reject the current request by creating a response object with a promise and rejecting it
          * This is used to deal with validation errors prior to http submission
@@ -831,7 +991,7 @@ var NgGapi;
          * @param params
          * @param content
          * @param isInsert true for insert, false/undefined for Update
-         * @returns {undefined}
+         * @returns a $http config object
          *
          * @throws D115 resumables not supported
          * @throws D125 safety check there is a mime type

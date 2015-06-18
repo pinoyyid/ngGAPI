@@ -51,6 +51,16 @@ var MaximalCtrl = (function () {
         }).then(function () {
             return _this.deleteChild();
         }).then(function () {
+            return _this.insertParent(_this.currentFile);
+        }).then(function () {
+            return _this.listParents();
+        }).then(function () {
+            return _this.getParent();
+        }).then(function () {
+            return _this.deleteParent();
+        }).then(function () {
+            return _this.deleteFile(_this.currentFolder.id);
+        }).then(function () {
             return _this.deleteFile(_this.currentFile.id);
         }).then(function () {
             return _this.emptyTrash();
@@ -312,7 +322,7 @@ var MaximalCtrl = (function () {
         var currentStep = { op: 'Making a folder', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.insert({
-            title: 'testfolder',
+            title: 'delmeZZZ testfolder',
             mimeType: 'application/vnd.google-apps.folder'
         }, false);
         ro.promise.then(function (resp) {
@@ -321,6 +331,9 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
+    /*
+       CHILDREN
+     */
     MaximalCtrl.prototype.insertChild = function (child) {
         var currentStep = { op: 'Making a child', status: '...', data: undefined };
         this.steps.push(currentStep);
@@ -349,9 +362,48 @@ var MaximalCtrl = (function () {
         return ro.promise;
     };
     MaximalCtrl.prototype.deleteChild = function () {
-        var currentStep = { op: 'deleting a child', status: '...', data: undefined };
+        var currentStep = { op: 'Deleting a child', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.children.del({ folderId: this.currentFolder.id, childId: this.currentFile.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    /*
+     PARENTS
+     */
+    MaximalCtrl.prototype.insertParent = function (child) {
+        var currentStep = { op: 'Making a parent', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.parents.insert({ fileId: child.id }, this.currentFolder);
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.getParent = function () {
+        var currentStep = { op: 'Getting a parent', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.parents.get({ fileId: this.currentFile.id, parentId: this.currentFolder.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.listParents = function () {
+        var currentStep = { op: 'Listing all parents', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.parents.list({ fileId: this.currentFile.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = '' + resp.data.items.length;
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.deleteParent = function () {
+        var currentStep = { op: 'Deleting a parent', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.parents.del({ fileId: this.currentFile.id, parentId: this.currentFolder.id });
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
         });
