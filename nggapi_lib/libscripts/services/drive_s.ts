@@ -82,7 +82,8 @@ module NgGapi {
 		aboutUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'about');
 		childrenUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/children');
 		parentsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:cid/parents');
-		permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissions');
+		permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/permissions');
+		permissionIdsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissionIds');
 		revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'revisions');
 		urlTrashSuffix = '/trash';
 		urlUntrashSuffix = '/untrash';
@@ -1026,6 +1027,280 @@ module NgGapi {
 
 
 
+
+
+		/*
+		 P E R M I S S I O N S
+		 */
+
+
+		/**
+		 * Implements Get for getting a permissions object
+		 * See https://developers.google.com/drive/v2/reference/permissions/get for semantics including the params object
+		 *
+		 * @param params
+		 * @returns {IDriveResponseObject}
+		 */
+		permissionsGet(params:IDrivePermissionGetParameters):IDriveResponseObject<IDrivePermission|string,IDrivePermission|string> {
+			if (!params || !params.fileId) {
+				var s = "[D1045] Missing params.fileId";
+				return this.self.reject(s);
+			}
+			if (!params.permissionId) {
+				var s = "[D1049] Missing permissionId";
+				return this.self.reject(s);
+			}
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.fileId),
+				params: params
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IDrivePermission|string,IDrivePermission|string> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDrivePermission|string>)=> {                                    // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers function
+				this.self.transcribeProperties(resp.data, responseObject);                                              // if file, transcribe properties
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
+
+		/**
+		 * Implements permissions.List
+		 * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+		 * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+		 * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+		 * and omitting the pageToken.
+		 *
+		 * responseObject.data contains an array of all results across all pages
+		 *
+		 * The promise will fire its notify for each page with data containing the raw http response object
+		 * with an embedded items array. The final page will fire the resolve.
+		 *
+		 * @param params see https://developers.google.com/drive/v2/reference/permissions/list
+		 * @returns IDriveResponseObject
+		 */
+		permissionsList(params:IDrivePermissionListParameters):IDriveResponseObject<IDrivePermissionList,IDrivePermission[]> {
+			if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
+				this.self.$log.warn('[D1091] You have tried to list permissions with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
+			}
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'GET',
+				url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", ""),
+				params: params
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IDrivePermissionList,IDrivePermission[]> = {
+				promise: promise,
+				data: [],
+				headers: undefined
+			};
+			promise.then((resp:{data:IDrivePermissionList})=> {    			                                                // on complete
+					if (!!resp.data && !!resp.data.items) {
+						var l = resp.data.items.length;
+						for (var i = 0; i < l; i++) {
+							responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+						}   // Nb can't use concat as that creates a new array
+					}
+				}, undefined,
+				(resp:{data:IDrivePermissionList})=> {                                                                        // on notify, ie a single page of results
+					var l = resp.data.items.length;
+					for (var i = 0; i < l; i++) {
+						responseObject.data.push(resp.data.items[i]);                                                   // push each new file
+					}   // Nb can't use concat as that creates a new array
+				});
+			return responseObject;
+		}
+
+
+		/**
+		 * Implements Insert for permissions, ie. adding a file to a folder
+		 *
+		 * See https://developers.google.com/drive/v2/reference/permissions/insert for semantics including the params object
+		 *
+		 * Optionally (default true) it will store the ID returned in the Drive response in the file object that was passed to it.
+		 * This is done since it is almost always what an app needs to do, and by doing it in this method, saves the developer from
+		 * writing any promise.then logic
+		 *
+		 * @param permission  Permission resource with at least an ID
+		 * @param params contains fileID
+		 * @returns IDriveResponseObject
+		 */
+		permissionsInsert(permission:IDrivePermission, params:{fileId:string}):IDriveResponseObject<IDrivePermission,IDrivePermission> {
+			if (!params || !params.fileId) {
+				var s = "[D1141] Missing params.fileId";
+				return this.self.reject(s);
+			}
+			if (!permission || !permission.type || !permission.role) {
+				var s = "[D1145] Missing role or type";
+				return this.self.reject(s);
+			}
+			var configObject:mng.IRequestConfig = {
+				method: 'POST',
+				url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", ""),
+				data: permission
+			};
+
+			var promise = this.self.HttpService.doHttp(configObject);
+			var responseObject:IDriveResponseObject<IDrivePermission,IDrivePermission> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDrivePermission>)=> {                                           // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
+
+		/**
+		 * Implements permissions.delete
+		 *
+		 * @param params fileID, permissionId
+		 * @returns IDriveResponseObject
+		 */
+		permissionsDelete(params:{fileId:string; permissionId:string}) {
+			if (!params || !params.fileId) {
+				var s = "[D1177] Missing fileId";
+				return this.self.reject(s);
+			}
+			if (!params || !params.permissionId) {
+				var s = "[D1181] Missing permissionId";
+				return this.self.reject(s);
+			}
+
+			var co:mng.IRequestConfig = {                                                                               // build request config
+				method: 'delete',
+				url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.permissionId),
+			};
+			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var responseObject:IDriveResponseObject<IDrivePermission,IDrivePermission> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDrivePermission|string>)=> {                                // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+			});
+			return responseObject;
+		}
+
+		/**
+		 * Implements permissions Update
+		 *
+		 * See https://developers.google.com/drive/v2/reference/permissions/update for semantics including the params object
+		 *
+		 * @param permission Permission resource
+		 * @param params see Google docs
+		 * @returns IDriveResponseObject
+		 */
+		permissionsUpdate(permission:IDrivePermission, params?:IDrivePermissionUpdateParameters):IDriveResponseObject<IDrivePermission,IDrivePermission> {
+			// validate there is an id somewhere, either in the passed file, or in params.fileId
+			var id;
+			if (params && params.permissionId) {                                                                              // if in params.fileID
+				id = params.permissionId;
+			} else {                                                                                                    // else
+				if (permission.id) {                                                                                    // if in file object
+					id = permission.id;
+				} else {                                                                                                // if no ID
+					var s = "[D1214] Missing permissionId";
+					return this.self.reject(s);
+				}
+			}
+			var configObject:mng.IRequestConfig;
+			configObject = {method: 'PUT', url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(':id', id), data: permission};
+
+			var promise = this.self.HttpService.doHttp(configObject);
+			var responseObject:IDriveResponseObject<IDrivePermission,IDrivePermission> = {
+				promise: promise,
+				data: {},
+				params: params,
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDrivePermission|string>)=> {                                // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
+		/**
+		 * Implements permissions Patch
+		 *
+		 * See https://developers.google.com/drive/v2/reference/permissions/patch for semantics including the params object
+		 *
+		 * @param permission Permission resource
+		 * @param params see Google docs
+		 * @returns IDriveResponseObject
+		 */
+		permissionsPatch(permission:IDrivePermission, params?:IDrivePermissionUpdateParameters):IDriveResponseObject<IDrivePermission,IDrivePermission> {
+			// validate there is an id somewhere, either in the passed file, or in params.fileId
+			var id;
+			if (params && params.permissionId) {                                                                              // if in params.fileID
+				id = params.permissionId;
+			} else {                                                                                                    // else
+				if (permission.id) {                                                                                    // if in file object
+					id = permission.id;
+				} else {                                                                                                // if no ID
+					var s = "[D1254] Missing permissionId";
+					return this.self.reject(s);
+				}
+			}
+			var configObject:mng.IRequestConfig;
+			configObject = {method: 'PATCH', url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(':id', id), data: permission};
+
+			var promise = this.self.HttpService.doHttp(configObject);
+			var responseObject:IDriveResponseObject<IDrivePermission,IDrivePermission> = {
+				promise: promise,
+				data: {},
+				params: params,
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDrivePermission|string>)=> {                                // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
+
+	/**
+		 * Implements permissions getIds for email
+		 *
+		 * See https://developers.google.com/drive/v2/reference/permissions/getIdForEmail for semantics including the params object
+		 *
+		 * @param email
+		 * @returns IDriveResponseObject
+		 */
+		permissionsGetIdForEmail(email:string):IDriveResponseObject<{id?:string},{id?:string}> {
+			// validate there is an id somewhere, either in the passed file, or in params.fileId
+			var id;
+			var configObject:mng.IRequestConfig;
+			configObject = {method: 'GET', url: this.self.permissionIdsUrl.replace(':id', email)};
+
+			var promise = this.self.HttpService.doHttp(configObject);
+			var responseObject:IDriveResponseObject<{id?:string},{id?:string}> = {
+				promise: promise,
+				data: {},
+				headers: undefined
+			};
+			promise.then((resp:mng.IHttpPromiseCallbackArg<{id?:string}|string>)=> {                                // on complete
+				responseObject.headers = resp.headers;                                                                  // transcribe headers
+				this.self.transcribeProperties(resp.data, responseObject);
+				this.self.lastFile = resp.data;
+			});
+			return responseObject;
+		}
 
 
 

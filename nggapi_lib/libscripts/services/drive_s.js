@@ -79,7 +79,8 @@ var NgGapi;
             this.aboutUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'about');
             this.childrenUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/children');
             this.parentsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:cid/parents');
-            this.permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissions');
+            this.permissionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'files/:fid/permissions');
+            this.permissionIdsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'permissionIds');
             this.revisionsUrl = this.urlBase.replace(this.RESOURCE_TOKEN, 'revisions');
             this.urlTrashSuffix = '/trash';
             this.urlUntrashSuffix = '/untrash';
@@ -963,6 +964,269 @@ var NgGapi;
             };
             promise.then(function (resp) {
                 responseObject.headers = resp.headers; // transcribe headers
+            });
+            return responseObject;
+        };
+        /*
+         P E R M I S S I O N S
+         */
+        /**
+         * Implements Get for getting a permissions object
+         * See https://developers.google.com/drive/v2/reference/permissions/get for semantics including the params object
+         *
+         * @param params
+         * @returns {IDriveResponseObject}
+         */
+        DriveService.prototype.permissionsGet = function (params) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D1045] Missing params.fileId";
+                return this.self.reject(s);
+            }
+            if (!params.permissionId) {
+                var s = "[D1049] Missing permissionId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'GET',
+                url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.fileId),
+                params: params
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers function
+                _this.self.transcribeProperties(resp.data, responseObject); // if file, transcribe properties
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements permissions.List
+         * Validates that Dev hasn't inadvertently excluded nextPageToken from response, displaying a warning if missing.
+         * Previously this fired an error, but there is a scenario where this is valid. Specifically, if Dev wants to
+         * just return the first n matches (which are generally the n most recent), he can do this by setting maxResults
+         * and omitting the pageToken.
+         *
+         * responseObject.data contains an array of all results across all pages
+         *
+         * The promise will fire its notify for each page with data containing the raw http response object
+         * with an embedded items array. The final page will fire the resolve.
+         *
+         * @param params see https://developers.google.com/drive/v2/reference/permissions/list
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.permissionsList = function (params) {
+            if (params && params.fields && params.fields.indexOf('nextPageToken') == -1) {
+                this.self.$log.warn('[D1091] You have tried to list permissions with specific fields, but forgotten to include "nextPageToken" which will crop your results to just one page.');
+            }
+            var co = {
+                method: 'GET',
+                url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", ""),
+                params: params
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: [],
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                if (!!resp.data && !!resp.data.items) {
+                    var l = resp.data.items.length;
+                    for (var i = 0; i < l; i++) {
+                        responseObject.data.push(resp.data.items[i]); // push each new file
+                    }
+                }
+            }, undefined, function (resp) {
+                var l = resp.data.items.length;
+                for (var i = 0; i < l; i++) {
+                    responseObject.data.push(resp.data.items[i]); // push each new file
+                }
+            });
+            return responseObject;
+        };
+        /**
+         * Implements Insert for permissions, ie. adding a file to a folder
+         *
+         * See https://developers.google.com/drive/v2/reference/permissions/insert for semantics including the params object
+         *
+         * Optionally (default true) it will store the ID returned in the Drive response in the file object that was passed to it.
+         * This is done since it is almost always what an app needs to do, and by doing it in this method, saves the developer from
+         * writing any promise.then logic
+         *
+         * @param permission  Permission resource with at least an ID
+         * @param params contains fileID
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.permissionsInsert = function (permission, params) {
+            var _this = this;
+            if (!params || !params.fileId) {
+                var s = "[D1141] Missing params.fileId";
+                return this.self.reject(s);
+            }
+            if (!permission || !permission.type || !permission.role) {
+                var s = "[D1145] Missing role or type";
+                return this.self.reject(s);
+            }
+            var configObject = {
+                method: 'POST',
+                url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", ""),
+                data: permission
+            };
+            var promise = this.self.HttpService.doHttp(configObject);
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements permissions.delete
+         *
+         * @param params fileID, permissionId
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.permissionsDelete = function (params) {
+            if (!params || !params.fileId) {
+                var s = "[D1177] Missing fileId";
+                return this.self.reject(s);
+            }
+            if (!params || !params.permissionId) {
+                var s = "[D1181] Missing permissionId";
+                return this.self.reject(s);
+            }
+            var co = {
+                method: 'delete',
+                url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.permissionId)
+            };
+            var promise = this.self.HttpService.doHttp(co); // call HttpService
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+            });
+            return responseObject;
+        };
+        /**
+         * Implements permissions Update
+         *
+         * See https://developers.google.com/drive/v2/reference/permissions/update for semantics including the params object
+         *
+         * @param permission Permission resource
+         * @param params see Google docs
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.permissionsUpdate = function (permission, params) {
+            var _this = this;
+            // validate there is an id somewhere, either in the passed file, or in params.fileId
+            var id;
+            if (params && params.permissionId) {
+                id = params.permissionId;
+            }
+            else {
+                if (permission.id) {
+                    id = permission.id;
+                }
+                else {
+                    var s = "[D1214] Missing permissionId";
+                    return this.self.reject(s);
+                }
+            }
+            var configObject;
+            configObject = { method: 'PUT', url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(':id', id), data: permission };
+            var promise = this.self.HttpService.doHttp(configObject);
+            var responseObject = {
+                promise: promise,
+                data: {},
+                params: params,
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
+        /**
+         * Implements permissions Patch
+         *
+         * See https://developers.google.com/drive/v2/reference/permissions/patch for semantics including the params object
+         *
+         * @param permission Permission resource
+         * @param params see Google docs
+         * @returns IDriveResponseObject
+         */
+        DriveService.prototype.permissionsPatch = function (permission, params) {
+            var _this = this;
+            // validate there is an id somewhere, either in the passed file, or in params.fileId
+            var id;
+            if (params && params.permissionId) {
+                id = params.permissionId;
+            }
+            else {
+                if (permission.id) {
+                    id = permission.id;
+                }
+                else {
+                    var s = "[D1254] Missing permissionId";
+                    return this.self.reject(s);
+                }
+            }
+            var configObject;
+            configObject = { method: 'PATCH', url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(':id', id), data: permission };
+            var promise = this.self.HttpService.doHttp(configObject);
+            var responseObject = {
+                promise: promise,
+                data: {},
+                params: params,
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
+            });
+            return responseObject;
+        };
+        /**
+             * Implements permissions getIds for email
+             *
+             * See https://developers.google.com/drive/v2/reference/permissions/getIdForEmail for semantics including the params object
+             *
+             * @param email
+             * @returns IDriveResponseObject
+             */
+        DriveService.prototype.permissionsGetIdForEmail = function (email) {
+            var _this = this;
+            // validate there is an id somewhere, either in the passed file, or in params.fileId
+            var id;
+            var configObject;
+            configObject = { method: 'GET', url: this.self.permissionIdsUrl.replace(':id', email) };
+            var promise = this.self.HttpService.doHttp(configObject);
+            var responseObject = {
+                promise: promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                responseObject.headers = resp.headers; // transcribe headers
+                _this.self.transcribeProperties(resp.data, responseObject);
+                _this.self.lastFile = resp.data;
             });
             return responseObject;
         };

@@ -7,9 +7,12 @@ class MaximalCtrl {
 	// an array of steps to display
 	steps = [];
 
+	email = "";
+
 	// a current file (the last inserted) that most functions will operate on
 	currentFile:NgGapi.IDriveFile;
 	currentFolder:NgGapi.IDriveFile;
+	currentPermission:NgGapi.IDrivePermission;
 	largestChangeId = 0;
 
 	static $inject = ['$scope', '$log', '$q', 'DriveService'];
@@ -86,6 +89,31 @@ class MaximalCtrl {
 			.then(() => {
 				return this.deleteParent();
 			})
+			.then(() => {
+				return this.insertPermission(this.currentFile.id);
+			})
+			.then(() => {
+				return this.listPermissions();
+			})
+			.then(() => {
+				return this.getPermission();
+			})
+			.then(() => {
+				return this.updatePermission();
+			})
+			.then(() => {
+				return this.getpermissionIdForEmail(this.email)
+			})
+			.then(() => {
+				return this.patchPermission();
+			})
+			.then(() => {
+				return this.deletePermission();
+			})
+
+
+
+			// finally...
 			.then(() => {
 				return this.deleteFile(this.currentFolder.id)
 			})
@@ -502,9 +530,99 @@ class MaximalCtrl {
 	}
 
 
+	/*
+	 PERMISSIONS
+	 */
 
+	insertPermission(fileId):ng.IPromise<NgGapi.IDrivePermission> {
+		var currentStep = {op: 'Making a permission', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.permissions.insert({type:'anyone',role:'writer'}, {fileId: fileId});
 
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDrivePermission>) => {
+				currentStep.status = 'done';
+				this.currentPermission = resp.data;
+			});
+		return ro.promise;
+	}
 
+	getPermission():ng.IPromise<NgGapi.IDrivePermission> {
+		var currentStep = {op: 'Getting a permission', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.permissions.get({fileId: this.currentFile.id, permissionId: this.currentPermission.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+	updatePermission():ng.IPromise<NgGapi.IDrivePermission> {
+		var currentStep = {op: 'Updating a permission', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.permissions.update({type:'domain', role:'reader'}, {fileId: this.currentFile.id, permissionId: this.currentPermission.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+	patchPermission():ng.IPromise<NgGapi.IDrivePermission> {
+		var currentStep = {op: 'Patching a permission', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.permissions.patch({type:'domain', role:'reader'}, {fileId: this.currentFile.id, permissionId: this.currentPermission.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+	listPermissions():ng.IPromise<NgGapi.IDrivePermission> {
+		var currentStep = {op: 'Listing all permissions for a file', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.permissions.list({fileId: this.currentFile.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDrivePermissionList>) => {
+				currentStep.status = ''+resp.data.items.length;
+			});
+		return ro.promise;
+	}
+
+	deletePermission():ng.IPromise<NgGapi.IDrivePermission> {
+		var currentStep = {op: 'Deleting a permission', status: '...', data: undefined};
+		this.steps.push(currentStep);
+		var ro = this.DriveService.permissions.del({fileId: this.currentFile.id, permissionId: this.currentPermission.id});
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
+
+	getpermissionIdForEmail(email:string):ng.IPromise<{id?:string}> {
+		var currentStep = {op: 'getting permission id for '+this.email, status: '...', data: undefined};
+		this.steps.push(currentStep);
+
+		if (!this.email || this.email.length < 4) {
+			currentStep.status = 'skipped because no email address provided';
+			return;
+		}
+		var ro = this.DriveService.permissions.getIdForEmail(email);
+
+		ro.promise.then(
+			(resp:ng.IHttpPromiseCallbackArg<NgGapi.IDriveFile>) => {
+				currentStep.status = 'done';
+			});
+		return ro.promise;
+	}
 
 }
 

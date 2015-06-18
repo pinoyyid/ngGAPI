@@ -9,6 +9,7 @@ var MaximalCtrl = (function () {
         this.sig = 'MaximalCtrl';
         // an array of steps to display
         this.steps = [];
+        this.email = "";
         this.largestChangeId = 0;
         $scope.vm = this;
         this.doEverything();
@@ -58,6 +59,20 @@ var MaximalCtrl = (function () {
             return _this.getParent();
         }).then(function () {
             return _this.deleteParent();
+        }).then(function () {
+            return _this.insertPermission(_this.currentFile.id);
+        }).then(function () {
+            return _this.listPermissions();
+        }).then(function () {
+            return _this.getPermission();
+        }).then(function () {
+            return _this.updatePermission();
+        }).then(function () {
+            return _this.getpermissionIdForEmail(_this.email);
+        }).then(function () {
+            return _this.patchPermission();
+        }).then(function () {
+            return _this.deletePermission();
         }).then(function () {
             return _this.deleteFile(_this.currentFolder.id);
         }).then(function () {
@@ -404,6 +419,78 @@ var MaximalCtrl = (function () {
         var currentStep = { op: 'Deleting a parent', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.parents.del({ fileId: this.currentFile.id, parentId: this.currentFolder.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    /*
+     PERMISSIONS
+     */
+    MaximalCtrl.prototype.insertPermission = function (fileId) {
+        var _this = this;
+        var currentStep = { op: 'Making a permission', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.permissions.insert({ type: 'anyone', role: 'writer' }, { fileId: fileId });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+            _this.currentPermission = resp.data;
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.getPermission = function () {
+        var currentStep = { op: 'Getting a permission', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.permissions.get({ fileId: this.currentFile.id, permissionId: this.currentPermission.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.updatePermission = function () {
+        var currentStep = { op: 'Updating a permission', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.permissions.update({ type: 'domain', role: 'reader' }, { fileId: this.currentFile.id, permissionId: this.currentPermission.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.patchPermission = function () {
+        var currentStep = { op: 'Patching a permission', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.permissions.patch({ type: 'domain', role: 'reader' }, { fileId: this.currentFile.id, permissionId: this.currentPermission.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.listPermissions = function () {
+        var currentStep = { op: 'Listing all permissions for a file', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.permissions.list({ fileId: this.currentFile.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = '' + resp.data.items.length;
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.deletePermission = function () {
+        var currentStep = { op: 'Deleting a permission', status: '...', data: undefined };
+        this.steps.push(currentStep);
+        var ro = this.DriveService.permissions.del({ fileId: this.currentFile.id, permissionId: this.currentPermission.id });
+        ro.promise.then(function (resp) {
+            currentStep.status = 'done';
+        });
+        return ro.promise;
+    };
+    MaximalCtrl.prototype.getpermissionIdForEmail = function (email) {
+        var currentStep = { op: 'getting permission id for ' + this.email, status: '...', data: undefined };
+        this.steps.push(currentStep);
+        if (!this.email || this.email.length < 4) {
+            currentStep.status = 'skipped because no email address provided';
+            return;
+        }
+        var ro = this.DriveService.permissions.getIdForEmail(email);
         ro.promise.then(function (resp) {
             currentStep.status = 'done';
         });

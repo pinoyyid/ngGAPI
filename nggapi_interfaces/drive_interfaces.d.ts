@@ -381,11 +381,11 @@ declare module NgGapi {
 		permissions:{
 			get(params:IDrivePermissionGetParameters):IDriveResponseObject<IDrivePermission,IDrivePermission>;
 			list(params?:IDrivePermissionListParameters, excludeTrashed?):IDriveResponseObject<IDrivePermissionList, IDrivePermission[]>;
-			insert(permission:IDrivePermission, storeId?:boolean):IDriveResponseObject<IDrivePermission,IDrivePermission>;
+			insert(permission:IDrivePermission, params?:{fileId:string}):IDriveResponseObject<IDrivePermission,IDrivePermission>;
 			update(permission:IDrivePermission, params?:IDrivePermissionUpdateParameters):IDriveResponseObject<IDrivePermission,IDrivePermission>;
 			patch(permission:IDrivePermission, params?:IDrivePermissionUpdateParameters):IDriveResponseObject<IDrivePermission,IDrivePermission>;
 			del(params:{fileId:string; permissionId:string}):IDriveResponseObject<any,any>;
-			getIdForEmail(email:string):IDriveResponseObject<{id:string},{id:string}>;
+			getIdForEmail(email:string):IDriveResponseObject<{id?:string},{id?:string}>;
 		}
 
 		revisions:{
@@ -572,6 +572,10 @@ declare module NgGapi {
 
 	export interface IDrivePermissionListParameters {
 		fileId:string;                      // file id
+		maxResults?:number;                 // Maximum number of files to return. Acceptable values are 0 to 1000, inclusive. (Default: 100)
+		pageToken?:string;	                // Page token for files.
+		fields?:string;                     // urlencoded list of fields to include in response
+		q?:string;                          // Query string for searching files. See https://developers.google.com/drive/search-parameters for more information about supported fields and operations.
 	}
 
 	export interface IDrivePermissionList {
@@ -591,7 +595,7 @@ declare module NgGapi {
 
 	export interface IDrivePermissionGetParameters {
 		fileId:string;                      //	The ID for the file in question.
-		permissoinId:string;                //	The ID of the permission
+		permissionId:string;                //	The ID of the permission
 	}
 
 	export interface IDriveRevisionListParameters {
