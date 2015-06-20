@@ -438,6 +438,7 @@ declare module NgGapi {
 		pageToken?:string;	                // Page token for files.
 		q?:string;                          // Query string for searching files. See https://developers.google.com/drive/search-parameters for more information about supported fields and operations.
 		fields?:string;                     // urlencoded list of fields to include in response
+		spaces?:string;                     // A comma-separated list of spaces to query. Supported values are 'drive' and 'appDataFolder'.
 	}
 
 	export interface IDriveFileInsertParameters {
@@ -600,6 +601,7 @@ declare module NgGapi {
 
 	export interface IDriveRevisionListParameters {
 		fileId:string;                      // file id
+		fields:string;                      // fields to project in results
 	}
 
 	export interface IDriveRevisionList {

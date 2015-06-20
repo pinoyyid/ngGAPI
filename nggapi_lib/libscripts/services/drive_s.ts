@@ -1292,7 +1292,6 @@ module NgGapi {
 		}
 
 
-
 		/*
 		 R E V I S I O N S
 		 */
