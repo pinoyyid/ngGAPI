@@ -601,7 +601,7 @@ declare module NgGapi {
 
 	export interface IDriveRevisionListParameters {
 		fileId:string;                      // file id
-		fields:string;                      // fields to project in results
+		fields?:string;                      // fields to project in results
 	}
 
 	export interface IDriveRevisionList {

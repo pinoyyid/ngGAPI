@@ -90,7 +90,7 @@ module NgGapi {
 		 * @return a promise which may be resolved with a token object, or notified with O55 waiting for gapi, or O121 refreshing token
 		 */
 		getAccessToken(def?:mng.IDeferred<any>):mng.IPromise<GoogleApiOAuth2TokenObject> {
-			console.log('o88 gAT');
+			//console.log('o88 gAT');
 			if (!def) {                                                                                                 // if not called from HttpService, make a deferred
 				def = this.$q.defer();
 			}

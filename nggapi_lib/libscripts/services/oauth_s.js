@@ -86,7 +86,7 @@ var NgGapi;
          */
         OauthService.prototype.getAccessToken = function (def) {
             var _this = this;
-            console.log('o88 gAT');
+            //console.log('o88 gAT');
             if (!def) {
                 def = this.$q.defer();
             }

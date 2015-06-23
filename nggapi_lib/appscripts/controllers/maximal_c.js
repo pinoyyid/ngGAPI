@@ -12,6 +12,8 @@ var MaximalCtrl = (function () {
         this.email = "";
         this.largestChangeId = 0;
         $scope.vm = this;
+        window['DS'] = this.DriveService;
+        console.info("A reference to the DriveService has been placed at window.DS\nYou can use this to manually run commands, eg. DS.files.list({maxResults:1, fields:\"items\"})");
         this.doEverything();
     }
     /**
