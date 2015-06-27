@@ -78,7 +78,7 @@ var NgGapi;
         }
         /**
          * return an access token. Normally simply calls gapi.auth.getToken(). If that returns undefined, then
-         * return undefined, and starts a background refresh. The idea is that retries of the REST call witll repeatedly fail 401 until
+         * return undefined, and starts a background refresh. The idea is that retries of the REST call will repeatedly fail 401 until
          * such time that the refresh completes and gapi.auth.getToken returns a valid access token.
          * @param optional deferred used when recursing
          *

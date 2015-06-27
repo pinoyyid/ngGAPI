@@ -157,7 +157,7 @@ angular.module('ngm.NgGapi')
 			// Default is false
         OauthServiceProvider.setImmediateMode(false)
             		
-			// provide your own function to return an access token. myFunction should return a string which will be set into the Authorization Bearer header 
+			// provide your own function to return an access token. myFunction should return a promise which resolves with a GoogleApiOAuth2TokenObject (see drive_interfaces.d.ts, but most importantly contains {access_token:string}). The access token will be set into the Authorization Bearer header 
 		OauthServiceProvider.setGetAccessTokenFunction: function (myFunction) {
 	});
 ```
