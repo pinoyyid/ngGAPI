@@ -80,30 +80,48 @@ describe('Service: DriveService', function () {
 
 		it('should return a file object', function () {
 			var id = 'foo2';
-			var filesUrl = 'https://www.googleapis.com/drive/v2/files/'+id;
-			$httpBackend .whenGET("") .respond({id: id} );
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files/' + id;
+			$httpBackend.whenGET("").respond({id: id});
 
 			var ro = DriveService.files.get({fileId: id});
 
 			$httpBackend.flush();
 
-			expect('a'+DriveService.lastFile.id).toBe('a'+id);
-			expect('b'+ro.data.id).toBe('b'+id);
+			expect('a' + DriveService.lastFile.id).toBe('a' + id);
+			expect('b' + ro.data.id).toBe('b' + id);
 		});
 
 		it('should return some media when alt="media"', function () {
 			var id = 'foom';
 			var media = 'some media'
-			var filesUrl = 'https://www.googleapis.com/drive/v2/files/'+id;
-			$httpBackend .whenGET("") .respond(media);
+			var filesUrl = 'https://www.googleapis.com/drive/v2/files/' + id;
+			$httpBackend.whenGET("").respond(media);
 
-			var ro = DriveService.files.get({fileId: id, alt:'media'});
+			var ro = DriveService.files.get({fileId: id, alt: 'media'});
 
 			$httpBackend.flush();
 
 			expect(ro.data.media).toBe(media);
 		});
 
+	});
+
+
+	describe('.buildUploadConfigObject() method', function () {
+		var cte = 'Content-Transfer-Encoding';
+		var file = {title: 'footitle', mimeType: 'any/mime'};
+		var params = {uploadType: 'multipart'};
+		var b64 = 'base64';
+
+		it('should deal with a string content-transfer-encoding', function () {
+			var conf = DriveService.buildUploadConfigObject(file, params, 'content', b64, true);
+			expect(conf.data.indexOf(cte+": "+b64)).toBeGreaterThan(0);
+		});
+
+		it('should deal with a map contentHeaders', function () {
+			var conf = DriveService.buildUploadConfigObject(file, params, 'content', {foo122: 'bar122'}, true);
+			expect(conf.data.indexOf("foo122: bar122")).toBeGreaterThan(0);
+		});
 	});
 
 	// it('insert should return a file object', function () {
@@ -131,13 +149,13 @@ describe('Service: DriveService', function () {
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function () {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(DriveService.lastFile.id).toBe(id);
-					expect(ro.data.id).toBe(id);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(DriveService.lastFile.id).toBe(id);
+						expect(ro.data.id).toBe(id);
+					});
 		});
 
 		it('should inject an id in file object when storeId=true', function () {
@@ -146,14 +164,14 @@ describe('Service: DriveService', function () {
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function () {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(DriveService.lastFile.id).toBe(id);
-					expect(ro.data.id).toBe(id);
-					expect(file.id).toBe(id);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(DriveService.lastFile.id).toBe(id);
+						expect(ro.data.id).toBe(id);
+						expect(file.id).toBe(id);
+					});
 		});
 
 		it('should not inject an id in file object when storeId=false', function () {
@@ -162,14 +180,14 @@ describe('Service: DriveService', function () {
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function () {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(DriveService.lastFile.id).toBe(id);
-					expect(ro.data.id).toBe(id);
-					expect(file.id).toBe('xxx');
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(DriveService.lastFile.id).toBe(id);
+						expect(ro.data.id).toBe(id);
+						expect(file.id).toBe('xxx');
+					});
 		});
 
 		it('should inject an id in file object when storeId is defaulted', function () {
@@ -178,14 +196,14 @@ describe('Service: DriveService', function () {
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function () {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(DriveService.lastFile.id).toBe(id);
-					expect(ro.data.id).toBe(id);
-					expect(file.id).toBe(id);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(DriveService.lastFile.id).toBe(id);
+						expect(ro.data.id).toBe(id);
+						expect(file.id).toBe(id);
+					});
 		});
 	});
 
@@ -198,63 +216,63 @@ describe('Service: DriveService', function () {
 		});
 
 		it('should fail when no params)', function () {
-			var ro = DriveService.files.insertWithContent({title: 'title-'+id});
+			var ro = DriveService.files.insertWithContent({title: 'title-' + id});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D314/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D314/);
+					});
 		});
 
 		it('should fail when params is missing uploadType)', function () {
-			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {});
+			var ro = DriveService.files.insertWithContent({title: 'title-' + id}, {});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D314/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D314/);
+					});
 		});
 
 		it('should fail when no content)', function () {
-			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {uploadType: 'multipart'});
+			var ro = DriveService.files.insertWithContent({title: 'title-' + id}, {uploadType: 'multipart'});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D318/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D318/);
+					});
 		});
 
 		it('should fail when uploadType="resumable" with D136 (no resumable yet)', function () {
-			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {uploadType:'resumable'}, 'notb64');
+			var ro = DriveService.files.insertWithContent({title: 'title-' + id}, {uploadType: 'resumable'}, 'notb64');
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D136/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D136/);
+					});
 		});
 
 		it('should fail when uploadType="multipart" with D148 (no mime type)', function () {
-			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {uploadType:'multipart'}, 'Zm9v');
+			var ro = DriveService.files.insertWithContent({title: 'title-' + id}, {uploadType: 'multipart'}, 'Zm9v');
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D148/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D148/);
+					});
 		});
 
 		it('should fail when uploadType="media" with D148 (no mime type)', function () {
-			var ro = DriveService.files.insertWithContent({title: 'title-'+id}, {uploadType:'media'}, 'Zm9v');
+			var ro = DriveService.files.insertWithContent({title: 'title-' + id}, {uploadType: 'media'}, 'Zm9v');
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D148/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D148/);
+					});
 		});
 
 	});
@@ -264,18 +282,18 @@ describe('Service: DriveService', function () {
 		it('should return a file array', function () {
 			var id = 'fooi';
 			var filesUrl = 'https://www.googleapis.com/drive/v2/files';
-			$httpBackend .whenGET("") .respond({items:[{id:'one'},{id:'two'}]} );
+			$httpBackend.whenGET("").respond({items: [{id: 'one'}, {id: 'two'}]});
 
 			var ro = DriveService.files.list();
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(ro.data.length).toBe(2);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(ro.data.length).toBe(2);
+					});
 		});
 
 	});
@@ -285,29 +303,29 @@ describe('Service: DriveService', function () {
 		it('should return a file object ', function () {
 			var id = 'foot';
 			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
-			$httpBackend .whenPUT("") .respond({id: id } );
+			$httpBackend.whenPUT("").respond({id: id});
 
-			var ro = DriveService.files.update({title:'foo'}, {fileId: id});
+			var ro = DriveService.files.update({title: 'foo'}, {fileId: id});
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(DriveService.lastFile.id).toBe(id);
-					expect(ro.data.id).toBe(id);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(DriveService.lastFile.id).toBe(id);
+						expect(ro.data.id).toBe(id);
+					});
 		});
 
 		it('should fail when missing fileId', function () {
 			var ro = DriveService.files.update({title: 'title-'});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D193/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D193/);
+					});
 		});
 
 	});
@@ -317,29 +335,29 @@ describe('Service: DriveService', function () {
 		it('should return a file object ', function () {
 			var id = 'foot';
 			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id';
-			$httpBackend .whenPATCH("") .respond({id: id } );
+			$httpBackend.whenPATCH("").respond({id: id});
 
 			var ro = DriveService.files.patch({fileId: id});
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(DriveService.lastFile.id).toBe(id);
-					expect(ro.data.id).toBe(id);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(DriveService.lastFile.id).toBe(id);
+						expect(ro.data.id).toBe(id);
+					});
 		});
 
 		it('should fail when missing fileId', function () {
 			var ro = DriveService.files.patch({title: 'title-'});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D230/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D230/);
+					});
 		});
 
 	});
@@ -349,30 +367,30 @@ describe('Service: DriveService', function () {
 		it('should return a file object with labels.trashed=true', function () {
 			var id = 'foot';
 			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/trash';
-			$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
+			$httpBackend.whenPOST("").respond({id: id, labels: {trashed: true}});
 
 			var ro = DriveService.files.trash({fileId: id});
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(DriveService.lastFile.id).toBe(id);
-					expect(ro.data.id).toBe(id);
-					expect(ro.data.labels.trashed).toBeTruthy();
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(DriveService.lastFile.id).toBe(id);
+						expect(ro.data.id).toBe(id);
+						expect(ro.data.labels.trashed).toBeTruthy();
+					});
 		});
 
 		it('should fail when missing fileId', function () {
 			var ro = DriveService.files.trash({title: 'title-'});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D225/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D225/);
+					});
 		});
 
 	});
@@ -382,30 +400,30 @@ describe('Service: DriveService', function () {
 		it('should return a file object with labels.trashed=false', function () {
 			var id = 'foot';
 			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/trash';
-			$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: false}} );
+			$httpBackend.whenPOST("").respond({id: id, labels: {trashed: false}});
 
 			var ro = DriveService.files.untrash({fileId: id});
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(DriveService.lastFile.id).toBe(id);
-					expect(ro.data.id).toBe(id);
-					expect(ro.data.labels.trashed).toBeFalsy();
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(DriveService.lastFile.id).toBe(id);
+						expect(ro.data.id).toBe(id);
+						expect(ro.data.labels.trashed).toBeFalsy();
+					});
 		});
 
 		it('should fail when missing fileId', function () {
 			var ro = DriveService.files.untrash({title: 'title-'});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D251/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D251/);
+					});
 		});
 
 	});
@@ -415,11 +433,11 @@ describe('Service: DriveService', function () {
 		it('should fail when missing fileId', function () {
 			var ro = DriveService.files.del({title: 'title-'});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D222/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D222/);
+					});
 		});
 
 	});
@@ -429,29 +447,29 @@ describe('Service: DriveService', function () {
 		it('should return a file object', function () {
 			var id = 'foot';
 			var filesUrl = 'https://www.googleapis.com/drive/v2/files/:id/touch';
-			$httpBackend .whenPOST("") .respond({id: id, labels:{trashed: true}} );
+			$httpBackend.whenPOST("").respond({id: id, labels: {trashed: true}});
 
 			var ro = DriveService.files.touch({fileId: id});
 			$httpBackend.flush();
 
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).toHaveBeenCalled();
-					expect(failure).not.toHaveBeenCalled();
-					expect(DriveService.lastFile.id).toBe(id);
-					expect(ro.data.id).toBe(id);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).toHaveBeenCalled();
+						expect(failure).not.toHaveBeenCalled();
+						expect(DriveService.lastFile.id).toBe(id);
+						expect(ro.data.id).toBe(id);
+					});
 		});
 
 		it('should fail when missing fileId', function () {
 			var ro = DriveService.files.touch({title: 'title-'});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D329/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D329/);
+					});
 		});
 
 	});
@@ -461,11 +479,11 @@ describe('Service: DriveService', function () {
 		it('should fail when missing fileId', function () {
 			var ro = DriveService.files.watch({title: 'title-'});
 			ro.promise
-				.then(success, failure)
-				.finally(function() {
-					expect(success).not.toHaveBeenCalled();
-					expect(failure).toHaveBeenCalledWithMatch(/D302/);
-				});
+					.then(success, failure)
+					.finally(function () {
+						expect(success).not.toHaveBeenCalled();
+						expect(failure).toHaveBeenCalledWithMatch(/D302/);
+					});
 		});
 
 	});

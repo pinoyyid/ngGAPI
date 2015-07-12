@@ -338,10 +338,17 @@ module NgGapi {
 		 * @param file  Files resource with at least a mime type
 		 * @param params see Google docs, must contain at least uploadType
 		 * @param content
+		 * @param contentHeaders sets the content headers for the content part of the multipart body. A typical use would be
+		 * to set the Content-Transfer-Encoding to base64 thus {'Content-Transfer-Encoding ', 'base64'}. Because content-transfer-encoding
+		 * is the most common case, a simple string value will be interpreted as content-transfer-encoding, thus either 'base64' or {'Content-Transfer-Encoding ', 'base64'}
+		 * have the same effect.
 		 * @param storeId stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
 		 * @returns IDriveResponseObject
 		 */
-		filesInsertWithContent(file:IDriveFile, params:IDriveFileInsertParameters, content:string, storeId?:boolean):IDriveResponseObject<IDriveFile,IDriveFile> {
+		filesInsertWithContent(file:IDriveFile, params:IDriveFileInsertParameters,
+		                       content:string,
+		                       contentHeaders:string|{},
+		                       storeId?:boolean):IDriveResponseObject<IDriveFile,IDriveFile> {
 			var configObject:mng.IRequestConfig;
 			if (!params || !params.uploadType) {
 				var s = "[D314] Missing params (which must contain uploadType)";
@@ -352,10 +359,10 @@ module NgGapi {
 				return this.self.reject(s);
 			}
 			try {
-				configObject = this.self.buildUploadConfigObject(file, params, content, true);                          // build a config object from params
+				configObject = this.self.buildUploadConfigObject(file, params, content, contentHeaders, true);                  // build a config object from params
 				configObject.method = 'POST';
-				configObject.url = this.self.filesUploadUrl;                                                            // nb non-standard URL
-			} catch (ex) {                                                                                              // any validation errors throw an exception
+				configObject.url = this.self.filesUploadUrl;                                                                    // nb non-standard URL
+			} catch (ex) {                                                                                                    // any validation errors throw an exception
 				return this.self.reject(ex);
 			}
 
@@ -423,30 +430,31 @@ module NgGapi {
 		 * @param file  Files resource
 		 * @param params see Google docs
 		 * @param content
+		 * @param contentHeaders see insertWithContent for a decription
 		 * @returns IDriveResponseObject
 		 */
-		filesUpdate(file:IDriveFile, params?:IDriveFileUpdateParameters, content?:string):IDriveResponseObject<IDriveFile,IDriveFile> {
+		filesUpdate(file:IDriveFile, params?:IDriveFileUpdateParameters, content?:string, contentHeaders?:string|{}):IDriveResponseObject<IDriveFile,IDriveFile> {
 			// validate there is an id somewhere, either in the passed file, or in params.fileId
 			var id;
-			if (params && params.fileId) {                                                                              // if in params.fileID
+			if (params && params.fileId) {                                                                                    // if in params.fileID
 				id = params.fileId;
-			} else {                                                                                                    // else
-				if (file.id) {                                                                                          // if in file object
+			} else {                                                                                                          // else
+				if (file.id) {                                                                                                  // if in file object
 					id = file.id;
-				} else {                                                                                                // if no ID
+				} else {                                                                                                        // if no ID
 					var s = "[D193] Missing fileId";
 					return this.self.reject(s);
 				}
 			}
 			var configObject:mng.IRequestConfig;
 			if (!params || !params.uploadType) {
-				configObject = {method: 'PUT', url: this.self.filesUrl.replace(':id', id), data: file};      // no params is a simple metadata insert
+				configObject = {method: 'PUT', url: this.self.filesUrl.replace(':id', id), data: file};                         // no params is a simple metadata insert
 			} else {
 				try {
-					configObject = this.self.buildUploadConfigObject(file, params, content, false);                     // build a config object from params
+					configObject = this.self.buildUploadConfigObject(file, params, content, contentHeaders, false);               // build a config object from params
 					configObject.method = 'PUT';
-					configObject.url = this.self.filesUploadUrl + '/' + params.fileId;                                      // nb non-standard URL
-				} catch (ex) {                                                                                          // any validation errors throw an exception
+					configObject.url = this.self.filesUploadUrl + '/' + params.fileId;                                            // nb non-standard URL
+				} catch (ex) {                                                                                                  // any validation errors throw an exception
 					return this.self.reject(ex);
 				}
 			}
@@ -457,8 +465,8 @@ module NgGapi {
 				data: {},
 				headers: undefined
 			};
-			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveFile|string>)=> {                               // on complete
-				responseObject.headers = resp.headers;                                                                  // transcribe headers
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveFile|string>)=> {                                            // on complete
+				responseObject.headers = resp.headers;                                                                          // transcribe headers
 				this.self.transcribeProperties(resp.data, responseObject);
 				this.self.lastFile = resp.data;
 			});
@@ -477,20 +485,20 @@ module NgGapi {
 				return this.self.reject(s);
 			}
 
-			var co:mng.IRequestConfig = {                                                                               // build request config
+			var co:mng.IRequestConfig = {                                                                                     // build request config
 				method: 'PATCH',
 				url: this.self.filesUrl.replace(':id', params.fileId),
 				data: params.resource
 			};
-			var promise = this.self.HttpService.doHttp(co);                                                             // call HttpService
+			var promise = this.self.HttpService.doHttp(co);                                                                   // call HttpService
 			var responseObject:IDriveResponseObject<IDriveFile,IDriveFile> = {
 				promise: promise,
 				data: {},
 				headers: undefined
 			};
-			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveFile|string>)=> {                               // on complete
-				responseObject.headers = resp.headers;                                                                  // transcribe headers function
-				this.self.transcribeProperties(resp.data, responseObject);                                                   // if file, transcribe properties
+			promise.then((resp:mng.IHttpPromiseCallbackArg<IDriveFile|string>)=> {                                            // on complete
+				responseObject.headers = resp.headers;                                                                          // transcribe headers function
+				this.self.transcribeProperties(resp.data, responseObject);                                                      // if file, transcribe properties
 				this.self.lastFile = resp.data;
 			});
 			return responseObject;
@@ -1525,13 +1533,18 @@ module NgGapi {
 		 * @param file
 		 * @param params
 		 * @param content
+		 * @param contentHeaders see insertWithContent for a description
 		 * @param isInsert true for insert, false/undefined for Update
 		 * @returns a $http config object
 		 *
 		 * @throws D115 resumables not supported
 		 * @throws D125 safety check there is a mime type
 		 */
-		buildUploadConfigObject(file:IDriveFile, params:IDriveFileInsertParameters|IDriveFileUpdateParameters, content:string, isInsert:boolean):mng.IRequestConfig {
+		buildUploadConfigObject(file:IDriveFile,
+		                        params:IDriveFileInsertParameters|IDriveFileUpdateParameters,
+		                        content:string,
+		                        contentHeaders:string|{},
+		                        isInsert:boolean):mng.IRequestConfig {
 			// check for a resumable upload and reject coz we don't support them yet
 			if (params.uploadType == 'resumable') {
 				throw "[D136] resumable uploads are not currently supported";
@@ -1547,6 +1560,20 @@ module NgGapi {
 				&& (isInsert && (!file || !file.mimeType))) {
 				throw ("[D148] file metadata is missing mandatory mime type");
 			}
+
+			// deal with optional content headers
+			var otherHeaders = "";
+			//console.warn(contentHeaders);
+			if (contentHeaders) {                                                                                           // if there are content headers specified
+				if (typeof contentHeaders === 'string') {                                                                     // if a simple string, interpret it as Content-Transfer-Encoding
+					otherHeaders += 'Content-Transfer-Encoding: ' + contentHeaders+ '\r\n';
+				} else {
+					for (var key in contentHeaders) {                                                                           // if an object
+						otherHeaders += key + ': ' + contentHeaders[key]+ '\r\n';                                                    // set each header
+					}
+				}
+			}
+			//console.warn(otherHeaders);
 
 
 			//			var base64Data = window['tools'].base64Encode(fileContent);
@@ -1564,8 +1591,8 @@ module NgGapi {
 					'Content-Type: application/json\r\n\r\n' +
 					JSON.stringify(file) +
 					delimiter +
-					mimeHeader +
-					'\r\n' +
+					otherHeaders +
+					mimeHeader + '\r\n' +
 					content +
 					close_delim;
 				//params['alt'] = 'json';

@@ -323,10 +323,14 @@ var NgGapi;
          * @param file  Files resource with at least a mime type
          * @param params see Google docs, must contain at least uploadType
          * @param content
+         * @param contentHeaders sets the content headers for the content part of the multipart body. A typical use would be
+         * to set the Content-Transfer-Encoding to base64 thus {'Content-Transfer-Encoding ', 'base64'}. Because content-transfer-encoding
+         * is the most common case, a simple string value will be interpreted as content-transfer-encoding, thus either 'base64' or {'Content-Transfer-Encoding ', 'base64'}
+         * have the same effect.
          * @param storeId stores the ID from the Google Drive response in the original file object. NB DEFAULTS TO TRUE
          * @returns IDriveResponseObject
          */
-        DriveService.prototype.filesInsertWithContent = function (file, params, content, storeId) {
+        DriveService.prototype.filesInsertWithContent = function (file, params, content, contentHeaders, storeId) {
             var _this = this;
             var configObject;
             if (!params || !params.uploadType) {
@@ -338,7 +342,7 @@ var NgGapi;
                 return this.self.reject(s);
             }
             try {
-                configObject = this.self.buildUploadConfigObject(file, params, content, true); // build a config object from params
+                configObject = this.self.buildUploadConfigObject(file, params, content, contentHeaders, true); // build a config object from params
                 configObject.method = 'POST';
                 configObject.url = this.self.filesUploadUrl; // nb non-standard URL
             }
@@ -406,9 +410,10 @@ var NgGapi;
          * @param file  Files resource
          * @param params see Google docs
          * @param content
+         * @param contentHeaders see insertWithContent for a decription
          * @returns IDriveResponseObject
          */
-        DriveService.prototype.filesUpdate = function (file, params, content) {
+        DriveService.prototype.filesUpdate = function (file, params, content, contentHeaders) {
             var _this = this;
             // validate there is an id somewhere, either in the passed file, or in params.fileId
             var id;
@@ -430,7 +435,7 @@ var NgGapi;
             }
             else {
                 try {
-                    configObject = this.self.buildUploadConfigObject(file, params, content, false); // build a config object from params
+                    configObject = this.self.buildUploadConfigObject(file, params, content, contentHeaders, false); // build a config object from params
                     configObject.method = 'PUT';
                     configObject.url = this.self.filesUploadUrl + '/' + params.fileId; // nb non-standard URL
                 }
@@ -1449,13 +1454,14 @@ var NgGapi;
          * @param file
          * @param params
          * @param content
+         * @param contentHeaders see insertWithContent for a description
          * @param isInsert true for insert, false/undefined for Update
          * @returns a $http config object
          *
          * @throws D115 resumables not supported
          * @throws D125 safety check there is a mime type
          */
-        DriveService.prototype.buildUploadConfigObject = function (file, params, content, isInsert) {
+        DriveService.prototype.buildUploadConfigObject = function (file, params, content, contentHeaders, isInsert) {
             // check for a resumable upload and reject coz we don't support them yet
             if (params.uploadType == 'resumable') {
                 throw "[D136] resumable uploads are not currently supported";
@@ -1468,6 +1474,20 @@ var NgGapi;
             if ((params.uploadType == 'multipart' || params.uploadType == 'media') && (isInsert && (!file || !file.mimeType))) {
                 throw ("[D148] file metadata is missing mandatory mime type");
             }
+            // deal with optional content headers
+            var otherHeaders = "";
+            //console.warn(contentHeaders);
+            if (contentHeaders) {
+                if (typeof contentHeaders === 'string') {
+                    otherHeaders += 'Content-Transfer-Encoding: ' + contentHeaders + '\r\n';
+                }
+                else {
+                    for (var key in contentHeaders) {
+                        otherHeaders += key + ': ' + contentHeaders[key] + '\r\n'; // set each header
+                    }
+                }
+            }
+            //console.warn(otherHeaders);
             //			var base64Data = window['tools'].base64Encode(fileContent);
             var body;
             if (params.uploadType == 'multipart') {
@@ -1478,7 +1498,7 @@ var NgGapi;
                     mimeHeader = 'Content-Type: ' + file.mimeType + '\r\n'; // updates uses existing file
                 }
                 var close_delim = "\r\n--" + boundary + "--";
-                body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(file) + delimiter + mimeHeader + '\r\n' + content + close_delim;
+                body = delimiter + 'Content-Type: application/json\r\n\r\n' + JSON.stringify(file) + delimiter + otherHeaders + mimeHeader + '\r\n' + content + close_delim;
                 //params['alt'] = 'json';
                 var headers = {};
                 headers['Content-Type'] = 'multipart/mixed; boundary="-------3141592ff65358979323846"';
