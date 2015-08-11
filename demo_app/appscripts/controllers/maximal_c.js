@@ -1,5 +1,5 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-/// <reference path="../../../nggapi_ts_declaration_files/drive_interfaces.d.ts"/>
+/// <reference path="../../../src/nggapi_ts_declaration_files/drive_interfaces.d.ts"/>
 var MaximalCtrl = (function () {
     function MaximalCtrl($scope, $log, $q, DriveService) {
         this.$scope = $scope;
@@ -238,14 +238,14 @@ var MaximalCtrl = (function () {
         var _this = this;
         var contentBase = 'content for ';
         var doneCount = 0;
-        var currentStep = { op: 'Inserting files', status: '' + doneCount, data: undefined };
+        var currentStep = { op: 'Inserting ' + count + ' files', status: '' + doneCount, data: undefined };
         this.steps.push(currentStep);
         var def = this.$q.defer();
         for (var i = 0; i < count; i++) {
             this.DriveService.files.insertWithContent({
                 title: title + '-' + i,
                 mimeType: 'text/plain'
-            }, { uploadType: 'multipart' }, contentBase + title + '-' + i).promise.then(function (resp) {
+            }, { uploadType: 'multipart' }, btoa(contentBase + title + '-' + i), 'base64').promise.then(function (resp) {
                 currentStep.status = '' + ++doneCount;
                 currentStep.data = resp.data.id + ' , content length = ' + resp.data.fileSize;
                 _this.currentFile = resp.data;

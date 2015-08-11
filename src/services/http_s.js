@@ -245,7 +245,9 @@ var NgGapi;
             // retry after 0.5s
             if (status == 401) {
                 this.$log.warn("[H116] Need to acquire a new Access Token and resubmit");
+                debugger;
                 this.OauthService.refreshAccessToken().then(function () {
+                    debugger;
                     _this._doHttp(configObject, def, retryCounter);
                 }, function (err) {
                     def.reject(err);
