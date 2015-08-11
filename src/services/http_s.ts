@@ -16,7 +16,6 @@ module NgGapi {
 		INTERVAL_THROTTLE = 500;
 		INTERVAL_MAX = 1500;
 
-
 		//throttleInterval;                                                                                               // the variable delay
 		isQueueMode = true;                                                                                             // use queue, set to false for unit testing
 		queue:Array<any> = [];                                                                                          // q of requests
