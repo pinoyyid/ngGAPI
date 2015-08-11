@@ -41,9 +41,9 @@
 <!-- Load the Google auth-only JS library which we use for OAuth as it deals with browsers, popups and iframes -->
 <script src="https://apis.google.com/js/auth.js" type="text/javascript"></script>
 <!-- Load angular -->
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0-beta.6/angular.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
 <!-- Load the OauthService. Must be done before app-->
-<script src="dist_lib/nggapi_base.min.js"></script>
+<script src="../dist/nggapi_base.min.js"></script>
 <!-- The app in its entirety -->
 <!-- Load a file that sets credentials, thus
 var refreshToken = '1/3g-7712FfVkKQWhVrK5jSpoR30zcRFq6';
@@ -65,7 +65,7 @@ var clientSecret = 'Y_vhMLVU6rhq';
             });
 </script>
 <!-- Load the other two js files. These will all be bundled and minified in the distro -->
-<script src="dist_lib/nggapi_drive.min.js"></script>
+<script src="../dist/nggapi_drive.min.js"></script>
 <script src="appscripts/controllers/maximal_c.js"></script>
 </body>
 </html>
