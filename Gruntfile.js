@@ -30,10 +30,10 @@ module.exports = function (grunt) {
     compress: {
       dist: {
         options: {
-          archive: 'nggapi_lib/nggapi_dist.zip'
+          archive: 'dist/nggapi_dist.zip'
         },
         files: [
-          {src: ['nggapi_lib/dist_lib/*', 'nggapi_interfaces/*_interfaces*' ], dest: '', filter: 'isFile'}, // includes files in path
+          {src: ['src/services/*.js', 'src/nggapi_ts_declaration_files/*.d.ts' ], dest: '', filter: 'isFile'}, // includes files in path
           //{src: ['path/**'], dest: 'internal_folder2/'}, // includes files in path and its subdirs
           //{expand: true, cwd: 'path/', src: ['**'], dest: 'internal_folder3/'}, // makes all src relative to cwd
           //{flatten: true, src: ['path/**'], dest: 'internal_folder4/', filter: 'isFile'} // flattens results to a single level
@@ -377,11 +377,6 @@ module.exports = function (grunt) {
       unit: {
         configFile: 'test/karma.conf.js',
         singleRun: true
-      },
-      // test the ngGAPI library
-      unitlib: {
-        configFile: 'test/karma_lib.conf.js',
-        singleRun: true
       }
     }
 
@@ -421,13 +416,6 @@ module.exports = function (grunt) {
   ]);
   grunt.registerTask('ikarmalib', [
     ]);
-
-  grunt.registerTask('testlib', [
-    'clean:server',
-    'concurrent:test',
-    'connect:test',
-    'karma:unitlib'
-  ]);
 
   grunt.registerTask('build', [
     'clean:dist',

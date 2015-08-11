@@ -7,5 +7,5 @@ dist
 nm
 nm22
 bower_components
-nggapi_lib/appscripts/credentials.js
+demo_app/appscripts/credentials.js
 .c9/state.settings

@@ -5,7 +5,10 @@
 
 
 
-// THIS IS THE KARMA.CONF FOR THE DEMO APP
+
+
+
+/// THIS IS THE KARMA.CONF FOR THE LIBRARY PROPER
 
 module.exports = function(config) {
   'use strict';
@@ -24,10 +27,11 @@ module.exports = function(config) {
     files: [
       'bower_components/angular/angular.js',
       'bower_components/angular-mocks/angular-mocks.js',
-      'bower_components/angular-route/angular-route.js',
-      'bower_components/angular-sanitize/angular-sanitize.js',
-      'demo-app/scripts/**/*.js',
-      'test/spec/**/*.js'
+      'bower_components/sinonjs/sinon.js',
+      'bower_components/jasmine-sinon/lib/jasmine-sinon.js',
+      'src/**/*.js',
+      'test/spec/**/*.js',
+      //'test/spec_lib/services/drive_files.js'
     ],
 
     // list of files / patterns to exclude
