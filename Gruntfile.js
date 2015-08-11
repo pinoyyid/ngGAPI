@@ -33,7 +33,7 @@ module.exports = function (grunt) {
           archive: 'dist/nggapi_dist.zip'
         },
         files: [
-          {src: ['src/services/*.js', 'src/nggapi_ts_declaration_files/*.d.ts' ], dest: '', filter: 'isFile'}, // includes files in path
+          {src: ['dist/*.js', 'src/services/*.js', 'src/nggapi_ts_declaration_files/*.d.ts' ], dest: '', filter: 'isFile'}, // includes files in path
           //{src: ['path/**'], dest: 'internal_folder2/'}, // includes files in path and its subdirs
           //{expand: true, cwd: 'path/', src: ['**'], dest: 'internal_folder3/'}, // makes all src relative to cwd
           //{flatten: true, src: ['path/**'], dest: 'internal_folder4/', filter: 'isFile'} // flattens results to a single level
@@ -55,12 +55,12 @@ module.exports = function (grunt) {
     uglify: {
       base: {
         files: {
-          'nggapi_lib/dist_lib/nggapi_base.min.js': ['nggapi_lib/libscripts/services/oauth_s.js', 'nggapi_lib/libscripts/services/http_s.js']
+          'dist/nggapi_base.min.js': ['src/services/oauth_s.js', 'src/services/http_s.js']
         }
       },
       drive: {
         files: {
-          'nggapi_lib/dist_lib/nggapi_drive.min.js': ['nggapi_lib/libscripts/services/drive_s.js']
+          'dist/nggapi_drive.min.js': ['src/services/drive_s.js']
         }
       }
     },
@@ -143,12 +143,6 @@ module.exports = function (grunt) {
           }
         }
       },
-      dist: {
-        options: {
-          open: true,
-          base: '<%= yeoman.dist %>'
-        }
-      }
     },
 
     // Make sure code styles are up to par and there are no obvious mistakes
@@ -418,9 +412,9 @@ module.exports = function (grunt) {
     grunt.task.run(['serve:' + target]);
   });
 
-  grunt.registerTask('distlib', [
+  grunt.registerTask('dist', [
       'uglify',
-      'compress:dist'
+      'compress'
   ]);
   grunt.registerTask('test', [
     'clean:server',
