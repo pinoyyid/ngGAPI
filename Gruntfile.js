@@ -41,6 +41,17 @@ module.exports = function (grunt) {
       }
     },
 
+    ts: {
+      srcts: {  // <--- compile all the files in . to example.js
+        src: ['src/**/*.ts'],
+        options: {
+          target: 'es5',
+          sourceMaps: true,
+          declaration: false,
+          removeComments: false
+        }
+      }
+    },
     uglify: {
       base: {
         files: {
@@ -58,6 +69,10 @@ module.exports = function (grunt) {
       bower: {
         files: ['bower.json'],
         tasks: ['wiredep']
+      },
+      ts: {
+        files: ['src/{,*/}*.ts'],
+        tasks: ['ts:srcts'],
       },
       js: {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],

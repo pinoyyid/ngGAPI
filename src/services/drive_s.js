@@ -800,7 +800,7 @@ var NgGapi;
             }
             var co = {
                 method: 'delete',
-                url: this.self.childrenUrl.replace(':fid', params.folderId).replace(":id", params.childId)
+                url: this.self.childrenUrl.replace(':fid', params.folderId).replace(":id", params.childId),
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = {
@@ -959,7 +959,7 @@ var NgGapi;
             }
             var co = {
                 method: 'delete',
-                url: this.self.parentsUrl.replace(':cid', params.fileId).replace(":id", params.parentId)
+                url: this.self.parentsUrl.replace(':cid', params.fileId).replace(":id", params.parentId),
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = {
@@ -1113,7 +1113,7 @@ var NgGapi;
             }
             var co = {
                 method: 'delete',
-                url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.permissionId)
+                url: this.self.permissionsUrl.replace(':fid', params.fileId).replace(":id", params.permissionId),
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = {
@@ -1335,7 +1335,7 @@ var NgGapi;
             }
             var co = {
                 method: 'delete',
-                url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(":id", params.revisionId)
+                url: this.self.revisionsUrl.replace(':fid', params.fileId).replace(":id", params.revisionId),
             };
             var promise = this.self.HttpService.doHttp(co); // call HttpService
             var responseObject = {

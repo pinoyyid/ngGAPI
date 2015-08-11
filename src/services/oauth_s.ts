@@ -376,4 +376,3 @@ NgGapi['Config'] = function () {
 declare
 var angular:mng.IAngularStatic;
 angular.module('ngm.NgGapi', []);
-
