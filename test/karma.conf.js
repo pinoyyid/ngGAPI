@@ -32,9 +32,17 @@ module.exports = function(config) {
         //'demo_app/appscripts/app.js',
       //'src/**/*.js',
         'src/services/oauth_s.js',
+        'src/services/http_s.js',
+        'src/services/drive_s.js',
       //'test/spec_lib/services/drive_files.js'
       //  'test/spec/**/*.js',
-        'test/spec/services/oauth.js'
+        'test/spec/services/oauth.js',
+        'test/spec/services/http.js',
+        'test/spec/services/drive_files.js',
+        'test/spec/services/drive_children.js',
+        'test/spec/services/drive_parents.js',
+        'test/spec/services/drive_revisions.js',
+        'test/spec/services/drive_permissions.js',
     ],
 
     // list of files / patterns to exclude
