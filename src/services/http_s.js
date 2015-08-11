@@ -22,9 +22,11 @@ var NgGapi;
             //throttleInterval;                                                                                               // the variable delay
             this.isQueueMode = true; // use queue, set to false for unit testing
             this.queue = []; // q of requests
+            // this is so multiple requests that cause a 401 will all get resolved
             this.testStatus = 'foo'; // this has no role in the functionality of OauthService. it's a helper property for unit tests
             this.skipOauthCozTesting = false; // if true does no Oauth. Only used for unit tests
             //console.log('http cons');
+            this.def401 = $q.defer();
         }
         /**
          * getter for the underlying Oauth service just in case the app needs it
@@ -245,9 +247,10 @@ var NgGapi;
             // retry after 0.5s
             if (status == 401) {
                 this.$log.warn("[H116] Need to acquire a new Access Token and resubmit");
-                debugger;
-                this.OauthService.refreshAccessToken().then(function () {
-                    debugger;
+                //debugger;
+                this.OauthService.refreshAccessToken(this.def401).then(function () {
+                    //debugger;
+                    console.log('401 resolved so repeat');
                     _this._doHttp(configObject, def, retryCounter);
                 }, function (err) {
                     def.reject(err);

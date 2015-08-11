@@ -324,7 +324,7 @@ declare module NgGapi {
 	 */
 	export interface IOauthService {
 		getAccessToken(): mng.IPromise<GoogleApiOAuth2TokenObject>;
-		refreshAccessToken(): mng.IPromise<GoogleApiOAuth2TokenObject>;
+		refreshAccessToken(def?:mng.IDeferred<any>): mng.IPromise<GoogleApiOAuth2TokenObject>;
 	}
 
 	/**

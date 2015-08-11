@@ -34,6 +34,7 @@ var NgGapi;
          * @param immediateMode  set to true to suppress the initial auth,
          * @param ownGetAccessTokenFunction (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
          * @param testingRefreshToken - if set, this is used to fetch access tokens instead of gapi
+         * @param testingAccessToken - if set, this string is used as the access token, eg. ya.dsfdfdsew
          * @param testingClientSecret - if set, this is used to fetch access tokens instead of gapi
          * @param popupBlockedFunction - if set, this is called in place of the default alert if we think that auth is blocked by a popup blocker (or the use closed the window)
          * @param $log
@@ -91,12 +92,13 @@ var NgGapi;
                 def = this.$q.defer();
             }
             if (!!this.testingAccessToken) {
-                console.log('returning ' + this.testingAccessToken.access_token);
-                def.resolve(this.testingAccessToken); // return it
+                console.log('returning ' + { access_token: this.testingAccessToken });
+                def.resolve({ access_token: this.testingAccessToken }); // return it
                 return def.promise;
             }
             if (!!this.testingRefreshToken) {
                 this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def); // use it to fetch an a_t
+                return def.promise;
             } // TODO should be a return here??
             if (!this.isGapiLoaded()) {
                 var s = '[O55] waiting for the gapi script to download';
@@ -112,6 +114,7 @@ var NgGapi;
             if (!!this.$window['gapi'].auth.getToken() // function returns something
                 && !!this.$window['gapi'].auth.getToken()['access_token'] // with an access token
                 && (this.$window['gapi'].auth.getToken()['access_token'] != null)) {
+                console.log('oauth getaccess otken resolving with ', this.$window['gapi'].auth.getToken());
                 def.resolve(this.$window['gapi'].auth.getToken()); // return it
             }
             else {
@@ -201,14 +204,13 @@ var NgGapi;
                     //client_secret:'Y_vhMLV9wkr88APsQWXPUrhq',
                     client_secret: encodeURI(secret),
                     refresh_token: rt,
-                    grant_type: 'refresh_token',
-                    foo: 'bar'
+                    grant_type: 'refresh_token'
                 },
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }).
                 success(function (data, status, headers, config) {
-                _this.testingAccessToken = data['access_token'];
-                _this.$log.info('[O172]: test access token is ' + _this.testingAccessToken);
+                _this.accessToken = data;
+                _this.$log.info('[O172]: access token is ', _this.accessToken);
                 _this.isAuthInProgress = false;
                 def.resolve(data);
                 // this callback will be called asynchronously
@@ -254,8 +256,9 @@ var NgGapi;
             }
             if (token.access_token && token.access_token != null) {
                 this.isAuthedYet = true; // set flag that authed , ie immediate is now true
-                this.testingAccessToken = undefined; // lose any testing token
+                this.accessToken = undefined; // lose any testing token
                 def.resolve(token); // resolve with the token
+                console.log('resolving 401');
             }
             // if app has requested auto-refresh, set up the timeout to refresh
             if (this.tokenRefreshPolicy == TokenRefreshPolicy.PRIOR_TO_EXPIRY) {

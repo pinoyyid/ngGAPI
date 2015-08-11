@@ -39,6 +39,7 @@ module NgGapi {
 		POPUP_BLOCKER_ALERT_TEXT = "This app is requesting your authorization, but isn't able to, possibly because you have blocked popups from this site.";
 		refreshException;                   // set if there is a hard error on refresh, eg wrong client or access denied. Used by getAccessToken
 
+		accessToken:GoogleApiOAuth2TokenObject;  // the current access token
 
 		testStatus:string;                  // this has no rol ein the functionality of OauthService. it's a helper property for unit tests
 
@@ -51,6 +52,7 @@ module NgGapi {
 		 * @param immediateMode  set to true to suppress the initial auth,
 		 * @param ownGetAccessTokenFunction (0 = fail and http will return a synthetic 401, !0 = retry after xx ms)
 		 * @param testingRefreshToken - if set, this is used to fetch access tokens instead of gapi
+		 * @param testingAccessToken - if set, this string is used as the access token, eg. ya.dsfdfdsew
 		 * @param testingClientSecret - if set, this is used to fetch access tokens instead of gapi
 		 * @param popupBlockedFunction - if set, this is called in place of the default alert if we think that auth is blocked by a popup blocker (or the use closed the window)
 		 * @param $log
@@ -61,7 +63,7 @@ module NgGapi {
 		 */
 		constructor(private scopes:string, private clientId:string, private tokenRefreshPolicy,
 		            private immediateMode:boolean, private ownGetAccessTokenFunction,
-		            private testingRefreshToken, private testingAccessToken, private testingClientSecret, private popupBlockedFunction,
+		            private testingRefreshToken, private testingAccessToken:string, private testingClientSecret, private popupBlockedFunction,
 		            private $log:mng.ILogService, private $window:mng.IWindowService, private $http:mng.IHttpService,
 		            private $timeout:mng.ITimeoutService, private $q:mng.IQService) {
 			//console.log("OAuth instantiated with " + scopes);
@@ -95,13 +97,14 @@ module NgGapi {
 				def = this.$q.defer();
 			}
 			if (!!this.testingAccessToken) {                                                                            // if a test token has been set
-				console.log('returning '+this.testingAccessToken.access_token);
-				def.resolve(this.testingAccessToken);                                                                   // return it
+				console.log('returning '+{access_token: this.testingAccessToken});
+				def.resolve({access_token: this.testingAccessToken});                                                                   // return it
 				return def.promise;
 			}
 
 			if (!!this.testingRefreshToken) {                                                                           // if a test refresh token has been provided
 				this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def);  // use it to fetch an a_t
+				return def.promise;
 			} // TODO should be a return here??
 
 			if (!this.isGapiLoaded()) {                                                                                 // if gapi hasn't loaded yet
@@ -120,6 +123,7 @@ module NgGapi {
 			if (!!this.$window['gapi'].auth.getToken()                                                                  // function returns something
 				&& !!this.$window['gapi'].auth.getToken()['access_token']                                               // with an access token
 				&& (this.$window['gapi'].auth.getToken()['access_token'] != null)) {                                    // which isn't null
+				console.log('oauth getaccess otken resolving with ',this.$window['gapi'].auth.getToken());
 				def.resolve(this.$window['gapi'].auth.getToken());                                                      // return it
 			} else {
 				this.refreshAccessToken(def);                                                                           // else, we need an access token so call refresh
@@ -220,14 +224,13 @@ module NgGapi {
 					//client_secret:'Y_vhMLV9wkr88APsQWXPUrhq',
 					client_secret: encodeURI(secret),
 					refresh_token: rt,
-					grant_type: 'refresh_token',
-					foo: 'bar'
+					grant_type: 'refresh_token'
 				},
 				headers: {'Content-Type': 'application/x-www-form-urlencoded'}
 			}).
-				success((data, status, headers, config) => {
-					this.testingAccessToken = data['access_token'];
-					this.$log.info('[O172]: test access token is ' + this.testingAccessToken);
+				success((data:GoogleApiOAuth2TokenObject, status, headers, config) => {
+					this.accessToken = data;
+					this.$log.info('[O172]: access token is ' , this.accessToken);
 					this.isAuthInProgress = false;
 					def.resolve(data);
 					// this callback will be called asynchronously
@@ -278,8 +281,9 @@ module NgGapi {
 
 			if (token.access_token && token.access_token != null) {                                                     // if there is an access token
 				this.isAuthedYet = true;                                                                                // set flag that authed , ie immediate is now true
-				this.testingAccessToken = undefined;                                                                    // lose any testing token
+				this.accessToken = undefined;                                                                    // lose any testing token
 				def.resolve(token);                                                                                     // resolve with the token
+				console.log('resolving 401');
 			}
 
 			// if app has requested auto-refresh, set up the timeout to refresh

@@ -22,6 +22,9 @@ module NgGapi {
 		queueInterval;                                                                                                  // frequency of dq
 		queuePromise:mng.IPromise<any>;                                                                                 // the $interval promise
 
+		def401:mng.IDeferred<any>;                                                                                          // a global deferred for any 401
+		// this is so multiple requests that cause a 401 will all get resolved
+
 
 		testStatus:string = 'foo';                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 		skipOauthCozTesting = false;               // if true does no Oauth. Only used for unit tests
@@ -32,6 +35,7 @@ module NgGapi {
 		constructor(private $log:mng.ILogService, private $http:mng.IHttpService, private $timeout:mng.ITimeoutService,
 		            private $interval:mng.IIntervalService, private $q:mng.IQService, private OauthService:IOauthService) {
 			//console.log('http cons');
+			this.def401 = $q.defer();
 		}
 
 		/**
@@ -263,10 +267,11 @@ module NgGapi {
 			// retry after 0.5s
 			if (status == 401) { // 401 need to refresh the token and then retry
 				this.$log.warn("[H116] Need to acquire a new Access Token and resubmit");
-				debugger;
-				this.OauthService.refreshAccessToken().then(
+				//debugger;
+				this.OauthService.refreshAccessToken(this.def401).then(
 					()=>{
-						debugger;
+						//debugger;
+						console.log('401 resolved so repeat');
 						this._doHttp(configObject, def, retryCounter);
 					},
 					(err) => {
