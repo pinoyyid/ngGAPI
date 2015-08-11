@@ -29,9 +29,12 @@ module.exports = function(config) {
       'bower_components/angular-mocks/angular-mocks.js',
       'bower_components/sinonjs/sinon.js',
       'bower_components/jasmine-sinon/lib/jasmine-sinon.js',
-      'src/**/*.js',
-      'test/spec/**/*.js',
+        //'demo_app/appscripts/app.js',
+      //'src/**/*.js',
+        'src/services/oauth_s.js',
       //'test/spec_lib/services/drive_files.js'
+      //  'test/spec/**/*.js',
+        'test/spec/services/oauth.js'
     ],
 
     // list of files / patterns to exclude
@@ -66,7 +69,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
-    logLevel: config.LOG_INFO,
+    logLevel: config.LOG_DEBUG,
 
     // Uncomment the following lines if you are using grunt's server to run the tests
     // proxies: {

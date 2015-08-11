@@ -10,8 +10,8 @@ describe('Service: OauthService', function () {
   var OauthService;
   var $window;
   var LIST_URL = "https://www.googleapis.com/drive/v2/files?maxResults=1000&q=trashed%3Dtrue&fields=items(id%2Ctitle)%2CnextPageToken";
-
-  myApp.provider('oauthService', NgGapi.Config)
+  var myApp = angular.module('MyApp',['ngm.NgGapi']);
+  myApp.provider('OauthService', NgGapi.Config)
     .config(function (OauthServiceProvider) {
       OauthServiceProvider.setScopes('drive.file');
       OauthServiceProvider.setClientID('1234');
