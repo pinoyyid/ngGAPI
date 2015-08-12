@@ -4,5 +4,6 @@ node_js:
 before_script:
   - 'npm cache clean'
   - 'npm install'
+  - 'npm install grunt-ts'
   - 'npm install -g bower grunt-cli'
-  - 'cd nggapi_lib; bower install; cd ..'
+  - 'bower install'

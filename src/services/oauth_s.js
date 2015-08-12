@@ -92,7 +92,7 @@ var NgGapi;
                 def = this.$q.defer();
             }
             if (!!this.testingAccessToken) {
-                console.log('returning ' + { access_token: this.testingAccessToken });
+                //console.log('returning '+{access_token: this.testingAccessToken});
                 def.resolve({ access_token: this.testingAccessToken }); // return it
                 return def.promise;
             }
@@ -118,7 +118,7 @@ var NgGapi;
             if (!!this.$window['gapi'].auth.getToken() // function returns something
                 && !!this.$window['gapi'].auth.getToken()['access_token'] // with an access token
                 && (this.$window['gapi'].auth.getToken()['access_token'] != null)) {
-                console.log('oauth getaccess otken resolving with ', this.$window['gapi'].auth.getToken());
+                //console.log('oauth getaccess token resolving with ',this.$window['gapi'].auth.getToken());
                 def.resolve(this.$window['gapi'].auth.getToken()); // return it
             }
             else {
@@ -156,7 +156,7 @@ var NgGapi;
             try {
                 if (this.POPUP_BLOCKER_ALERT_DELAY > 0) {
                     var toPromise = this.$timeout(function () {
-                        console.log("auth timed out after " + _this.POPUP_BLOCKER_ALERT_DELAY + "ms. Resetting anti-concurrent-calls flag so the next call to getAccesstoken() will trigger a fresh request");
+                        _this.$log.warn("auth timed out after " + _this.POPUP_BLOCKER_ALERT_DELAY + "ms. Resetting anti-concurrent-calls flag so the next call to getAccesstoken() will trigger a fresh request");
                         if (_this.popupBlockedFunction) {
                             _this.popupBlockedFunction(); //let it
                         }
@@ -241,7 +241,7 @@ var NgGapi;
          */
         OauthService.prototype.refreshCallback = function (resp, def) {
             this.isAuthInProgress = false;
-            console.log('o207 authed');
+            //console.log('o207 authed');
             //resp=null; gapi.auth.setToken(undefined);debugger;                    uncomment to force null to test network error handling
             var token = this.$window['gapi'].auth.getToken();
             if (resp == null) {
@@ -263,7 +263,6 @@ var NgGapi;
                 this.isAuthedYet = true; // set flag that authed , ie immediate is now true
                 this.accessToken = undefined; // lose any testing token
                 def.resolve(token); // resolve with the token
-                console.log('resolving 401');
             }
             // if app has requested auto-refresh, set up the timeout to refresh
             if (this.tokenRefreshPolicy == TokenRefreshPolicy.PRIOR_TO_EXPIRY) {

@@ -1,0 +1,30 @@
+{
+  "name": "ngGAPI",
+  "version": "0.8.0",
+  "homepage": "https://github.com/pinoyyid/ngGAPI",
+  "authors": [
+    "Roy Smith <roy.smith.esq@gmail.com>"
+  ],
+  "devDependencies": {
+    "angular-scenario": "~1.4.0",
+    "angular-mocks": "~1.4.0",
+    "sinon": "~1.14.1",
+    "jasmine-sinon": "~0.4.0"
+  },
+  "description": "AngularJS library for Google Drive",
+  "moduleType": [
+    "node"
+  ],
+  "keywords": [
+    "angularjs",
+    "drive"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

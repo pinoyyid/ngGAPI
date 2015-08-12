@@ -1,8 +1,8 @@
 ## ngGAPI - Google APIs for AngularJS 
 
 ### Quick Start
-* Download and unzip https://github.com/pinoyyid/ngGAPI/blob/master/nggapi_lib/nggapi_dist.zip?raw=true. 
-This will create a folder `/nggapi_lib/dist_lib/` containing the two minified files that comprise the ngGAPI Drive library.
+* Download and unzip https://github.com/pinoyyid/ngGAPI/blob/master/dist/nggapi_dist.zip?raw=true. 
+This will create a folder `/dist/` containing the two minified files that comprise the ngGAPI Drive library.
 * In your HTML, `nggapi-base.min.js` must be loaded before your app declaration, and `nggapi-drive.min.js` must be loaded afterwards. e.g.
 
 ```
@@ -11,7 +11,7 @@ This will create a folder `/nggapi_lib/dist_lib/` containing the two minified fi
         <script src="nggapi-drive.js"></script>
 ```
 
-* If you are developing in TypeScript, you'll want to reference the definition file from `nggapi-interfaces/drive_interfaces.d.ts`
+* If you are developing in TypeScript, you'll want to reference the definition file from `src/nggapi_ts_declaration_files/drive_interfaces.d.ts`
 * A simple `app.js` looks something like
 
 ```
@@ -64,7 +64,7 @@ function getFile(fileId) {
 ```
 
 ```
-// NgGAPI
+// ngGAPI
 function getFile(fileId) {
  DriveService.files.get({
     'fileId': fileId
@@ -72,7 +72,11 @@ function getFile(fileId) {
 }
 ```
 
-However, in AngularJS, you generally want to use data binding to display information in the same way that $resource does. 
+You might be tempted to count the characters in each example and conclude that ngGAPI doesn't save you much. Please don't, because if you do a kitten will die.
+Using Google GAPI, you need to take that innocent piece of code and preface it with your own OAuth handling, and wrap it with a mass of error handling, 
+finally wrapping all of that in AngularJS promises. 
+
+Also, in AngularJS, you generally want to use data binding to display information in the same way that $resource does. 
 In that case, the above example can be simplified to:-
 
 ```
@@ -185,14 +189,17 @@ Note that we **do** use the gapi auth library for OAuth, as this deals with a lo
 #### So does this mean I don't need to read all the Google Documentation?
 Not at all. In order to successfully use Google Drive, you still need to understand its capabilities and behaviours, as well as the specific parameters required
 to invoke those capabilities and behaviours. What ngGAPI gives is a sensible way to deliver those parameters and deal with the response in an AngularJS fashion.
-We've patterned our API on gapi to make it easier to migrate existing projects and to provide a "key" into the Google documentation.
+We've patterned our API on gapi to make it easier to migrate existing projects and to provide a "key" into the Google documentation. 
+
+You will also find it useful to keep the [TypeScript Definition file](https://github.com/pinoyyid/ngGAPI/blob/master/src/nggapi_ts_declaration_files/drive_interfaces.d.ts)
+handy as it contains all of the method signatures in a single file.
 
 #### I still don't get how to do OAuth?
 You're not alone. Luckily, we think we've done a pretty good job of removing the need to know too much. 
 If your project is set up on Google API Console (ie. you have a client ID), and you've set the client ID and scopes as described above, it will Just Work&trade;
 
 #### How do I handle errors?
-The library tried to do a level of error handling for you. Specifically:-
+The library tries to do a level of error handling for you. Specifically:-
 
 1. Any 501 errors are retried 10 times before being escalated to your app
 1. Any 403 Rate Limit errors are retried with an adaptive delay to get the best throughput with the minimum number of retries. 403 Rate Limit errors are **never** escalated 
@@ -204,17 +211,19 @@ escalated to your app.
 #### Show me the code
 We've created two sample apps for you to look at.
 
-The first is a [minimal app](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi_lib/minimal.html) which strips it all down so all of the code lives within the HTML page.
+The first is a [minimal app](https://github.com/pinoyyid/ngGAPI/blob/master/demo_app/minimal.html) which strips it all down so all of the code lives within the HTML page.
 This example shows fetching a list of Drive files and displaying the titles. 
 
-The second is [fuller app](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi_lib/index.html) which does most of its work in
+The second is [fuller app](https://github.com/pinoyyid/ngGAPI/blob/master/demo_app/maximal.html) which does most of its work in
  [this controller](https://github.com/pinoyyid/ngGAPI/blob/master/nggapi_lib/appscripts/controllers/maximal_c.ts).
 
 
 If you want to run either of these, you'll need to:-
 
-1. Replace the client ID with your own 
-1. Serve them from a URL origin that has been configured into your Google API Console
+1. Replace the client ID with your own
+1. Run a server in the root directory of the project
+1. Check that the URL origin has been configured into your Google API Console. I always edit /etc/hosts to have dev.mydomain.com aliased to localhost, 
+and then configure http://dev.mydomain.com:8000 into the Google API Console.
 
 
 #### How do I get help?
@@ -233,8 +242,8 @@ Just doing our job ma'am.
 * You'll need to create your own project at the [Google API Console](https://code.google.com/apis/console/b/0/) and substitute your client id at `OauthServiceProvider.setClientID('2231299-2bvf1.apps.googleusercontent.com');`
 
 ### Dev tools
-If you're writing in TypeScript, you'll need the tsc compiler vers 1.4. If you're using WebStorm, you'll need WS10. `nggapi_interfaces/drive_interfaces.d.ts` contains all of the type definitions for ngGAPI Drive. 
+If you're writing in TypeScript, you'll need the tsc compiler vers 1.4 or above. If you're using WebStorm, you'll need WS10 or above. `nggapi_interfaces/drive_interfaces.d.ts` contains all of the type definitions for ngGAPI Drive. 
 
 ### Contributors
-The library was developed by members of the [ngManila](http://www.meetup.com/Manila-AngularJS-Group/) community, specifically Sam Ong, Roy Smith and [Johnny Estilles](https://github.com/JohnnyEstilles) of [Agentia Systems](http://www.agentia.asia).
+The library was developed by members of the [ngManila](http://www.meetup.com/Manila-AngularJS-Group/) community, specifically Roy Smith and [Johnny Estilles](https://github.com/JohnnyEstilles) of [Agentia Systems](http://www.agentia.asia).
 Contributions and PR's welcome. Please note that we have developed this library in TypeScript, so any contributions must also be in TS.

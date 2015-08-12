@@ -198,6 +198,9 @@ var MaximalCtrl = (function () {
             // update the display with the status and response data
             currentStep.status = 'done';
             currentStep.data = ' change id=' + resp.data.id;
+        }, function () {
+            currentStep.status = 'failed';
+            currentStep.data = 'This call often fails on Drive. Just refresh the page and it will probably succeed';
         });
         // return the promise for chaining
         return ro.promise;
