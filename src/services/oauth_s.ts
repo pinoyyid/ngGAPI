@@ -102,10 +102,15 @@ module NgGapi {
 				return def.promise;
 			}
 
-			if (!!this.testingRefreshToken) {                                                                           // if a test refresh token has been provided
-				this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def);  // use it to fetch an a_t
+			if (!!this.testingRefreshToken) {                                                                                 // if a test refresh token has been provided
+				if (!!this.accessToken) {                                                                                       // and there is an access token
+					def.resolve(this.accessToken);                                                                               // resolve with it
+
+					return def.promise;
+				}                                                                                                               // else
+				this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def);          // use it to fetch an a_t
 				return def.promise;
-			} // TODO should be a return here??
+			}
 
 			if (!this.isGapiLoaded()) {                                                                                 // if gapi hasn't loaded yet
 				var s= '[O55] waiting for the gapi script to download';
@@ -205,6 +210,7 @@ module NgGapi {
 		 * @param secret the client secret
 		 */
 		refreshAccessTokenUsingTestRefreshToken(rt:string, secret:string, def:mng.IDeferred<any>):mng.IPromise<GoogleApiOAuth2TokenObject> {
+			//console.error('refreshing with '+rt);
 			if (this.isAuthInProgress) {
 				this.$log.warn('[O143] refresh access token suppressed because there is already such a request in progress');
 				this.testStatus = 'O143';
@@ -230,7 +236,7 @@ module NgGapi {
 			}).
 				success((data:GoogleApiOAuth2TokenObject, status, headers, config) => {
 					this.accessToken = data;
-					this.$log.info('[O172]: access token is ' , this.accessToken);
+					this.$log.info('[O172]: access token fetched ');
 					this.isAuthInProgress = false;
 					def.resolve(data);
 					// this callback will be called asynchronously

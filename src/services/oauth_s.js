@@ -97,9 +97,13 @@ var NgGapi;
                 return def.promise;
             }
             if (!!this.testingRefreshToken) {
+                if (!!this.accessToken) {
+                    def.resolve(this.accessToken); // resolve with it
+                    return def.promise;
+                } // else
                 this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def); // use it to fetch an a_t
                 return def.promise;
-            } // TODO should be a return here??
+            }
             if (!this.isGapiLoaded()) {
                 var s = '[O55] waiting for the gapi script to download';
                 this.$log.warn(s);
@@ -189,6 +193,7 @@ var NgGapi;
          */
         OauthService.prototype.refreshAccessTokenUsingTestRefreshToken = function (rt, secret, def) {
             var _this = this;
+            //console.error('refreshing with '+rt);
             if (this.isAuthInProgress) {
                 this.$log.warn('[O143] refresh access token suppressed because there is already such a request in progress');
                 this.testStatus = 'O143';
@@ -210,7 +215,7 @@ var NgGapi;
             }).
                 success(function (data, status, headers, config) {
                 _this.accessToken = data;
-                _this.$log.info('[O172]: access token is ', _this.accessToken);
+                _this.$log.info('[O172]: access token fetched ');
                 _this.isAuthInProgress = false;
                 def.resolve(data);
                 // this callback will be called asynchronously

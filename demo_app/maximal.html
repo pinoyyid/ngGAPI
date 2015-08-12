@@ -6,9 +6,14 @@
 <div ng-controller="MaximalCtrl as vm">
     This is a sample app showing how simple it is to access Drive using ngGapi. <br>
     It goes through a sequence of creating then updating some files, finally deleting and tidying up after itself.<br><br>
-    NB THIS WILL DELETE ALL TRASHED OF THE AUTHENTICATED USER, IF THE USER GRANTED SUFFICIENT PERMISSIONS
+    NB THIS WILL PERMANENTLY REMOVE ANY TRASHED FILES OF THE AUTHENTICATED USER, IF THE USER GRANTED SUFFICIENT PERMISSIONS
     <br> <br>
-    <label>Please enter your email address to test getPermissionIdsForEmail</label>
+      As it stands, this app will prompt you for your authorization. You can view the source of this file to find the 3 lines
+			that, if uncommented, will allow you to permanently store a refresh token. This is how you would include ngGAPI in your Continuous Integration
+			tests. See also <a href="http://stackoverflow.com/questions/19766912/how-do-i-authorise-an-app-web-or-installed-without-user-intervention-canonic" target="_blank">this question on StackOverflow</a>
+			which describes how to get a refresh token.
+    <br> <br>
+    <label>Please quickly enter your email address to test getPermissionIdsForEmail</label>
     <input ng-model="vm.email" placeholder="foo@example.com"/>
     <br> <br>
 
@@ -47,11 +52,14 @@
 <script src="../src/services/oauth_s.js"></script>
 <script src="../src/services/http_s.js"></script>
 <!-- The app in its entirety -->
-<!-- Load a file that sets credentials, thus
+<!-- For unattended testing, you need to load a file that sets credentials. The file should look like ...
+
 var refreshToken = '1/3g-7712FfVkKQWhVrK5jSpoR30zcRFq6';
 var clientSecret = 'Y_vhMLVU6rhq';
--->
+
+... and should be loaded thus ...
 <script src="appscripts/credentials.js"></script>
+-->
 <script>
     // declare your angular app with ngm.NgGapi as a required module
     var myApp = angular.module('MyApp', ['ngm.NgGapi']);
@@ -62,6 +70,7 @@ var clientSecret = 'Y_vhMLVU6rhq';
             .config(function (OauthServiceProvider) {
                 OauthServiceProvider.setScopes('https://www.googleapis.com/auth/drive.file');
                 OauthServiceProvider.setClientID('292329129968-nrf447v3m1jqknroi1naii0kfs92bvf1.apps.googleusercontent.com');
+			    // uncomment the following two lines (and provide a credentials.js - see above) in order to test without prompting
 //                OauthServiceProvider.setTestingRefreshToken(refreshToken);
 //                OauthServiceProvider.setTestingClientSecret(clientSecret);
             });
