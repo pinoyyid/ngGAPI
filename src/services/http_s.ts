@@ -331,7 +331,6 @@ module NgGapi {
 	}
 }
 
-declare
-var angular:mng.IAngularStatic;
+declare var angular:mng.IAngularStatic;
 angular.module('ngm.NgGapi')
 	.service('HttpService', NgGapi.HttpService);

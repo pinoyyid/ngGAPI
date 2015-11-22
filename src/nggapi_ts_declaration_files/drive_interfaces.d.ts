@@ -415,7 +415,8 @@ declare module NgGapi {
 	export interface IDriveResponseObject<P,D> {
 		//promise:mng.IPromise<{data:mng.IHttpPromiseCallbackArg<P>}>;
 		promise:mng.IPromise<mng.IHttpPromiseCallbackArg<P>>;
-		data:D
+		data:D,
+		params?: {},
 		//data:IDriveFile | Array<IDriveFile> | {media: string};
 		headers:(name:string)=>string
 	}
@@ -647,5 +648,3 @@ declare module NgGapi {
 		state?: string;
 	}
 }
-
-

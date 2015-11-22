@@ -1652,7 +1652,6 @@ module NgGapi {
 //	scripts: "https://www.googleapis.com/auth/drive.scripts"
 //};
 
-declare
-var angular:mng.IAngularStatic;
+declare var angular:mng.IAngularStatic;
 angular.module('ngm.NgGapi')
 	.service('DriveService', NgGapi.DriveService);

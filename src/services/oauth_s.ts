@@ -41,7 +41,7 @@ module NgGapi {
 
 		accessToken:GoogleApiOAuth2TokenObject;  // the current access token
 
-		testStatus:string;                  // this has no rol ein the functionality of OauthService. it's a helper property for unit tests
+		testStatus:string;                  // this has no role in the functionality of OauthService. it's a helper property for unit tests
 
 
 		/**
@@ -94,7 +94,8 @@ module NgGapi {
 		getAccessToken(def?:mng.IDeferred<any>):mng.IPromise<GoogleApiOAuth2TokenObject> {
 			//console.log('o88 gAT');
 			if (!def) {                                                                                                 // if not called from HttpService, make a deferred
-				def = this.$q.defer();
+				this.$log.warn('[O97] Warning: getAccesToken called without a deferred. This is probably a mistake as it means multiple overlapping calls won\'t resolve');
+				def = this.$q.defer()  ;
 			}
 			if (!!this.testingAccessToken) {                                                                            // if a test token has been set
 				//console.log('returning '+{access_token: this.testingAccessToken});
@@ -108,6 +109,7 @@ module NgGapi {
 
 					return def.promise;
 				}                                                                                                               // else
+				def.notify('[O121] refreshing token');                                                                            // and emit a notify
 				this.refreshAccessTokenUsingTestRefreshToken(this.testingRefreshToken, this.testingClientSecret, def);          // use it to fetch an a_t
 				return def.promise;
 			}
@@ -176,7 +178,7 @@ module NgGapi {
 								this.popupBlockedFunction();                                                            //let it
 							} else {                                                                                    // else
 								if (this.POPUP_BLOCKER_ALERT_TEXT) {
-									alert(this.POPUP_BLOCKER_ALERT_TEXT);                                               // display a default alert
+									alert(this.POPUP_BLOCKER_ALERT_TEXT);                                               // display a default alert TODO consider a def.reject instead
 								}
 							}
 							def.reject('[O163] popup blocker timeout fired');
@@ -383,6 +385,5 @@ NgGapi['Config'] = function () {
 
 
 // define the ngm.NgGapi module. This will then be included by the host app with "angular .module('MyApp', ['ngm.NgGapi']);"
-declare
-var angular:mng.IAngularStatic;
+declare var angular:mng.IAngularStatic;
 angular.module('ngm.NgGapi', []);
