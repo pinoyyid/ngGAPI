@@ -335,7 +335,6 @@ declare module NgGapi {
 		doHttp(configObject:mng.IRequestConfig):mng.IPromise<any>;
 	}
 
-
 	/**
 	 * Interface definition for the DriveService. Mostly useful for a mock service
 	 */
@@ -452,6 +451,8 @@ declare module NgGapi {
 		timedTextTrackName?:string;          // The timed text track name.
 		useContentAsIndexableText?:boolean;  // Whether to use the content as indexable text. (Default: false)
 		visibility?:string;                  // The visibility of the new file. This parameter is only relevant when convert=false.  Acceptable values are: "DEFAULT": The visibility of the new file is determined by the user's default visibility/sharing policies. (default) "PRIVATE": The new file will be visible to only the owner.
+		resumableStart?:number;							// for resumables, the current start location
+		resumableChunkLength?:number;					// for resumables, the chunk size
 	}
 
 	export interface IDriveFileGetParameters {

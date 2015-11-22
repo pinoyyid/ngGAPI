@@ -1,25 +1,43 @@
-/// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
-/// <reference path="../../../src/nggapi_ts_declaration_files/drive_interfaces.d.ts"/>
-var MaximalCtrl = (function () {
-    function MaximalCtrl($scope, $log, $q, DriveService) {
+var MaximalCtrl1 = (function () {
+    function MaximalCtrl1($scope, $log, $q, DriveService) {
         this.$scope = $scope;
         this.$log = $log;
         this.$q = $q;
         this.DriveService = DriveService;
         this.sig = 'MaximalCtrl';
-        // an array of steps to display
         this.steps = [];
         this.email = "";
         this.largestChangeId = 0;
+        this.currentStepImage = '';
         $scope.vm = this;
         window['DS'] = this.DriveService;
         console.info("A reference to the DriveService has been placed at window.DS\nYou can use this to manually run commands, eg. DS.files.list({maxResults:1, fields:\"items\"})");
         this.doEverything();
     }
-    /**
-     * perform all steps using promise chaining to run them in sequence
-     */
-    MaximalCtrl.prototype.doEverything = function () {
+    MaximalCtrl1.prototype.uploadImage = function (element) {
+        var _this = this;
+        var files = element.files;
+        console.log(files[0].name + ' ' + files[0].type);
+        var reader = new FileReader();
+        reader.onload = function () {
+            var content = reader.result;
+            _this.currentStepImage = 'Inserting ' + content.length;
+            var def = _this.$q.defer();
+            _this.DriveService.files.insertWithContent({
+                title: files[0].name,
+                mimeType: files[0].type
+            }, { uploadType: 'resumable' }, content, undefined).promise.then(function (resp) {
+                _this.currentStepImage = resp.data.id + ' , content length = ' + resp.data.fileSize;
+                _this.currentFile = resp.data;
+            }, function (reason) { def.reject(reason); }, function (position) {
+                console.log('notification at position ' + position);
+                _this.currentStepImage = 'progress = ' + position;
+            });
+            _this.$scope.$apply();
+        };
+        reader.readAsBinaryString(element.files[0]);
+    };
+    MaximalCtrl1.prototype.doEverything = function () {
         var _this = this;
         this.getAbout()
             .then(function () {
@@ -131,113 +149,52 @@ var MaximalCtrl = (function () {
             console.error('There was an error: ', reason);
         });
     };
-    /*
-     Each function follows the same pattern. I've commented the getFile. The rest are structured the same way.
-
-     The goal of each function is to update the UI with what it is about to do, then do it, then update the UI with part
-     of the response, finally returning the promise so the function calls can be chained together.
-     */
-    /**
-     * Get the About object for this user
-     *
-     * @returns {mng.IPromise<{data: IDriveAbout}>} The promise for chaining
-     */
-    MaximalCtrl.prototype.getAbout = function () {
+    MaximalCtrl1.prototype.getAbout = function () {
         var _this = this;
-        // create a step object containing what we're about to do
         var currentStep = { op: 'Getting about', status: '...', data: undefined };
-        // push that step object onto the list which is displayed via an ng-repeat
         this.steps.push(currentStep);
-        // do the get, storing its ResponseObject in ro
         var ro = this.DriveService.about.get({ includeSubscribed: true });
-        // create a then function on ro which will execute on completion
         ro.promise.then(function (resp) {
-            // update the display with the status and response data
             currentStep.status = 'done';
             currentStep.data = resp.data.user + ' change id=' + resp.data.largestChangeId;
             _this.largestChangeId = resp.data.largestChangeId;
         });
-        // return the promise for chaining
         return ro.promise;
     };
-    /**
-     * Get a change
-     *
-     * @returns {mng.IPromise<{data: IDriveAbout}>} The promise for chaining
-     */
-    MaximalCtrl.prototype.listChanges = function (id) {
-        // create a step object containing what we're about to do
+    MaximalCtrl1.prototype.listChanges = function (id) {
         var currentStep = { op: 'Listing changes ', status: '...', data: undefined };
-        // push that step object onto the list which is displayed via an ng-repeat
         this.steps.push(currentStep);
-        // do the get, storing its ResponseObject in ro
         var ro = this.DriveService.changes.list({ startChangeId: id, maxResults: 989 });
-        // create a then function on ro which will execute on completion
         ro.promise.then(function (resp) {
-            // update the display with the status and response data
             currentStep.status = 'done';
             currentStep.data = ' change count=' + resp.data.items.length;
         });
-        // return the promise for chaining
         return ro.promise;
     };
-    /**
-     * Get a change
-     *
-     * @returns {mng.IPromise<{data: IDriveAbout}>} The promise for chaining
-     */
-    MaximalCtrl.prototype.getChange = function (id) {
-        // create a step object containing what we're about to do
+    MaximalCtrl1.prototype.getChange = function (id) {
         var currentStep = { op: 'Getting change ' + id, status: '...', data: undefined };
-        // push that step object onto the list which is displayed via an ng-repeat
         this.steps.push(currentStep);
-        // do the get, storing its ResponseObject in ro
         var ro = this.DriveService.changes.get({ changeId: id });
-        // create a then function on ro which will execute on completion
         ro.promise.then(function (resp) {
-            // update the display with the status and response data
             currentStep.status = 'done';
             currentStep.data = ' change id=' + resp.data.id;
         }, function () {
             currentStep.status = 'failed';
             currentStep.data = 'This call often fails on Drive. Just refresh the page and it will probably succeed';
         });
-        // return the promise for chaining
         return ro.promise;
     };
-    /**
-     * Get a file's metadata for a given id
-     *
-     * @param id  The file ID
-     * @returns {mng.IPromise<{data: IDriveFile}>} The promise for chaining
-     */
-    MaximalCtrl.prototype.getFile = function (id) {
-        // create a step object containing what we're about to do
+    MaximalCtrl1.prototype.getFile = function (id) {
         var currentStep = { op: 'Getting a file', status: '...', data: undefined };
-        // push that step object onto the list which is displayed via an ng-repeat
         this.steps.push(currentStep);
-        // do the get, storing its ResponseObject in ro
         var ro = this.DriveService.files.get({ fileId: id });
-        // create a then function on ro which will execute on completion
         ro.promise.then(function (resp) {
-            // update the display with the status and response data
             currentStep.status = 'done';
             currentStep.data = resp.data.title;
         });
-        // return the promise for chaining
         return ro.promise;
     };
-    /**
-     * create count files with a title of 'title-n' and contents 'content for title-n'.
-     * Much of the code in this function is to deal with the feature of inserting n files
-     * and only returning when all n have been succesful. It does this by creating a new
-     * deferred.promise to wrap the file.insert promise from each file.
-     *
-     * @param title stub of the title
-     * @param count how many files
-     * @returns {mng.IPromise<{data: IDriveFile}>}
-     */
-    MaximalCtrl.prototype.insertFiles = function (title, count) {
+    MaximalCtrl1.prototype.insertFiles = function (title, count) {
         var _this = this;
         var contentBase = 'content for ';
         var doneCount = 0;
@@ -256,12 +213,36 @@ var MaximalCtrl = (function () {
                     currentStep.status = 'done';
                     def.resolve();
                 }
-                // check count then resolve
             }, function (reason) { def.reject(reason); });
         }
         return def.promise;
     };
-    MaximalCtrl.prototype.getFileContents = function (id) {
+    MaximalCtrl1.prototype.resumable = function (title) {
+        var _this = this;
+        var content = '123456789.';
+        for (var i = 1; i < 16; i++) {
+            content += content;
+        }
+        console.log(content.length);
+        var transferEncoding;
+        content = btoa(content);
+        transferEncoding = 'base64';
+        var currentStep = { op: 'Inserting ' + content.length + ' long file', status: '', data: undefined };
+        this.steps.push(currentStep);
+        var def = this.$q.defer();
+        this.DriveService.files.insertWithContent({
+            title: title,
+            mimeType: 'text/plain'
+        }, { uploadType: 'resumable' }, content, transferEncoding).promise.then(function (resp) {
+            currentStep.data = resp.data.id + ' , content length = ' + resp.data.fileSize;
+            _this.currentFile = resp.data;
+        }, function (reason) { def.reject(reason); }, function (position) {
+            console.log('notification at position ' + position);
+            currentStep.data = 'progress = ' + position;
+        });
+        return def.promise;
+    };
+    MaximalCtrl1.prototype.getFileContents = function (id) {
         var currentStep = { op: 'Getting a file\'s contents', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.get({ fileId: id, alt: 'media' });
@@ -271,7 +252,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.patchFileTitle = function (id, newTitle) {
+    MaximalCtrl1.prototype.patchFileTitle = function (id, newTitle) {
         var currentStep = { op: 'Using Patch to update a file\'s title', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.patch({
@@ -284,7 +265,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.updateFileTitle = function (id, newTitle) {
+    MaximalCtrl1.prototype.updateFileTitle = function (id, newTitle) {
         var currentStep = { op: 'Using Update to update a file\'s title', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.update({ title: newTitle }, { fileId: id });
@@ -294,7 +275,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.updateFileContent = function (id, newContent) {
+    MaximalCtrl1.prototype.updateFileContent = function (id, newContent) {
         var currentStep = { op: 'Using Update to update a file\'s content', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.update(undefined, {
@@ -307,7 +288,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.touchFile = function (id) {
+    MaximalCtrl1.prototype.touchFile = function (id) {
         var currentStep = { op: 'Using Touch to update a file\'s last modified date', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.touch({ fileId: id });
@@ -317,7 +298,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.trashFile = function (id) {
+    MaximalCtrl1.prototype.trashFile = function (id) {
         var currentStep = { op: 'Trash a file', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.trash({ fileId: id });
@@ -327,7 +308,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.untrashFile = function (id) {
+    MaximalCtrl1.prototype.untrashFile = function (id) {
         var currentStep = { op: 'Untrash a file', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.untrash({ fileId: id });
@@ -337,7 +318,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.deleteFile = function (id) {
+    MaximalCtrl1.prototype.deleteFile = function (id) {
         var currentStep = { op: 'Delete a file', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.del({ fileId: id });
@@ -347,7 +328,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.emptyTrash = function () {
+    MaximalCtrl1.prototype.emptyTrash = function () {
         var currentStep = { op: 'Empty trash', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.files.emptyTrash();
@@ -360,7 +341,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.watchFile = function (id) {
+    MaximalCtrl1.prototype.watchFile = function (id) {
         var currentStep = { op: 'Using Watch to get a file\'s update channel', status: '...', data: undefined };
         this.steps.push(currentStep);
         var watchBody = {
@@ -378,10 +359,10 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.displayTitle = function (expect, title) {
+    MaximalCtrl1.prototype.displayTitle = function (expect, title) {
         this.$log.info("chained title (" + expect + ")= " + title);
     };
-    MaximalCtrl.prototype.insertFolder = function () {
+    MaximalCtrl1.prototype.insertFolder = function () {
         var _this = this;
         var currentStep = { op: 'Making a folder', status: '...', data: undefined };
         this.steps.push(currentStep);
@@ -395,10 +376,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    /*
-       CHILDREN
-     */
-    MaximalCtrl.prototype.insertChild = function (child) {
+    MaximalCtrl1.prototype.insertChild = function (child) {
         var currentStep = { op: 'Making a child', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.children.insert({ folderId: this.currentFolder.id }, child);
@@ -407,7 +385,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.getChild = function () {
+    MaximalCtrl1.prototype.getChild = function () {
         var currentStep = { op: 'Getting a child', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.children.get({ folderId: this.currentFolder.id, childId: this.currentFile.id });
@@ -416,7 +394,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.listChildren = function () {
+    MaximalCtrl1.prototype.listChildren = function () {
         var currentStep = { op: 'Listing all children', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.children.list({ folderId: this.currentFolder.id });
@@ -425,7 +403,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.deleteChild = function () {
+    MaximalCtrl1.prototype.deleteChild = function () {
         var currentStep = { op: 'Deleting a child', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.children.del({ folderId: this.currentFolder.id, childId: this.currentFile.id });
@@ -434,10 +412,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    /*
-     PARENTS
-     */
-    MaximalCtrl.prototype.insertParent = function (child) {
+    MaximalCtrl1.prototype.insertParent = function (child) {
         var currentStep = { op: 'Making a parent', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.parents.insert({ fileId: child.id }, this.currentFolder);
@@ -446,7 +421,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.getParent = function () {
+    MaximalCtrl1.prototype.getParent = function () {
         var currentStep = { op: 'Getting a parent', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.parents.get({ fileId: this.currentFile.id, parentId: this.currentFolder.id });
@@ -455,7 +430,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.listParents = function () {
+    MaximalCtrl1.prototype.listParents = function () {
         var currentStep = { op: 'Listing all parents', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.parents.list({ fileId: this.currentFile.id });
@@ -464,7 +439,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.deleteParent = function () {
+    MaximalCtrl1.prototype.deleteParent = function () {
         var currentStep = { op: 'Deleting a parent', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.parents.del({ fileId: this.currentFile.id, parentId: this.currentFolder.id });
@@ -473,10 +448,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    /*
-     PERMISSIONS
-     */
-    MaximalCtrl.prototype.insertPermission = function (fileId) {
+    MaximalCtrl1.prototype.insertPermission = function (fileId) {
         var _this = this;
         var currentStep = { op: 'Making a permission', status: '...', data: undefined };
         this.steps.push(currentStep);
@@ -487,7 +459,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.getPermission = function () {
+    MaximalCtrl1.prototype.getPermission = function () {
         var currentStep = { op: 'Getting a permission', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.permissions.get({ fileId: this.currentFile.id, permissionId: this.currentPermission.id });
@@ -496,7 +468,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.updatePermission = function () {
+    MaximalCtrl1.prototype.updatePermission = function () {
         var currentStep = { op: 'Updating a permission', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.permissions.update({ type: 'domain', role: 'reader' }, { fileId: this.currentFile.id, permissionId: this.currentPermission.id });
@@ -505,7 +477,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.patchPermission = function () {
+    MaximalCtrl1.prototype.patchPermission = function () {
         var currentStep = { op: 'Patching a permission', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.permissions.patch({ type: 'domain', role: 'reader' }, { fileId: this.currentFile.id, permissionId: this.currentPermission.id });
@@ -514,7 +486,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.listPermissions = function () {
+    MaximalCtrl1.prototype.listPermissions = function () {
         var currentStep = { op: 'Listing all permissions for a file', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.permissions.list({ fileId: this.currentFile.id });
@@ -523,7 +495,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.deletePermission = function () {
+    MaximalCtrl1.prototype.deletePermission = function () {
         var currentStep = { op: 'Deleting a permission', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.permissions.del({ fileId: this.currentFile.id, permissionId: this.currentPermission.id });
@@ -532,7 +504,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.getpermissionIdForEmail = function (email) {
+    MaximalCtrl1.prototype.getpermissionIdForEmail = function (email) {
         var currentStep = { op: 'getting permission id for ' + this.email, status: '...', data: undefined };
         this.steps.push(currentStep);
         if (!this.email || this.email.length < 4) {
@@ -545,10 +517,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    /*
-     REVISIONS
-     */
-    MaximalCtrl.prototype.getRevision = function () {
+    MaximalCtrl1.prototype.getRevision = function () {
         var currentStep = { op: 'Getting a revision', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.revisions.get({ fileId: this.currentFile.id, revisionId: this.currentRevision.id });
@@ -557,7 +526,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.updateRevision = function () {
+    MaximalCtrl1.prototype.updateRevision = function () {
         var currentStep = { op: 'Updating a revision', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.revisions.update({ pinned: false }, { fileId: this.currentFile.id, revisionId: this.currentRevision.id });
@@ -566,7 +535,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.patchRevision = function () {
+    MaximalCtrl1.prototype.patchRevision = function () {
         var currentStep = { op: 'Patching a revision', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.revisions.patch({ pinned: true }, { fileId: this.currentFile.id, revisionId: this.currentRevision.id });
@@ -575,7 +544,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.listRevisions = function () {
+    MaximalCtrl1.prototype.listRevisions = function () {
         var _this = this;
         var currentStep = { op: 'Listing all revisions for a file', status: '...', data: undefined };
         this.steps.push(currentStep);
@@ -586,7 +555,7 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.prototype.deleteRevision = function () {
+    MaximalCtrl1.prototype.deleteRevision = function () {
         var currentStep = { op: 'Deleting a revision', status: '...', data: undefined };
         this.steps.push(currentStep);
         var ro = this.DriveService.revisions.del({ fileId: this.currentFile.id, revisionId: this.currentRevision.id });
@@ -595,13 +564,8 @@ var MaximalCtrl = (function () {
         });
         return ro.promise;
     };
-    MaximalCtrl.$inject = ['$scope', '$log', '$q', 'DriveService'];
-    return MaximalCtrl;
+    MaximalCtrl1.$inject = ['$scope', '$log', '$q', 'DriveService'];
+    return MaximalCtrl1;
 })();
-//angular.module('MyApp')
-//  .controller('MainCtrl', function ($scope) {
-//    $scope.sig = 'MainCtrl';
-//  });
 angular.module('MyApp')
-    .controller('MaximalCtrl', MaximalCtrl);
-//# sourceMappingURL=maximal_c.js.map
+    .controller('MaximalCtrl', MaximalCtrl1);

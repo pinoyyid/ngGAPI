@@ -15,6 +15,8 @@
     <br> <br>
     <label>Please quickly enter your email address to test getPermissionIdsForEmail</label>
     <input ng-model="vm.email" placeholder="foo@example.com"/>
+    <label style="margin-left:4em">Choose an image for resumable insert</label>
+    <input type="file" ng-model="vm.filebutton" onchange="angular.element(this).scope().vm.uploadImage(this)"/> {{vm.currentStepImage}}
     <br> <br>
 
     <table>
@@ -51,6 +53,7 @@
 <Zscript src="../dist/nggapi_base.min.js"></Zscript>
 <script src="../src/services/oauth_s.js"></script>
 <script src="../src/services/http_s.js"></script>
+<script src="../src/services/drive_s.js"></script>
 <!-- The app in its entirety -->
 <!-- For unattended testing, you need to load a file that sets credentials. The file should look like ...
 
@@ -76,7 +79,7 @@ var clientSecret = 'Y_vhMLVU6rhq';
             });
 </script>
 <!-- Load the other two js files. These will all be bundled and minified in the distro -->
-<script src="../dist/nggapi_drive.min.js"></script>
+<Zscript src="../dist/nggapi_drive.min.js"></Zscript>
 <script src="appscripts/controllers/maximal_c.js"></script>
 </body>
 </html>

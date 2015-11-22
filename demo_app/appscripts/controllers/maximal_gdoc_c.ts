@@ -1,7 +1,7 @@
 /// <reference path="../../../definitely_typed/angular/angular.d.ts"/>
 /// <reference path="../../../nggapi_ts_declaration_files/drive_interfaces.d.ts"/>
 
-class MaximalCtrl {
+class MaximalCtrl2 {
 	sig = 'MaximalCtrl';
 
 	// an array of steps to display
@@ -277,4 +277,4 @@ class MaximalCtrl {
 //    $scope.sig = 'MainCtrl';
 //  });
 angular.module('MyApp')
-	.controller('MaximalCtrl', MaximalCtrl);
+	.controller('MaximalCtrl', MaximalCtrl2);

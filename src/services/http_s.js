@@ -14,7 +14,7 @@ var NgGapi;
             this.INTERVAL_NORMAL = 10;
             this.INTERVAL_THROTTLE = 500;
             this.INTERVAL_MAX = 1500;
-            this.isQueueMode = true;
+            this.isQueueMode = false;
             this.queue = [];
             this.testStatus = 'foo';
             this.skipOauthCozTesting = false;
@@ -106,32 +106,43 @@ var NgGapi;
             var _this = this;
             configObject.headers['Authorization'] = 'Bearer ' + token.access_token;
             var httpPromise = this.$http(configObject);
-            httpPromise.success(function (data, status, headers, configObject, statusText) {
+            httpPromise.then(function (resp) {
                 _this.throttleUp();
-                if (data && data.nextPageToken) {
+                if (resp.data && resp.data.nextPageToken) {
                     def.notify({
-                        data: data,
+                        data: resp.data,
                         configObject: configObject,
-                        headers: headers,
-                        status: status,
-                        statusText: statusText
+                        headers: resp.headers,
+                        status: resp.status,
+                        statusText: resp.statusText
                     });
                     if (!configObject.params) {
                         configObject.params = {};
                     }
-                    configObject.params.pageToken = data.nextPageToken;
+                    configObject.params.pageToken = resp.data.nextPageToken;
                     return _this._doHttp(configObject, def, retryCounter);
                 }
                 def.resolve({
-                    data: data,
+                    data: resp.data,
                     configObject: configObject,
-                    headers: headers,
-                    status: status,
-                    statusText: statusText
+                    headers: resp.headers,
+                    status: resp.status,
+                    statusText: resp.statusText
                 });
             });
-            httpPromise.error(function (data, status, headers, configObject, statusText) {
-                _this.errorHandler(data, status, headers, configObject, statusText, def, retryCounter);
+            httpPromise.catch(function (resp) {
+                if (resp.status > 299 && resp.status < 310) {
+                    def.resolve({
+                        data: resp.data,
+                        configObject: configObject,
+                        headers: resp.headers,
+                        status: resp.status,
+                        statusText: resp.statusText
+                    });
+                }
+                else {
+                    _this.errorHandler(resp.data, resp.status, resp.headers, resp.configObject, resp.statusText, def, retryCounter);
+                }
             });
         };
         HttpService.prototype.errorHandler = function (data, status, headers, configObject, statusText, def, retryCounter) {

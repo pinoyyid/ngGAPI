@@ -252,6 +252,9 @@ var NgGapi;
             catch (ex) {
                 return this.self.reject(ex);
             }
+            if (params.uploadType == 'resumable') {
+                return this.self._resumableUpload(file, params, content, contentHeaders, configObject, storeId, undefined);
+            }
             var promise = this.self.HttpService.doHttp(configObject);
             var responseObject = {
                 promise: promise,
@@ -267,6 +270,55 @@ var NgGapi;
                 _this.self.lastFile = resp.data;
             });
             return responseObject;
+        };
+        DriveService.prototype._resumableUpload = function (file, params, content, contentHeaders, configObject, storeId, resumableDef) {
+            var _this = this;
+            params.resumableStart = params.resumableStart ? params.resumableStart : 0;
+            params.resumableChunkLength = params.resumableChunkLength ? params.resumableChunkLength : 256 * 1024;
+            if (!resumableDef) {
+                resumableDef = this.self.$q.defer();
+            }
+            var promise = this.self.HttpService.doHttp(configObject);
+            var responseObject = {
+                promise: resumableDef.promise,
+                data: {},
+                headers: undefined
+            };
+            promise.then(function (resp) {
+                if (resp && resp.data && resp.data.id) {
+                    _this.self.transcribeProperties(resp.data, responseObject);
+                    _this.self.lastFile = resp.data;
+                    if (storeId == undefined || storeId == true) {
+                        file.id = resp.data.id;
+                    }
+                    resumableDef.resolve(resp);
+                    return responseObject;
+                }
+                resumableDef.notify(params.resumableStart);
+                if (resp.headers('location') && resp.headers('location') != null) {
+                    configObject.url = resp.headers('location');
+                }
+                configObject.data = content.substr(params.resumableStart, params.resumableChunkLength);
+                configObject.transformRequest = undefined;
+                configObject.headers['Content-Type'] = file.mimeType;
+                configObject.headers['Content-Range'] = 'bytes ' + params.resumableStart + '-' + (params.resumableStart + configObject.data.length - 1) + '/' + content.length;
+                configObject.data = _this.str2ab(configObject.data);
+                params.resumableStart += params.resumableChunkLength;
+                return _this.self._resumableUpload(file, params, content, contentHeaders, configObject, storeId, resumableDef);
+            }).catch(function (resp) {
+                console.error('[D446] Error', resp);
+                resumableDef.reject(resp);
+                return responseObject;
+            });
+            return responseObject;
+        };
+        DriveService.prototype.str2ab = function (str) {
+            var buf = new ArrayBuffer(str.length);
+            var bufView = new Uint8Array(buf);
+            for (var i = 0, strLen = str.length; i < strLen; i++) {
+                bufView[i] = str.charCodeAt(i);
+            }
+            return buf;
         };
         DriveService.prototype.filesInsert = function (file, storeId) {
             var _this = this;
@@ -1057,10 +1109,7 @@ var NgGapi;
             return { data: undefined, promise: def.promise, headers: undefined };
         };
         DriveService.prototype.buildUploadConfigObject = function (file, params, content, contentHeaders, isInsert) {
-            if (params.uploadType == 'resumable') {
-                throw "[D136] resumable uploads are not currently supported";
-            }
-            if ((params.uploadType == 'multipart' || params.uploadType == 'media')
+            if ((params.uploadType == 'multipart' || params.uploadType == 'media' || params.uploadType == 'resumable')
                 && (isInsert && (!file || !file.mimeType))) {
                 throw ("[D148] file metadata is missing mandatory mime type");
             }
@@ -1101,6 +1150,13 @@ var NgGapi;
                 var headers = {};
                 if (isInsert) {
                     headers['Content-Type'] = file.mimeType;
+                }
+            }
+            if (params.uploadType == 'resumable') {
+                var headers = {};
+                body = file;
+                if (isInsert) {
+                    headers['X-Upload-Content-Type'] = file.mimeType;
                 }
             }
             return { method: undefined, url: undefined, params: params, data: body, headers: headers };
