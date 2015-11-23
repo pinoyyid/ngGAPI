@@ -245,15 +245,15 @@ describe('Service: DriveService', function () {
 					});
 		});
 
-		it('should fail when uploadType="resumable" with D136 (no resumable yet)', function () {
-			var ro = DriveService.files.insertWithContent({title: 'title-' + id}, {uploadType: 'resumable'}, 'notb64');
-			ro.promise
-					.then(success, failure)
-					.finally(function () {
-						expect(success).not.toHaveBeenCalled();
-						expect(failure).toHaveBeenCalledWithMatch(/D136/);
-					});
-		});
+		// it('should fail when uploadType="resumable" with D136 (no resumable yet)', function () {
+		// 	var ro = DriveService.files.insertWithContent({title: 'title-' + id}, {uploadType: 'resumable'}, 'notb64');
+		// 	ro.promise
+		// 			.then(success, failure)
+		// 			.finally(function () {
+		// 				expect(success).not.toHaveBeenCalled();
+		// 				expect(failure).toHaveBeenCalledWithMatch(/D136/);
+		// 			});
+		// });
 
 		it('should fail when uploadType="multipart" with D148 (no mime type)', function () {
 			var ro = DriveService.files.insertWithContent({title: 'title-' + id}, {uploadType: 'multipart'}, 'Zm9v');

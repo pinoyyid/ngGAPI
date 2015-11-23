@@ -1629,10 +1629,6 @@ module NgGapi {
       content: string,
       contentHeaders: string | {},
       isInsert: boolean): mng.IRequestConfig {
-      // check for a resumable upload and reject coz we don't support them yet
-      // if (params.uploadType == 'resumable') {
-      // 	throw "[D136] resumable uploads are not currently supported";
-      // }
 
       //// check the media is base64 encoded
       //if (base64EncodedContent.match(/^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/) == null) {
